@@ -1,0 +1,615 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Política de Privacidade - Growth Time</title>
+  <meta name="description" content="Política de Privacidade da Growth Time Consultoria. Saiba como coletamos, usamos e protegemos seus dados pessoais.">
+  <link rel="canonical" href="https://growthtime.com.br/politica-de-privacidade/">
+  <style>
+    *, *::before, *::after {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    :root {
+      --primary: #33cc99;
+      --primary-light: #40d9a4;
+      --primary-dark: #182623;
+      --primary-bg: rgba(51, 204, 153, 0.08);
+      --primary-border: rgba(51, 204, 153, 0.2);
+      --bg-white: #FFFFFF;
+      --bg-light: #f6f7f7;
+      --bg-green-soft: #edfaf5;
+      --text-dark: #000000;
+      --text-body: #28303D;
+      --text-muted: #39414D;
+      --text-light: #6b7280;
+      --border: rgba(0, 0, 0, 0.08);
+      --shadow-sm: 0 1px 3px rgba(0,0,0,0.06);
+      --shadow-md: 0 4px 20px rgba(0,0,0,0.08);
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen-Sans', 'Ubuntu', 'Cantarell', 'Helvetica Neue', sans-serif;
+      background: var(--bg-white);
+      color: var(--text-body);
+      line-height: 1.8;
+      overflow-x: hidden;
+    }
+
+    /* HEADER */
+    header {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 1000;
+      background: rgba(255, 255, 255, 0.97);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--border);
+      box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+    }
+
+    .header-inner {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 16px 40px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .logo-link {
+      display: flex;
+      align-items: center;
+      text-decoration: none;
+      gap: 10px;
+    }
+
+    .logo-link img {
+      height: 32px;
+    }
+
+    .header-nav a {
+      color: var(--text-body);
+      text-decoration: none;
+      font-size: 0.95rem;
+      font-weight: 500;
+      transition: color 0.2s;
+    }
+
+    .header-nav a:hover {
+      color: var(--primary);
+    }
+
+    /* MAIN CONTENT */
+    .legal-page {
+      max-width: 820px;
+      margin: 0 auto;
+      padding: 120px 40px 80px;
+    }
+
+    .legal-page h1 {
+      font-size: 2.2rem;
+      font-weight: 700;
+      color: var(--text-dark);
+      margin-bottom: 8px;
+      line-height: 1.3;
+    }
+
+    .legal-date {
+      font-size: 0.95rem;
+      color: var(--text-light);
+      margin-bottom: 40px;
+      padding-bottom: 24px;
+      border-bottom: 2px solid var(--primary-border);
+    }
+
+    .legal-page h2 {
+      font-size: 1.4rem;
+      font-weight: 700;
+      color: var(--primary-dark);
+      margin-top: 48px;
+      margin-bottom: 16px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .legal-page h3 {
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: var(--text-dark);
+      margin-top: 28px;
+      margin-bottom: 12px;
+    }
+
+    .legal-page p {
+      margin-bottom: 16px;
+      color: var(--text-body);
+      font-size: 1rem;
+    }
+
+    .legal-page ul, .legal-page ol {
+      margin-bottom: 16px;
+      padding-left: 24px;
+    }
+
+    .legal-page li {
+      margin-bottom: 8px;
+      color: var(--text-body);
+      font-size: 1rem;
+    }
+
+    .legal-page strong {
+      color: var(--text-dark);
+    }
+
+    .legal-page a {
+      color: var(--primary);
+      text-decoration: none;
+      font-weight: 500;
+    }
+
+    .legal-page a:hover {
+      text-decoration: underline;
+    }
+
+    .highlight-box {
+      background: var(--bg-green-soft);
+      border-left: 4px solid var(--primary);
+      padding: 20px 24px;
+      margin: 24px 0;
+      border-radius: 0 8px 8px 0;
+    }
+
+    .highlight-box p {
+      margin-bottom: 0;
+      font-size: 0.95rem;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 20px 0;
+      font-size: 0.95rem;
+    }
+
+    table th, table td {
+      text-align: left;
+      padding: 12px 16px;
+      border: 1px solid var(--border);
+    }
+
+    table th {
+      background: var(--bg-green-soft);
+      font-weight: 600;
+      color: var(--text-dark);
+    }
+
+    table td {
+      color: var(--text-body);
+    }
+
+    /* FOOTER */
+    footer {
+      background: var(--primary-dark);
+      color: rgba(255,255,255,0.7);
+      padding: 40px;
+      text-align: center;
+      font-size: 0.9rem;
+    }
+
+    footer a {
+      color: var(--primary);
+      text-decoration: none;
+    }
+
+    footer a:hover {
+      text-decoration: underline;
+    }
+
+    .footer-links {
+      margin-bottom: 16px;
+      display: flex;
+      gap: 24px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    /* RESPONSIVE */
+    @media (max-width: 768px) {
+      .legal-page {
+        padding: 100px 20px 60px;
+      }
+
+      .legal-page h1 {
+        font-size: 1.6rem;
+      }
+
+      .legal-page h2 {
+        font-size: 1.2rem;
+      }
+
+      .header-inner {
+        padding: 14px 20px;
+      }
+
+      table {
+        font-size: 0.85rem;
+      }
+
+      table th, table td {
+        padding: 8px 10px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- HEADER -->
+  <header>
+    <div class="header-inner">
+      <a href="https://growthtime.com.br" class="logo-link">
+        <img src="../images/GT_logo_logo_horizontal_cinzaverde.svg" alt="Growth Time" width="140" height="32">
+      </a>
+      <nav class="header-nav">
+        <a href="https://growthtime.com.br">Voltar ao site</a>
+      </nav>
+    </div>
+  </header>
+
+  <!-- CONTEÚDO -->
+  <main class="legal-page">
+    <h1>Política de Privacidade</h1>
+    <p class="legal-date">Última atualização: 16 de abril de 2026</p>
+
+    <div class="highlight-box">
+      <p>A <strong>Growth Time Consultoria</strong> ("Growth Time", "nós", "nosso") valoriza a privacidade e a proteção dos dados pessoais de seus usuários, clientes e visitantes. Esta Política de Privacidade descreve, de forma clara e acessível, como coletamos, usamos, armazenamos, compartilhamos e protegemos suas informações pessoais quando você acessa nosso site <strong>growthtime.com.br</strong>, nossas redes sociais, formulários de contato, páginas de destino (landing pages) e materiais publicitários.</p>
+    </div>
+
+    <p>Esta política foi elaborada em conformidade com a <strong>Lei Geral de Proteção de Dados Pessoais (LGPD — Lei nº 13.709/2018)</strong>, o <strong>Marco Civil da Internet (Lei nº 12.965/2014)</strong>, o <strong>Regulamento Geral de Proteção de Dados da União Europeia (GDPR)</strong> e demais legislações aplicáveis.</p>
+
+    <!-- 1 -->
+    <h2>1. Identificação do Controlador de Dados</h2>
+    <table>
+      <tr>
+        <th>Razão Social</th>
+        <td>Growth Time Consultoria</td>
+      </tr>
+      <tr>
+        <th>CNPJ</th>
+        <td>35.811.804/0001-55</td>
+      </tr>
+      <tr>
+        <th>E-mail de contato</th>
+        <td><a href="mailto:contato@growthtime.com.br">contato@growthtime.com.br</a></td>
+      </tr>
+      <tr>
+        <th>WhatsApp</th>
+        <td><a href="https://wa.me/558596684749">(85) 9668-4749</a></td>
+      </tr>
+      <tr>
+        <th>Endereço do site</th>
+        <td><a href="https://growthtime.com.br">https://growthtime.com.br</a></td>
+      </tr>
+    </table>
+
+    <!-- 2 -->
+    <h2>2. Quais Dados Pessoais Coletamos</h2>
+    <p>Podemos coletar os seguintes tipos de dados pessoais, dependendo da forma como você interage conosco:</p>
+
+    <h3>2.1. Dados fornecidos diretamente por você</h3>
+    <ul>
+      <li><strong>Dados de identificação:</strong> nome completo, e-mail, número de telefone/WhatsApp</li>
+      <li><strong>Dados profissionais:</strong> nome da empresa, cargo, segmento de atuação, faturamento estimado</li>
+      <li><strong>Dados de comunicação:</strong> mensagens enviadas via formulários de contato, WhatsApp, e-mail ou redes sociais</li>
+      <li><strong>Dados de interesse:</strong> respostas a pesquisas, questionários ou formulários de qualificação (lead forms)</li>
+    </ul>
+
+    <h3>2.2. Dados coletados automaticamente</h3>
+    <ul>
+      <li><strong>Dados de navegação:</strong> endereço IP, tipo e versão do navegador, sistema operacional, idioma, resolução de tela</li>
+      <li><strong>Dados de acesso:</strong> páginas visitadas, tempo de permanência, URL de origem (referrer), horário de acesso</li>
+      <li><strong>Dados de dispositivo:</strong> identificador do dispositivo (device ID), tipo de dispositivo (desktop, mobile, tablet)</li>
+      <li><strong>Dados de cookies e tecnologias semelhantes:</strong> cookies de sessão, cookies persistentes, pixels de rastreamento, tags de marketing, local storage</li>
+      <li><strong>Dados de interação publicitária:</strong> cliques em anúncios, visualizações de anúncios, conversões, interações com formulários de captação de leads (Meta Lead Ads / Instant Forms)</li>
+    </ul>
+
+    <h3>2.3. Dados obtidos de terceiros</h3>
+    <ul>
+      <li><strong>Plataformas de publicidade:</strong> informações de perfil público disponibilizadas pelo Meta (Facebook/Instagram) quando você interage com nossos anúncios ou preenche formulários de leads</li>
+      <li><strong>Ferramentas de análise:</strong> dados agregados e anonimizados de ferramentas de analytics</li>
+    </ul>
+
+    <!-- 3 -->
+    <h2>3. Para Quais Finalidades Utilizamos Seus Dados</h2>
+    <p>Seus dados pessoais são utilizados exclusivamente para as seguintes finalidades:</p>
+
+    <table>
+      <tr>
+        <th>Finalidade</th>
+        <th>Base Legal (LGPD)</th>
+      </tr>
+      <tr>
+        <td>Responder a solicitações de contato e orçamento</td>
+        <td>Execução de contrato (Art. 7º, V)</td>
+      </tr>
+      <tr>
+        <td>Enviar comunicações de marketing, newsletters e ofertas personalizadas</td>
+        <td>Consentimento (Art. 7º, I)</td>
+      </tr>
+      <tr>
+        <td>Criar e gerenciar públicos personalizados (Custom Audiences) no Meta Ads</td>
+        <td>Consentimento (Art. 7º, I)</td>
+      </tr>
+      <tr>
+        <td>Mensurar o desempenho de campanhas publicitárias (Facebook Pixel, Conversions API)</td>
+        <td>Legítimo interesse (Art. 7º, IX)</td>
+      </tr>
+      <tr>
+        <td>Retargeting e remarketing em plataformas de publicidade</td>
+        <td>Consentimento (Art. 7º, I)</td>
+      </tr>
+      <tr>
+        <td>Melhorar a experiência do usuário no site e nas landing pages</td>
+        <td>Legítimo interesse (Art. 7º, IX)</td>
+      </tr>
+      <tr>
+        <td>Análise estatística e relatórios internos</td>
+        <td>Legítimo interesse (Art. 7º, IX)</td>
+      </tr>
+      <tr>
+        <td>Cumprir obrigações legais e regulatórias</td>
+        <td>Cumprimento de obrigação legal (Art. 7º, II)</td>
+      </tr>
+      <tr>
+        <td>Prevenir fraudes e garantir a segurança do site</td>
+        <td>Legítimo interesse (Art. 7º, IX)</td>
+      </tr>
+    </table>
+
+    <div class="highlight-box">
+      <p><strong>Importante:</strong> quando a base legal for o consentimento, você poderá revogá-lo a qualquer momento, sem prejuízo da legalidade do tratamento realizado anteriormente. Os dados coletados através do Meta Lead Ads (Instant Forms) são utilizados exclusivamente para a finalidade declarada na campanha correspondente.</p>
+    </div>
+
+    <!-- 4 -->
+    <h2>4. Cookies e Tecnologias de Rastreamento</h2>
+    <p>Utilizamos cookies e tecnologias semelhantes para melhorar a sua experiência, analisar o tráfego e personalizar conteúdos e anúncios. Abaixo, detalhamos cada tipo:</p>
+
+    <h3>4.1. Cookies essenciais</h3>
+    <p>Necessários para o funcionamento básico do site. Não podem ser desativados.</p>
+    <ul>
+      <li>Cookies de sessão e preferências de navegação</li>
+      <li>Cookies de segurança e prevenção de fraude</li>
+    </ul>
+
+    <h3>4.2. Cookies de análise e desempenho</h3>
+    <p>Permitem entender como os visitantes interagem com o site.</p>
+    <ul>
+      <li>Google Analytics (análise de tráfego e comportamento)</li>
+      <li>Ferramentas de mapa de calor e gravação de sessões (quando aplicável)</li>
+    </ul>
+
+    <h3>4.3. Cookies de publicidade e marketing</h3>
+    <p>Utilizados para rastrear a eficácia de campanhas e exibir anúncios relevantes.</p>
+    <ul>
+      <li><strong>Meta Pixel (Facebook Pixel):</strong> rastreia conversões, otimiza anúncios, cria públicos para retargeting e mede o desempenho de campanhas no Facebook e Instagram</li>
+      <li><strong>Meta Conversions API (CAPI):</strong> envia dados de conversão do servidor diretamente para o Meta, complementando o Pixel</li>
+      <li><strong>Cookies de plataformas de anúncio:</strong> Google Ads, quando aplicável</li>
+    </ul>
+
+    <h3>4.4. Como gerenciar seus cookies</h3>
+    <p>Você pode gerenciar ou desativar cookies a qualquer momento através das configurações do seu navegador:</p>
+    <ul>
+      <li><strong>Google Chrome:</strong> Configurações → Privacidade e segurança → Cookies</li>
+      <li><strong>Mozilla Firefox:</strong> Configurações → Privacidade e Segurança</li>
+      <li><strong>Safari:</strong> Preferências → Privacidade</li>
+      <li><strong>Microsoft Edge:</strong> Configurações → Cookies e permissões do site</li>
+    </ul>
+    <p>A desativação de cookies pode afetar a funcionalidade e a experiência de navegação no site.</p>
+
+    <!-- 5 -->
+    <h2>5. Compartilhamento de Dados com Terceiros</h2>
+    <p>Podemos compartilhar seus dados pessoais com os seguintes terceiros, exclusivamente para as finalidades descritas nesta política:</p>
+
+    <table>
+      <tr>
+        <th>Terceiro / Ferramenta</th>
+        <th>Finalidade</th>
+        <th>Política de Privacidade</th>
+      </tr>
+      <tr>
+        <td>Meta Platforms (Facebook / Instagram)</td>
+        <td>Publicidade, retargeting, mensuração de conversões, públicos personalizados</td>
+        <td><a href="https://www.facebook.com/privacy/policy/" target="_blank" rel="noopener">Política do Meta</a></td>
+      </tr>
+      <tr>
+        <td>Google (Analytics / Ads)</td>
+        <td>Análise de tráfego, publicidade</td>
+        <td><a href="https://policies.google.com/privacy" target="_blank" rel="noopener">Política do Google</a></td>
+      </tr>
+      <tr>
+        <td>Cloudflare</td>
+        <td>Hospedagem, CDN, segurança e proteção contra DDoS</td>
+        <td><a href="https://www.cloudflare.com/privacypolicy/" target="_blank" rel="noopener">Política da Cloudflare</a></td>
+      </tr>
+      <tr>
+        <td>Ferramentas de e-mail marketing</td>
+        <td>Envio de comunicações e newsletters</td>
+        <td>Informada no momento da coleta</td>
+      </tr>
+      <tr>
+        <td>Ferramentas de CRM</td>
+        <td>Gestão de leads e relacionamento com clientes</td>
+        <td>Informada no momento da coleta</td>
+      </tr>
+    </table>
+
+    <p><strong>Não vendemos, alugamos ou negociamos seus dados pessoais com terceiros para fins que não estejam descritos nesta política.</strong></p>
+
+    <div class="highlight-box">
+      <p><strong>Sobre o Meta Pixel e Custom Audiences:</strong> ao utilizar o Meta Pixel e criar públicos personalizados (Custom Audiences), garantimos que possuímos o consentimento adequado dos titulares dos dados, conforme exigido pelas políticas do Meta e pela legislação aplicável. Os dados enviados ao Meta são criptografados (hashed) antes da transmissão.</p>
+    </div>
+
+    <!-- 6 -->
+    <h2>6. Transferência Internacional de Dados</h2>
+    <p>Alguns dos nossos prestadores de serviços estão sediados fora do Brasil (como Meta Platforms, Inc. e Google LLC, nos Estados Unidos). Nestes casos, a transferência internacional de dados é realizada em conformidade com o Art. 33 da LGPD, garantindo nível adequado de proteção por meio de:</p>
+    <ul>
+      <li>Cláusulas contratuais padrão aprovadas</li>
+      <li>Compromissos de proteção de dados equivalentes à LGPD</li>
+      <li>Certificações e frameworks de privacidade reconhecidos internacionalmente</li>
+    </ul>
+
+    <!-- 7 -->
+    <h2>7. Retenção e Armazenamento de Dados</h2>
+    <p>Seus dados pessoais serão armazenados pelo tempo necessário para cumprir as finalidades descritas nesta política, observando os seguintes critérios:</p>
+
+    <table>
+      <tr>
+        <th>Tipo de Dado</th>
+        <th>Período de Retenção</th>
+      </tr>
+      <tr>
+        <td>Dados de leads e contato</td>
+        <td>Até 24 meses após a última interação, ou enquanto durar o relacionamento comercial</td>
+      </tr>
+      <tr>
+        <td>Dados de navegação e cookies</td>
+        <td>Até 13 meses (conforme configuração das ferramentas de analytics)</td>
+      </tr>
+      <tr>
+        <td>Dados de conversões publicitárias</td>
+        <td>Até 180 dias (conforme políticas do Meta)</td>
+      </tr>
+      <tr>
+        <td>Dados contratuais e fiscais</td>
+        <td>Pelo prazo exigido pela legislação vigente (até 5 anos)</td>
+      </tr>
+      <tr>
+        <td>Dados de consentimento</td>
+        <td>Pelo tempo necessário para comprovação legal do consentimento</td>
+      </tr>
+    </table>
+
+    <p>Após o término do período de retenção, os dados são eliminados de forma segura ou anonimizados, impossibilitando a identificação do titular.</p>
+
+    <!-- 8 -->
+    <h2>8. Segurança dos Dados</h2>
+    <p>Adotamos medidas técnicas e administrativas adequadas para proteger seus dados pessoais contra acessos não autorizados, destruição, perda, alteração ou qualquer forma de tratamento inadequado:</p>
+    <ul>
+      <li><strong>Criptografia SSL/TLS:</strong> todas as comunicações entre o seu navegador e o nosso site são criptografadas via HTTPS</li>
+      <li><strong>Controle de acesso:</strong> acesso restrito aos dados apenas para colaboradores autorizados</li>
+      <li><strong>Infraestrutura segura:</strong> hospedagem em plataformas com certificações de segurança (Cloudflare)</li>
+      <li><strong>Hash de dados:</strong> dados pessoais enviados a plataformas de publicidade são criptografados (hashed) antes da transmissão</li>
+      <li><strong>Monitoramento:</strong> monitoramento contínuo de vulnerabilidades e acessos não autorizados</li>
+      <li><strong>Backups:</strong> backups regulares para garantir a recuperação de dados em caso de incidentes</li>
+    </ul>
+
+    <!-- 9 -->
+    <h2>9. Seus Direitos como Titular dos Dados</h2>
+    <p>Em conformidade com a LGPD (Art. 18), você possui os seguintes direitos em relação aos seus dados pessoais:</p>
+    <ul>
+      <li><strong>Confirmação e acesso:</strong> confirmar a existência de tratamento e acessar seus dados pessoais</li>
+      <li><strong>Correção:</strong> solicitar a correção de dados incompletos, inexatos ou desatualizados</li>
+      <li><strong>Anonimização, bloqueio ou eliminação:</strong> solicitar a anonimização, bloqueio ou eliminação de dados desnecessários ou tratados em desconformidade com a LGPD</li>
+      <li><strong>Portabilidade:</strong> solicitar a portabilidade dos seus dados a outro fornecedor de serviço</li>
+      <li><strong>Eliminação:</strong> solicitar a eliminação dos dados pessoais tratados com base no consentimento</li>
+      <li><strong>Informação sobre compartilhamento:</strong> obter informações sobre entidades públicas e privadas com as quais seus dados são compartilhados</li>
+      <li><strong>Revogação do consentimento:</strong> revogar o consentimento a qualquer momento</li>
+      <li><strong>Oposição:</strong> opor-se ao tratamento realizado com base em uma das hipóteses de dispensa de consentimento</li>
+      <li><strong>Revisão de decisões automatizadas:</strong> solicitar a revisão de decisões tomadas unicamente com base em tratamento automatizado</li>
+    </ul>
+
+    <div class="highlight-box">
+      <p><strong>Como exercer seus direitos:</strong> envie sua solicitação para <a href="mailto:contato@growthtime.com.br">contato@growthtime.com.br</a> com o assunto "Direitos LGPD" ou entre em contato pelo WhatsApp <a href="https://wa.me/558596684749">(85) 9668-4749</a>. Responderemos sua solicitação em até <strong>15 (quinze) dias úteis</strong>, conforme previsto na legislação.</p>
+    </div>
+
+    <!-- 10 -->
+    <h2>10. Opt-Out de Publicidade e Rastreamento</h2>
+    <p>Você pode optar por não receber publicidade personalizada e desativar o rastreamento das seguintes formas:</p>
+    <ul>
+      <li><strong>Meta (Facebook/Instagram):</strong> acesse suas <a href="https://www.facebook.com/adpreferences" target="_blank" rel="noopener">Preferências de Anúncios</a> para controlar os anúncios exibidos</li>
+      <li><strong>Google:</strong> acesse <a href="https://adssettings.google.com/" target="_blank" rel="noopener">Configurações de Anúncios do Google</a></li>
+      <li><strong>Configurações do navegador:</strong> desative cookies de terceiros nas configurações do seu navegador</li>
+      <li><strong>Cancelamento de e-mails:</strong> clique no link "cancelar inscrição" presente no rodapé de qualquer comunicação de marketing que enviamos</li>
+      <li><strong>Solicitação direta:</strong> entre em contato conosco pelo e-mail <a href="mailto:contato@growthtime.com.br">contato@growthtime.com.br</a></li>
+    </ul>
+
+    <!-- 11 -->
+    <h2>11. Proteção de Dados de Menores</h2>
+    <p>Nossos serviços não são direcionados a menores de 18 anos. Não coletamos intencionalmente dados pessoais de crianças ou adolescentes. Se tomarmos conhecimento de que coletamos dados de um menor sem o consentimento dos pais ou responsáveis legais, tomaremos medidas imediatas para eliminar essas informações.</p>
+
+    <!-- 12 -->
+    <h2>12. Formulários de Captação de Leads (Meta Lead Ads)</h2>
+    <p>Quando você preenche um formulário de captação de leads através de nossos anúncios no Facebook ou Instagram (Instant Forms / Meta Lead Ads), informamos que:</p>
+    <ul>
+      <li>A Growth Time é a <strong>controladora dos dados</strong> coletados através desses formulários</li>
+      <li>Os dados são coletados com o seu <strong>consentimento explícito</strong>, concedido ao preencher e enviar o formulário</li>
+      <li>Os dados serão utilizados <strong>exclusivamente para a finalidade declarada</strong> na campanha (ex.: contato comercial, envio de material, agendamento de reunião)</li>
+      <li>Você pode solicitar a <strong>exclusão dos seus dados</strong> a qualquer momento através dos canais de contato informados nesta política</li>
+      <li>O link para esta Política de Privacidade é disponibilizado em todos os formulários de leads</li>
+    </ul>
+
+    <!-- 13 -->
+    <h2>13. Dados Sensíveis</h2>
+    <p>Não coletamos dados pessoais sensíveis (origem racial ou étnica, convicção religiosa, opinião política, dados de saúde, dados genéticos ou biométricos, vida sexual, filiação a sindicato ou organização) através do nosso site, formulários ou campanhas publicitárias, a menos que seja estritamente necessário e com seu consentimento explícito e específico.</p>
+
+    <!-- 14 -->
+    <h2>14. Alterações nesta Política</h2>
+    <p>Reservamo-nos o direito de alterar esta Política de Privacidade a qualquer momento, para refletir mudanças na legislação, em nossas práticas de tratamento de dados ou em nossos serviços. Recomendamos que você revise esta página periodicamente.</p>
+    <p>Alterações significativas serão comunicadas por meio de aviso no site ou por e-mail, quando aplicável. A data da última atualização sempre estará indicada no topo desta página.</p>
+
+    <!-- 15 -->
+    <h2>15. Legislação Aplicável e Foro</h2>
+    <p>Esta Política de Privacidade é regida pela legislação brasileira, em especial pela Lei Geral de Proteção de Dados Pessoais (Lei nº 13.709/2018) e pelo Marco Civil da Internet (Lei nº 12.965/2014).</p>
+    <p>Eventuais controvérsias serão resolvidas no foro da comarca de Fortaleza/CE, com exclusão de qualquer outro, por mais privilegiado que seja.</p>
+
+    <!-- 16 -->
+    <h2>16. Contato e Encarregado de Dados (DPO)</h2>
+    <p>Para dúvidas, solicitações ou reclamações relacionadas a esta Política de Privacidade ou ao tratamento de seus dados pessoais, entre em contato:</p>
+    <table>
+      <tr>
+        <th>Canal</th>
+        <th>Informação</th>
+      </tr>
+      <tr>
+        <td>E-mail</td>
+        <td><a href="mailto:contato@growthtime.com.br">contato@growthtime.com.br</a></td>
+      </tr>
+      <tr>
+        <td>WhatsApp</td>
+        <td><a href="https://wa.me/558596684749">(85) 9668-4749</a></td>
+      </tr>
+      <tr>
+        <td>Site</td>
+        <td><a href="https://growthtime.com.br">https://growthtime.com.br</a></td>
+      </tr>
+    </table>
+
+    <p>Caso não esteja satisfeito com a resposta recebida, você poderá apresentar reclamação à <strong>Autoridade Nacional de Proteção de Dados (ANPD)</strong> pelo site <a href="https://www.gov.br/anpd" target="_blank" rel="noopener">www.gov.br/anpd</a>.</p>
+
+    <p style="margin-top: 48px; padding-top: 24px; border-top: 2px solid var(--primary-border); font-size: 0.9rem; color: var(--text-light);">
+      Esta Política de Privacidade é válida a partir de 16 de abril de 2026.<br>
+      Growth Time Consultoria — CNPJ: 35.811.804/0001-55
+    </p>
+  </main>
+
+  <!-- FOOTER -->
+  <footer>
+    <div class="footer-links">
+      <a href="https://growthtime.com.br">Página Inicial</a>
+      <a href="https://growthtime.com.br/politica-de-privacidade/">Política de Privacidade</a>
+      <a href="https://growthtime.com.br/termos-de-uso/">Termos de Uso</a>
+    </div>
+    <p>&copy; 2026 Growth Time Consultoria | CNPJ: 35.811.804/0001-55</p>
+  </footer>
+
+</body>
+</html>

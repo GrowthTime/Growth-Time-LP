@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Termos de Uso - Growth Time</title>
+  <meta name="description" content="Termos de Uso do site Growth Time Consultoria. Conheça as condições de uso dos nossos serviços e conteúdos.">
+  <link rel="canonical" href="https://growthtime.com.br/termos-de-uso/">
+  <style>
+    *, *::before, *::after {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    :root {
+      --primary: #33cc99;
+      --primary-light: #40d9a4;
+      --primary-dark: #182623;
+      --primary-bg: rgba(51, 204, 153, 0.08);
+      --primary-border: rgba(51, 204, 153, 0.2);
+      --bg-white: #FFFFFF;
+      --bg-light: #f6f7f7;
+      --bg-green-soft: #edfaf5;
+      --text-dark: #000000;
+      --text-body: #28303D;
+      --text-muted: #39414D;
+      --text-light: #6b7280;
+      --border: rgba(0, 0, 0, 0.08);
+      --shadow-sm: 0 1px 3px rgba(0,0,0,0.06);
+      --shadow-md: 0 4px 20px rgba(0,0,0,0.08);
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen-Sans', 'Ubuntu', 'Cantarell', 'Helvetica Neue', sans-serif;
+      background: var(--bg-white);
+      color: var(--text-body);
+      line-height: 1.8;
+      overflow-x: hidden;
+    }
+
+    /* HEADER */
+    header {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 1000;
+      background: rgba(255, 255, 255, 0.97);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--border);
+      box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+    }
+
+    .header-inner {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 16px 40px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .logo-link {
+      display: flex;
+      align-items: center;
+      text-decoration: none;
+      gap: 10px;
+    }
+
+    .logo-link img {
+      height: 32px;
+    }
+
+    .header-nav a {
+      color: var(--text-body);
+      text-decoration: none;
+      font-size: 0.95rem;
+      font-weight: 500;
+      transition: color 0.2s;
+    }
+
+    .header-nav a:hover {
+      color: var(--primary);
+    }
+
+    /* MAIN CONTENT */
+    .legal-page {
+      max-width: 820px;
+      margin: 0 auto;
+      padding: 120px 40px 80px;
+    }
+
+    .legal-page h1 {
+      font-size: 2.2rem;
+      font-weight: 700;
+      color: var(--text-dark);
+      margin-bottom: 8px;
+      line-height: 1.3;
+    }
+
+    .legal-date {
+      font-size: 0.95rem;
+      color: var(--text-light);
+      margin-bottom: 40px;
+      padding-bottom: 24px;
+      border-bottom: 2px solid var(--primary-border);
+    }
+
+    .legal-page h2 {
+      font-size: 1.4rem;
+      font-weight: 700;
+      color: var(--primary-dark);
+      margin-top: 48px;
+      margin-bottom: 16px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .legal-page h3 {
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: var(--text-dark);
+      margin-top: 28px;
+      margin-bottom: 12px;
+    }
+
+    .legal-page p {
+      margin-bottom: 16px;
+      color: var(--text-body);
+      font-size: 1rem;
+    }
+
+    .legal-page ul, .legal-page ol {
+      margin-bottom: 16px;
+      padding-left: 24px;
+    }
+
+    .legal-page li {
+      margin-bottom: 8px;
+      color: var(--text-body);
+      font-size: 1rem;
+    }
+
+    .legal-page strong {
+      color: var(--text-dark);
+    }
+
+    .legal-page a {
+      color: var(--primary);
+      text-decoration: none;
+      font-weight: 500;
+    }
+
+    .legal-page a:hover {
+      text-decoration: underline;
+    }
+
+    .highlight-box {
+      background: var(--bg-green-soft);
+      border-left: 4px solid var(--primary);
+      padding: 20px 24px;
+      margin: 24px 0;
+      border-radius: 0 8px 8px 0;
+    }
+
+    .highlight-box p {
+      margin-bottom: 0;
+      font-size: 0.95rem;
+    }
+
+    /* FOOTER */
+    footer {
+      background: var(--primary-dark);
+      color: rgba(255,255,255,0.7);
+      padding: 40px;
+      text-align: center;
+      font-size: 0.9rem;
+    }
+
+    footer a {
+      color: var(--primary);
+      text-decoration: none;
+    }
+
+    footer a:hover {
+      text-decoration: underline;
+    }
+
+    .footer-links {
+      margin-bottom: 16px;
+      display: flex;
+      gap: 24px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    /* RESPONSIVE */
+    @media (max-width: 768px) {
+      .legal-page {
+        padding: 100px 20px 60px;
+      }
+
+      .legal-page h1 {
+        font-size: 1.6rem;
+      }
+
+      .legal-page h2 {
+        font-size: 1.2rem;
+      }
+
+      .header-inner {
+        padding: 14px 20px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- HEADER -->
+  <header>
+    <div class="header-inner">
+      <a href="https://growthtime.com.br" class="logo-link">
+        <img src="../images/GT_logo_logo_horizontal_cinzaverde.svg" alt="Growth Time" width="140" height="32">
+      </a>
+      <nav class="header-nav">
+        <a href="https://growthtime.com.br">Voltar ao site</a>
+      </nav>
+    </div>
+  </header>
+
+  <!-- CONTEÚDO -->
+  <main class="legal-page">
+    <h1>Termos de Uso</h1>
+    <p class="legal-date">Última atualização: 16 de abril de 2026</p>
+
+    <div class="highlight-box">
+      <p>Ao acessar e utilizar o site <strong>growthtime.com.br</strong> e os serviços da <strong>Growth Time Consultoria</strong> ("Growth Time", "nós", "nosso"), você concorda com os termos e condições descritos neste documento. Leia atentamente antes de utilizar nossos serviços.</p>
+    </div>
+
+    <!-- 1 -->
+    <h2>1. Identificação da Empresa</h2>
+    <p>Estes Termos de Uso regulam a utilização do site e dos serviços oferecidos por:</p>
+    <ul>
+      <li><strong>Razão Social:</strong> Growth Time Consultoria</li>
+      <li><strong>CNPJ:</strong> 35.811.804/0001-55</li>
+      <li><strong>E-mail:</strong> <a href="mailto:contato@growthtime.com.br">contato@growthtime.com.br</a></li>
+      <li><strong>WhatsApp:</strong> <a href="https://wa.me/558596684749">(85) 9668-4749</a></li>
+      <li><strong>Site:</strong> <a href="https://growthtime.com.br">https://growthtime.com.br</a></li>
+    </ul>
+
+    <!-- 2 -->
+    <h2>2. Aceitação dos Termos</h2>
+    <p>Ao acessar, navegar ou utilizar qualquer funcionalidade do site growthtime.com.br, incluindo o preenchimento de formulários, interação com anúncios publicitários, envio de mensagens ou contratação de serviços, você declara que:</p>
+    <ul>
+      <li>Leu, compreendeu e concorda integralmente com estes Termos de Uso</li>
+      <li>É maior de 18 (dezoito) anos ou está devidamente representado por seus pais ou responsáveis legais</li>
+      <li>Possui capacidade civil plena para aceitar estes termos e celebrar contratos</li>
+      <li>Leu e concorda com nossa <a href="https://growthtime.com.br/politica-de-privacidade/">Política de Privacidade</a></li>
+    </ul>
+    <p>Se você não concorda com qualquer parte destes termos, deve interromper imediatamente o uso do site e dos nossos serviços.</p>
+
+    <!-- 3 -->
+    <h2>3. Descrição dos Serviços</h2>
+    <p>A Growth Time é uma consultoria especializada em crescimento de negócios que oferece, entre outros:</p>
+    <ul>
+      <li>Consultoria em estratégias de marketing digital e crescimento</li>
+      <li>Gestão de tráfego pago e campanhas publicitárias (Meta Ads, Google Ads, entre outros)</li>
+      <li>Criação e otimização de funis de vendas e landing pages</li>
+      <li>Estratégias de posicionamento digital e branding</li>
+      <li>Análise de dados e relatórios de desempenho</li>
+      <li>Conteúdos educativos, materiais gratuitos e newsletters</li>
+    </ul>
+    <p>Os serviços específicos, valores, prazos e condições de entrega são definidos em propostas comerciais ou contratos individuais firmados entre as partes.</p>
+
+    <!-- 4 -->
+    <h2>4. Cadastro e Formulários de Contato</h2>
+    <p>Ao preencher formulários de contato, formulários de leads (Meta Lead Ads / Instant Forms), ou qualquer outro meio de cadastro disponibilizado pela Growth Time, você:</p>
+    <ul>
+      <li>Garante que as informações fornecidas são verdadeiras, atualizadas e completas</li>
+      <li>Autoriza a Growth Time a entrar em contato através dos canais informados (e-mail, telefone, WhatsApp)</li>
+      <li>Consente com o tratamento dos seus dados pessoais conforme descrito na <a href="https://growthtime.com.br/politica-de-privacidade/">Política de Privacidade</a></li>
+      <li>Compreende que os dados coletados via Meta Lead Ads serão utilizados exclusivamente para a finalidade declarada na campanha</li>
+    </ul>
+    <p>Você é responsável pela veracidade e atualização dos dados fornecidos. A Growth Time não se responsabiliza por problemas decorrentes de informações incorretas ou desatualizadas.</p>
+
+    <!-- 5 -->
+    <h2>5. Comunicações e Marketing</h2>
+    <p>Ao fornecer seus dados de contato, você poderá receber comunicações de marketing da Growth Time, incluindo:</p>
+    <ul>
+      <li>E-mails com conteúdos, ofertas, promoções e novidades</li>
+      <li>Mensagens via WhatsApp relacionadas a serviços e ofertas</li>
+      <li>Anúncios personalizados em plataformas como Facebook, Instagram e Google</li>
+    </ul>
+    <p>Você pode optar por não receber comunicações de marketing a qualquer momento, através de:</p>
+    <ul>
+      <li>Link de descadastramento presente nos e-mails</li>
+      <li>Solicitação direta pelo e-mail <a href="mailto:contato@growthtime.com.br">contato@growthtime.com.br</a></li>
+      <li>Configurações de preferências de anúncios nas plataformas de publicidade</li>
+    </ul>
+
+    <!-- 6 -->
+    <h2>6. Propriedade Intelectual</h2>
+    <p>Todo o conteúdo disponibilizado no site growthtime.com.br é de propriedade exclusiva da Growth Time Consultoria ou de seus licenciadores, incluindo, mas não se limitando a:</p>
+    <ul>
+      <li>Textos, artigos, materiais educativos e metodologias</li>
+      <li>Logotipos, marcas, identidade visual e design do site</li>
+      <li>Imagens, ilustrações, ícones e elementos gráficos</li>
+      <li>Vídeos, áudios e conteúdos multimídia</li>
+      <li>Códigos-fonte, layout e estrutura do site</li>
+    </ul>
+    <p>Estes conteúdos são protegidos pela legislação brasileira de propriedade intelectual (Lei nº 9.610/1998 — Direitos Autorais; Lei nº 9.279/1996 — Propriedade Industrial). É proibido:</p>
+    <ul>
+      <li>Reproduzir, copiar, distribuir ou modificar qualquer conteúdo sem autorização prévia e por escrito</li>
+      <li>Utilizar a marca "Growth Time" ou seus elementos visuais sem autorização</li>
+      <li>Fazer uso comercial de qualquer material disponibilizado no site</li>
+      <li>Realizar scraping, crawling ou extração automatizada de conteúdo</li>
+    </ul>
+
+    <!-- 7 -->
+    <h2>7. Uso Aceitável do Site</h2>
+    <p>Ao utilizar o site, você concorda em não:</p>
+    <ul>
+      <li>Utilizar o site para fins ilegais, fraudulentos ou prejudiciais a terceiros</li>
+      <li>Transmitir vírus, malware ou qualquer código malicioso</li>
+      <li>Tentar acessar áreas restritas do site ou de seus sistemas</li>
+      <li>Interferir no funcionamento normal do site ou sobrecarregar seus servidores</li>
+      <li>Fornecer informações falsas ou enganosas em formulários</li>
+      <li>Utilizar dispositivos automatizados (bots) para interagir com o site sem autorização</li>
+      <li>Violar direitos de propriedade intelectual da Growth Time ou de terceiros</li>
+    </ul>
+    <p>A Growth Time reserva-se o direito de bloquear ou restringir o acesso de qualquer usuário que viole estas condições, sem aviso prévio.</p>
+
+    <!-- 8 -->
+    <h2>8. Disponibilidade do Site</h2>
+    <p>A Growth Time se esforça para manter o site acessível 24 horas por dia, 7 dias por semana. No entanto, não garantimos disponibilidade ininterrupta. O site pode ficar temporariamente indisponível devido a:</p>
+    <ul>
+      <li>Manutenções programadas ou emergenciais</li>
+      <li>Atualizações de conteúdo, design ou funcionalidades</li>
+      <li>Falhas técnicas de terceiros (servidores, CDN, DNS)</li>
+      <li>Eventos de força maior</li>
+    </ul>
+    <p>A Growth Time não será responsabilizada por eventuais prejuízos decorrentes de indisponibilidade temporária do site.</p>
+
+    <!-- 9 -->
+    <h2>9. Links para Sites de Terceiros</h2>
+    <p>O site pode conter links para sites de terceiros (incluindo redes sociais como Instagram, WhatsApp e plataformas de publicidade). Estes links são fornecidos apenas para conveniência e não implicam endosso ou responsabilidade sobre o conteúdo, políticas ou práticas desses sites.</p>
+    <p>Recomendamos que você leia os termos de uso e políticas de privacidade de cada site de terceiro que acessar.</p>
+
+    <!-- 10 -->
+    <h2>10. Limitação de Responsabilidade</h2>
+    <p>Na máxima extensão permitida pela legislação aplicável:</p>
+    <ul>
+      <li>O site e seus conteúdos são fornecidos "como estão" ("as is"), sem garantias de qualquer tipo, expressas ou implícitas</li>
+      <li>A Growth Time não garante que o site estará livre de erros, vírus ou outros componentes prejudiciais</li>
+      <li>As informações e conteúdos do site são de caráter informativo e não constituem aconselhamento profissional específico</li>
+      <li>Resultados apresentados em cases e depoimentos são ilustrativos e não garantem desempenho futuro semelhante</li>
+      <li>A Growth Time não se responsabiliza por decisões tomadas com base exclusivamente nas informações do site</li>
+    </ul>
+
+    <!-- 11 -->
+    <h2>11. Indenização</h2>
+    <p>Você concorda em indenizar e manter a Growth Time, seus sócios, colaboradores e prestadores de serviço isentos de quaisquer reclamações, perdas, danos, responsabilidades e despesas (incluindo honorários advocatícios) decorrentes de:</p>
+    <ul>
+      <li>Violação destes Termos de Uso por parte do usuário</li>
+      <li>Uso indevido do site ou dos serviços</li>
+      <li>Violação de direitos de terceiros</li>
+      <li>Fornecimento de informações falsas ou enganosas</li>
+    </ul>
+
+    <!-- 12 -->
+    <h2>12. Contratação de Serviços</h2>
+    <p>A contratação de serviços de consultoria da Growth Time é formalizada por meio de propostas comerciais e/ou contratos específicos, que estabelecerão:</p>
+    <ul>
+      <li>Escopo detalhado dos serviços a serem prestados</li>
+      <li>Valores, formas de pagamento e condições financeiras</li>
+      <li>Prazos de entrega e cronograma de execução</li>
+      <li>Responsabilidades de ambas as partes</li>
+      <li>Condições de rescisão e cancelamento</li>
+    </ul>
+    <p>Os termos do contrato específico prevalecerão sobre estes Termos de Uso em caso de conflito.</p>
+
+    <!-- 13 -->
+    <h2>13. Privacidade e Proteção de Dados</h2>
+    <p>O tratamento de dados pessoais realizado pela Growth Time é regido pela nossa <a href="https://growthtime.com.br/politica-de-privacidade/">Política de Privacidade</a>, que é parte integrante destes Termos de Uso. Ao aceitar estes termos, você também concorda com nossa Política de Privacidade.</p>
+
+    <!-- 14 -->
+    <h2>14. Alterações nos Termos de Uso</h2>
+    <p>A Growth Time reserva-se o direito de modificar estes Termos de Uso a qualquer momento. As alterações entrarão em vigor a partir da data de sua publicação no site.</p>
+    <p>Recomendamos que você consulte esta página periodicamente para se manter informado sobre eventuais atualizações. O uso continuado do site após alterações constitui aceitação dos novos termos.</p>
+
+    <!-- 15 -->
+    <h2>15. Legislação Aplicável e Foro</h2>
+    <p>Estes Termos de Uso são regidos e interpretados de acordo com as leis da República Federativa do Brasil, incluindo:</p>
+    <ul>
+      <li>Código Civil Brasileiro (Lei nº 10.406/2002)</li>
+      <li>Código de Defesa do Consumidor (Lei nº 8.078/1990), quando aplicável</li>
+      <li>Marco Civil da Internet (Lei nº 12.965/2014)</li>
+      <li>Lei Geral de Proteção de Dados Pessoais (Lei nº 13.709/2018)</li>
+    </ul>
+    <p>Fica eleito o foro da comarca de <strong>Fortaleza/CE</strong> para dirimir quaisquer controvérsias decorrentes destes Termos de Uso, com exclusão de qualquer outro, por mais privilegiado que seja.</p>
+
+    <!-- 16 -->
+    <h2>16. Disposições Gerais</h2>
+    <ul>
+      <li><strong>Independência das cláusulas:</strong> se qualquer disposição destes Termos for considerada inválida ou inexequível, as demais permanecerão em pleno vigor e efeito</li>
+      <li><strong>Tolerância:</strong> a eventual tolerância da Growth Time quanto ao descumprimento de qualquer disposição não constituirá renúncia ao direito de exigir o cumprimento a qualquer tempo</li>
+      <li><strong>Integralidade:</strong> estes Termos de Uso, juntamente com a Política de Privacidade e eventuais contratos específicos, constituem o acordo integral entre você e a Growth Time</li>
+    </ul>
+
+    <!-- 17 -->
+    <h2>17. Contato</h2>
+    <p>Para dúvidas, sugestões ou reclamações sobre estes Termos de Uso, entre em contato:</p>
+    <ul>
+      <li><strong>E-mail:</strong> <a href="mailto:contato@growthtime.com.br">contato@growthtime.com.br</a></li>
+      <li><strong>WhatsApp:</strong> <a href="https://wa.me/558596684749">(85) 9668-4749</a></li>
+      <li><strong>Site:</strong> <a href="https://growthtime.com.br">https://growthtime.com.br</a></li>
+    </ul>
+
+    <p style="margin-top: 48px; padding-top: 24px; border-top: 2px solid var(--primary-border); font-size: 0.9rem; color: var(--text-light);">
+      Estes Termos de Uso são válidos a partir de 16 de abril de 2026.<br>
+      Growth Time Consultoria — CNPJ: 35.811.804/0001-55
+    </p>
+  </main>
+
+  <!-- FOOTER -->
+  <footer>
+    <div class="footer-links">
+      <a href="https://growthtime.com.br">Página Inicial</a>
+      <a href="https://growthtime.com.br/politica-de-privacidade/">Política de Privacidade</a>
+      <a href="https://growthtime.com.br/termos-de-uso/">Termos de Uso</a>
+    </div>
+    <p>&copy; 2026 Growth Time Consultoria | CNPJ: 35.811.804/0001-55</p>
+  </footer>
+
+</body>
+</html>
