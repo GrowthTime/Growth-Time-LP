@@ -1,1576 +1,562 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Growth Time - Escale seu Negócio</title>
-  <style>
-    *, *::before, *::after {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-
-    :root {
-      --primary: #33cc99;
-      --primary-light: #40d9a4;
-      --primary-dark: #182623;
-      --primary-bg: rgba(51, 204, 153, 0.08);
-      --primary-border: rgba(51, 204, 153, 0.2);
-      --bg-white: #FFFFFF;
-      --bg-light: #f6f7f7;
-      --bg-green-soft: #edfaf5;
-      --bg-green-mid: #d6f2e8;
-      --bg-dark-section: #182623;
-      --bg-card: #FFFFFF;
-      --text-dark: #000000;
-      --text-body: #28303D;
-      --text-muted: #39414D;
-      --text-light: #6b7280;
-      --border: rgba(0, 0, 0, 0.08);
-      --border-strong: rgba(0, 0, 0, 0.12);
-      --shadow-sm: 0 1px 3px rgba(0,0,0,0.06);
-      --shadow-md: 0 4px 20px rgba(0,0,0,0.08);
-      --shadow-lg: 0 10px 40px rgba(0,0,0,0.1);
-    }
-
-    html {
-      scroll-behavior: smooth;
-    }
-
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen-Sans', 'Ubuntu', 'Cantarell', 'Helvetica Neue', sans-serif;
-      background: var(--bg-white);
-      color: var(--text-body);
-      line-height: 1.6;
-      overflow-x: hidden;
-    }
-
-    /* ===== GRID BACKGROUND ===== */
-    .grid-bg {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background-image:
-        linear-gradient(rgba(0, 0, 0, 0.018) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(0, 0, 0, 0.018) 1px, transparent 1px);
-      background-size: 60px 60px;
-      pointer-events: none;
-      z-index: 0;
-    }
-
-    /* ===== GLOW ORBS ===== */
-    .glow-orb {
-      position: absolute;
-      border-radius: 50%;
-      filter: blur(120px);
-      pointer-events: none;
-      z-index: 0;
-    }
-
-    .glow-orb-1 {
-      width: 500px;
-      height: 500px;
-      background: rgba(51, 204, 153, 0.07);
-      top: -100px;
-      right: -100px;
-    }
-
-    .glow-orb-2 {
-      width: 400px;
-      height: 400px;
-      background: rgba(51, 204, 153, 0.05);
-      bottom: -100px;
-      left: -100px;
-    }
-
-    /* ===== CONTAINER ===== */
-    .container {
-      max-width: 1200px;
-      margin: 0 auto;
-      padding: 0 24px;
-    }
-
-    section {
-      position: relative;
-      z-index: 1;
-    }
-
-    /* ===== HEADER ===== */
-    header {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      z-index: 1000;
-      background: rgba(255, 255, 255, 0.9);
-      backdrop-filter: blur(20px);
-      border-bottom: 1px solid var(--border);
-    }
-
-    .header-inner {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 14px 24px;
-      max-width: 1200px;
-      margin: 0 auto;
-    }
-
-    .logo img {
-      height: 44px;
-    }
-
-    nav {
-      display: flex;
-      align-items: center;
-      gap: 32px;
-    }
-
-    nav a {
-      color: var(--text-muted);
-      text-decoration: none;
-      font-size: 14px;
-      font-weight: 500;
-      transition: color 0.3s;
-    }
-
-    nav a:hover {
-      color: var(--primary);
-    }
-
-    .btn {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      padding: 14px 32px;
-      border-radius: 8px;
-      font-size: 15px;
-      font-weight: 600;
-      text-decoration: none;
-      transition: all 0.3s ease;
-      cursor: pointer;
-      border: none;
-    }
-
-    .btn-primary {
-      background: #000;
-      color: #fff;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.15);
-    }
-
-    .btn-primary:hover {
-      background: #1a1a1a;
-      box-shadow: 0 4px 16px rgba(0,0,0,0.2);
-      transform: translateY(-2px);
-    }
-
-    .btn-green {
-      background: var(--primary);
-      color: #fff;
-      box-shadow: 0 2px 8px rgba(51, 204, 153, 0.25);
-    }
-
-    .btn-green:hover {
-      background: var(--primary-light);
-      box-shadow: 0 4px 16px rgba(51, 204, 153, 0.35);
-      transform: translateY(-2px);
-    }
-
-    .btn-outline {
-      background: transparent;
-      color: var(--primary);
-      border: 1.5px solid var(--primary);
-    }
-
-    .btn-outline:hover {
-      background: var(--primary-bg);
-    }
-
-    .btn-header {
-      padding: 10px 24px;
-      font-size: 13px;
-      border-radius: 6px;
-    }
-
-    /* ===== HIGHLIGHT TEXT ===== */
-    .highlight {
-      color: var(--primary);
-    }
-
-    /* ===== HERO ===== */
-    .hero {
-      min-height: 100vh;
-      display: flex;
-      align-items: center;
-      padding-top: 120px;
-      position: relative;
-      overflow: hidden;
-      background: linear-gradient(170deg, var(--bg-white) 0%, var(--bg-green-soft) 60%, var(--bg-green-mid) 100%);
-    }
-
-    .hero-content {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 60px;
-      align-items: center;
-    }
-
-    .hero-badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      padding: 6px 16px;
-      background: var(--primary-bg);
-      border: 1px solid var(--primary-border);
-      border-radius: 100px;
-      font-size: 13px;
-      color: var(--primary);
-      font-weight: 600;
-      margin-bottom: 24px;
-    }
-
-    .hero-badge::before {
-      content: '';
-      width: 6px;
-      height: 6px;
-      background: var(--primary);
-      border-radius: 50%;
-      animation: pulse-dot 2s infinite;
-    }
-
-    @keyframes pulse-dot {
-      0%, 100% { opacity: 1; }
-      50% { opacity: 0.4; }
-    }
-
-    .hero-text h1 {
-      font-size: clamp(36px, 5vw, 56px);
-      font-weight: 800;
-      line-height: 1.1;
-      margin-bottom: 24px;
-      letter-spacing: -1.5px;
-      color: var(--text-dark);
-    }
-
-    .hero-text p {
-      font-size: 18px;
-      color: var(--text-muted);
-      margin-bottom: 40px;
-      line-height: 1.7;
-      max-width: 500px;
-    }
-
-    .hero-buttons {
-      display: flex;
-      gap: 16px;
-      flex-wrap: wrap;
-    }
-
-    .hero-image {
-      position: relative;
-      display: flex;
-      justify-content: center;
-    }
-
-    .hero-image img,
-    .hero-image svg {
-      width: 100%;
-      max-width: 440px;
-      border-radius: 16px;
-      position: relative;
-      z-index: 2;
-      box-shadow: var(--shadow-lg);
-    }
-
-    .hero-image::before {
-      content: '';
-      position: absolute;
-      inset: -3px;
-      border-radius: 19px;
-      background: linear-gradient(135deg, var(--primary), #2a6e3f);
-      opacity: 0.2;
-      z-index: 1;
-      max-width: 446px;
-      left: 50%;
-      transform: translateX(-50%);
-    }
-
-    .hero-stats {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 24px;
-      margin-top: 60px;
-      padding-top: 40px;
-      border-top: 1px solid var(--border);
-    }
-
-    .stat-item {
-      text-align: center;
-    }
-
-    .stat-number {
-      font-size: 32px;
-      font-weight: 800;
-      color: var(--primary);
-    }
-
-    .stat-label {
-      font-size: 13px;
-      color: var(--text-light);
-      margin-top: 4px;
-      font-weight: 500;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-    }
-
-    /* ===== SECTION STYLING ===== */
-    .section {
-      padding: 120px 0;
-      position: relative;
-    }
-
-    .section-label {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      font-size: 13px;
-      font-weight: 700;
-      color: var(--primary);
-      text-transform: uppercase;
-      letter-spacing: 2px;
-      margin-bottom: 16px;
-    }
-
-    .section-label::before {
-      content: '';
-      width: 24px;
-      height: 2px;
-      background: var(--primary);
-    }
-
-    .section-title {
-      font-size: clamp(28px, 4vw, 42px);
-      font-weight: 800;
-      line-height: 1.15;
-      margin-bottom: 20px;
-      letter-spacing: -1px;
-      color: var(--text-dark);
-    }
-
-    .section-desc {
-      font-size: 17px;
-      color: var(--text-muted);
-      max-width: 600px;
-      line-height: 1.7;
-    }
-
-    .section-header {
-      text-align: center;
-      margin-bottom: 64px;
-    }
-
-    .section-header .section-desc {
-      margin: 0 auto;
-    }
-
-    /* ===== ABOUT / PROBLEMA ===== */
-    .about-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 80px;
-      align-items: center;
-    }
-
-    .about-text .question {
-      font-size: 24px;
-      font-weight: 300;
-      color: var(--text-light);
-      margin-bottom: 8px;
-    }
-
-    .feature-list {
-      margin-top: 32px;
-      display: flex;
-      flex-direction: column;
-      gap: 20px;
-    }
-
-    .feature-item {
-      display: flex;
-      gap: 16px;
-      align-items: flex-start;
-    }
-
-    .feature-icon {
-      flex-shrink: 0;
-      width: 40px;
-      height: 40px;
-      background: var(--primary-bg);
-      border: 1px solid var(--primary-border);
-      border-radius: 10px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: var(--primary);
-      font-size: 18px;
-    }
-
-    .feature-item h4 {
-      font-size: 16px;
-      font-weight: 600;
-      margin-bottom: 4px;
-      color: var(--text-dark);
-    }
-
-    .feature-item p {
-      font-size: 14px;
-      color: var(--text-light);
-      line-height: 1.6;
-    }
-
-    .data-card {
-      background: var(--bg-white);
-      border: 1px solid var(--border-strong);
-      border-radius: 16px;
-      padding: 40px;
-      position: relative;
-      overflow: hidden;
-      box-shadow: var(--shadow-md);
-    }
-
-    .data-card::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      height: 3px;
-      background: var(--primary);
-    }
-
-    .data-card h3 {
-      font-size: 20px;
-      font-weight: 700;
-      margin-bottom: 12px;
-      color: var(--text-dark);
-    }
-
-    .data-card p {
-      color: var(--text-muted);
-      font-size: 15px;
-      line-height: 1.7;
-    }
-
-    /* ===== METHODOLOGY ===== */
-    .section-alt {
-      background: var(--bg-light);
-    }
-
-    /* ===== DARK SECTION ===== */
-    .section-dark {
-      background: var(--bg-dark-section);
-    }
-
-    .section-dark .section-label {
-      color: #33cc99;
-    }
-
-    .section-dark .section-label::before {
-      background: #33cc99;
-    }
-
-    .section-dark .section-title {
-      color: #fff;
-    }
-
-    .section-dark .section-title .highlight {
-      color: #33cc99;
-    }
-
-    .section-dark .section-desc {
-      color: rgba(255,255,255,0.65);
-    }
-
-    .section-dark .result-card {
-      background: #1e302b;
-      border-color: rgba(255,255,255,0.08);
-    }
-
-    .section-dark .result-card:hover {
-      border-color: rgba(51, 204, 153, 0.3);
-      box-shadow: 0 20px 60px rgba(0,0,0,0.4);
-    }
-
-    .section-dark .result-image {
-      background: #243832;
-      border-bottom-color: rgba(255,255,255,0.06);
-    }
-
-    .section-dark .result-info h3 {
-      color: #fff;
-    }
-
-    .section-dark .result-info p {
-      color: rgba(255,255,255,0.55);
-    }
-
-    .section-dark .result-tag {
-      background: rgba(51, 204, 153, 0.1);
-      border-color: rgba(51, 204, 153, 0.2);
-      color: #33cc99;
-    }
-
-    .section-dark .result-metric {
-      border-top-color: rgba(255,255,255,0.08);
-    }
-
-    .section-dark .result-metric .metric-value {
-      color: #33cc99;
-    }
-
-    .section-dark .result-metric .metric-label {
-      color: rgba(255,255,255,0.5);
-    }
-
-    /* ===== GREEN SECTION ===== */
-    .section-green {
-      background: var(--primary-dark);
-      position: relative;
-      overflow: hidden;
-    }
-
-    .section-green::before {
-      content: '';
-      position: absolute;
-      top: -100px;
-      right: -100px;
-      width: 400px;
-      height: 400px;
-      background: rgba(51, 204, 153, 0.08);
-      border-radius: 50%;
-      pointer-events: none;
-    }
-
-    .section-green::after {
-      content: '';
-      position: absolute;
-      bottom: -80px;
-      left: -80px;
-      width: 300px;
-      height: 300px;
-      background: rgba(51, 204, 153, 0.05);
-      border-radius: 50%;
-      pointer-events: none;
-    }
-
-    .section-green .section-label {
-      color: #33cc99;
-    }
-
-    .section-green .section-label::before {
-      background: #33cc99;
-    }
-
-    .section-green .section-title {
-      color: #fff;
-    }
-
-    .section-green .section-title .highlight {
-      color: #33cc99;
-    }
-
-    .section-green .section-desc {
-      color: rgba(255,255,255,0.8);
-    }
-
-    .section-green .method-card {
-      background: rgba(255,255,255,0.12);
-      border-color: rgba(255,255,255,0.15);
-      backdrop-filter: blur(10px);
-    }
-
-    .section-green .method-card:hover {
-      background: rgba(255,255,255,0.2);
-      border-color: rgba(255,255,255,0.3);
-      box-shadow: 0 10px 40px rgba(0,0,0,0.15);
-    }
-
-    .section-green .method-card::before {
-      background: #fff;
-    }
-
-    .section-green .method-step {
-      background: rgba(51, 204, 153, 0.15);
-      border-color: rgba(51, 204, 153, 0.3);
-      color: #33cc99;
-    }
-
-    .section-green .method-icon {
-      filter: brightness(0) invert(0.75) sepia(1) saturate(2) hue-rotate(110deg);
-    }
-
-    .section-green .method-card h3 {
-      color: #fff;
-    }
-
-    .section-green .method-card p {
-      color: rgba(255,255,255,0.75);
-    }
-
-    .method-cards {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 24px;
-    }
-
-    .method-card {
-      background: var(--bg-white);
-      border: 1px solid var(--border);
-      border-radius: 16px;
-      padding: 40px 32px;
-      transition: all 0.4s ease;
-      position: relative;
-      overflow: hidden;
-      box-shadow: var(--shadow-sm);
-    }
-
-    .method-card::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      height: 3px;
-      background: var(--primary);
-      opacity: 0;
-      transition: opacity 0.4s;
-    }
-
-    .method-card:hover {
-      border-color: var(--primary-border);
-      transform: translateY(-4px);
-      box-shadow: var(--shadow-lg);
-    }
-
-    .method-card:hover::before {
-      opacity: 1;
-    }
-
-    .method-step {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      width: 48px;
-      height: 48px;
-      background: var(--primary-bg);
-      border: 1px solid var(--primary-border);
-      border-radius: 12px;
-      font-size: 20px;
-      font-weight: 800;
-      color: var(--primary);
-      margin-bottom: 24px;
-    }
-
-    .method-icon {
-      width: 52px;
-      height: 52px;
-      margin-bottom: 20px;
-    }
-
-    .method-card h3 {
-      font-size: 20px;
-      font-weight: 700;
-      margin-bottom: 12px;
-      color: var(--text-dark);
-    }
-
-    .method-card p {
-      font-size: 15px;
-      color: var(--text-muted);
-      line-height: 1.7;
-    }
-
-    /* ===== RESULTS ===== */
-    .results-grid {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 24px;
-    }
-
-    .result-card {
-      background: var(--bg-white);
-      border: 1px solid var(--border);
-      border-radius: 16px;
-      overflow: hidden;
-      transition: all 0.4s ease;
-      box-shadow: var(--shadow-sm);
-    }
-
-    .result-card:hover {
-      border-color: var(--primary-border);
-      transform: translateY(-4px);
-      box-shadow: var(--shadow-lg);
-    }
-
-    .result-image {
-      width: 100%;
-      height: 240px;
-      overflow: hidden;
-      border-bottom: 1px solid var(--border);
-      background: var(--bg-light);
-    }
-
-    .result-image img {
-      width: 100%;
-      height: 100%;
-      object-fit: contain;
-      padding: 12px;
-      transition: transform 0.4s;
-    }
-
-    .result-card:hover .result-image img {
-      transform: scale(1.03);
-    }
-
-    .result-info {
-      padding: 28px;
-    }
-
-    .result-tag {
-      display: inline-flex;
-      padding: 4px 12px;
-      background: var(--primary-bg);
-      border: 1px solid var(--primary-border);
-      border-radius: 100px;
-      font-size: 12px;
-      color: var(--primary);
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-      margin-bottom: 16px;
-    }
-
-    .result-info h3 {
-      font-size: 18px;
-      font-weight: 700;
-      margin-bottom: 12px;
-      line-height: 1.3;
-      color: var(--text-dark);
-    }
-
-    .result-info p {
-      font-size: 14px;
-      color: var(--text-muted);
-      line-height: 1.6;
-    }
-
-    .result-metric {
-      margin-top: 20px;
-      padding-top: 20px;
-      border-top: 1px solid var(--border);
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .result-metric .metric-value {
-      font-size: 28px;
-      font-weight: 800;
-      color: var(--primary);
-    }
-
-    .result-metric .metric-label {
-      font-size: 13px;
-      color: var(--text-light);
-      line-height: 1.3;
-    }
-
-    /* ===== CTA SECTION ===== */
-    .cta-section {
-      padding: 100px 0;
-      text-align: center;
-      position: relative;
-    }
-
-    .cta-box {
-      background: var(--bg-white);
-      border: 1px solid var(--border-strong);
-      border-radius: 24px;
-      padding: 80px 60px;
-      position: relative;
-      overflow: hidden;
-      box-shadow: var(--shadow-lg);
-    }
-
-    .cta-box::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      height: 4px;
-      background: linear-gradient(90deg, var(--primary), var(--primary-light), var(--primary));
-    }
-
-    .cta-box .glow-orb {
-      position: absolute;
-      width: 500px;
-      height: 500px;
-      background: rgba(51, 204, 153, 0.06);
-      border-radius: 50%;
-      filter: blur(120px);
-      top: -250px;
-      left: 50%;
-      transform: translateX(-50%);
-    }
-
-    .cta-box h2 {
-      font-size: clamp(28px, 3.5vw, 40px);
-      font-weight: 800;
-      margin-bottom: 20px;
-      letter-spacing: -1px;
-      position: relative;
-      color: var(--text-dark);
-    }
-
-    .cta-box h2 .highlight {
-      color: var(--primary);
-    }
-
-    .cta-box p {
-      font-size: 17px;
-      color: var(--text-muted);
-      margin-bottom: 40px;
-      max-width: 500px;
-      margin-left: auto;
-      margin-right: auto;
-      line-height: 1.7;
-      position: relative;
-    }
-
-    .cta-box .btn-green {
-      position: relative;
-    }
-
-    /* ===== FORM SECTION ===== */
-    .form-section {
-      padding: 120px 0;
-      background: var(--bg-green-soft);
-    }
-
-    .form-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 80px;
-      align-items: center;
-    }
-
-    .form-wrapper {
-      background: var(--bg-white);
-      border: 1px solid var(--border-strong);
-      border-radius: 16px;
-      padding: 40px;
-      position: relative;
-      overflow: hidden;
-      box-shadow: var(--shadow-md);
-    }
-
-    .form-wrapper::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      height: 3px;
-      background: var(--primary);
-    }
-
-    .form-wrapper h3 {
-      font-size: 24px;
-      font-weight: 700;
-      margin-bottom: 8px;
-      color: var(--text-dark);
-    }
-
-    .form-wrapper > p {
-      font-size: 14px;
-      color: var(--text-light);
-      margin-bottom: 32px;
-    }
-
-    .form-group {
-      margin-bottom: 20px;
-    }
-
-    .form-group label {
-      display: block;
-      font-size: 13px;
-      font-weight: 600;
-      color: var(--text-muted);
-      margin-bottom: 8px;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-    }
-
-    .form-group input,
-    .form-group textarea {
-      width: 100%;
-      padding: 14px 16px;
-      background: var(--bg-light);
-      border: 1px solid var(--border-strong);
-      border-radius: 10px;
-      color: var(--text-dark);
-      font-size: 15px;
-      font-family: inherit;
-      transition: all 0.3s;
-      outline: none;
-    }
-
-    .form-group input:focus,
-    .form-group textarea:focus {
-      border-color: var(--primary);
-      box-shadow: 0 0 0 3px rgba(51, 204, 153, 0.1);
-    }
-
-    .form-group textarea {
-      resize: vertical;
-      min-height: 100px;
-    }
-
-    .form-wrapper .btn {
-      width: 100%;
-      justify-content: center;
-      margin-top: 8px;
-    }
-
-    /* ===== FOOTER ===== */
-    footer {
-      border-top: none;
-      padding: 60px 0 40px;
-      position: relative;
-      z-index: 1;
-      background: var(--primary-dark);
-      color: rgba(255,255,255,0.7);
-    }
-
-    footer .footer-brand p {
-      color: rgba(255,255,255,0.5);
-    }
-
-    footer .footer-col h4 {
-      color: rgba(255,255,255,0.9);
-    }
-
-    footer .footer-col a {
-      color: rgba(255,255,255,0.5);
-    }
-
-    footer .footer-col a:hover {
-      color: #33cc99;
-    }
-
-    footer .footer-bottom {
-      border-top-color: rgba(255,255,255,0.08);
-    }
-
-    footer .footer-bottom p {
-      color: rgba(255,255,255,0.35);
-    }
-
-    footer .social-link {
-      background: rgba(255,255,255,0.06);
-      border-color: rgba(255,255,255,0.1);
-      color: rgba(255,255,255,0.6);
-    }
-
-    footer .social-link:hover {
-      background: rgba(51, 204, 153, 0.1);
-      border-color: rgba(51, 204, 153, 0.3);
-      color: #33cc99;
-    }
-
-    footer .footer-brand img {
-      filter: brightness(0) invert(0.8);
-    }
-
-    .footer-grid {
-      display: grid;
-      grid-template-columns: 2fr 1fr 1fr;
-      gap: 60px;
-      margin-bottom: 48px;
-    }
-
-    .footer-brand img {
-      height: 36px;
-      margin-bottom: 16px;
-    }
-
-    .footer-brand p {
-      font-size: 14px;
-      color: var(--text-light);
-      line-height: 1.7;
-      max-width: 300px;
-    }
-
-    .footer-col h4 {
-      font-size: 13px;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 1.5px;
-      color: var(--text-dark);
-      margin-bottom: 20px;
-    }
-
-    .footer-col a {
-      display: block;
-      color: var(--text-light);
-      text-decoration: none;
-      font-size: 14px;
-      padding: 6px 0;
-      transition: color 0.3s;
-    }
-
-    .footer-col a:hover {
-      color: var(--primary);
-    }
-
-    .footer-bottom {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding-top: 32px;
-      border-top: 1px solid var(--border);
-    }
-
-    .footer-bottom p {
-      font-size: 13px;
-      color: var(--text-light);
-    }
-
-    .social-links {
-      display: flex;
-      gap: 12px;
-    }
-
-    .social-link {
-      width: 40px;
-      height: 40px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      background: var(--bg-light);
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      color: var(--text-muted);
-      text-decoration: none;
-      font-size: 16px;
-      transition: all 0.3s;
-    }
-
-    .social-link:hover {
-      border-color: var(--primary-border);
-      color: var(--primary);
-      background: var(--primary-bg);
-    }
-
-    /* ===== ANIMATIONS ===== */
-    @keyframes fadeUp {
-      from { opacity: 0; transform: translateY(30px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-
-    .animate {
-      opacity: 0;
-      animation: fadeUp 0.8s ease forwards;
-    }
-
-    .delay-1 { animation-delay: 0.1s; }
-    .delay-2 { animation-delay: 0.2s; }
-    .delay-3 { animation-delay: 0.3s; }
-
-    /* ===== RESPONSIVE ===== */
-    @media (max-width: 968px) {
-      .hero-content {
-        grid-template-columns: 1fr;
-        text-align: center;
-        gap: 40px;
-      }
-
-      .hero-text p {
-        margin: 0 auto 40px;
-      }
-
-      .hero-buttons {
-        justify-content: center;
-      }
-
-      .about-grid,
-      .form-grid {
-        grid-template-columns: 1fr;
-        gap: 40px;
-      }
-
-      .method-cards,
-      .results-grid {
-        grid-template-columns: 1fr;
-      }
-
-      .footer-grid {
-        grid-template-columns: 1fr;
-        gap: 32px;
-      }
-
-      nav {
-        display: none;
-      }
-
-      .section {
-        padding: 80px 0;
-      }
-
-      .cta-box {
-        padding: 48px 24px;
-      }
-    }
-
-    @media (max-width: 480px) {
-      .hero-stats {
-        grid-template-columns: 1fr;
-      }
-
-      .stat-item + .stat-item {
-        padding-top: 16px;
-        border-top: 1px solid var(--border);
-      }
-    }
-
-    /* ===== WHATSAPP FLOAT ===== */
-    .whatsapp-float {
-      position: fixed;
-      bottom: 24px;
-      right: 24px;
-      width: 56px;
-      height: 56px;
-      background: #25D366;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      box-shadow: 0 4px 20px rgba(37, 211, 102, 0.4);
-      z-index: 999;
-      transition: all 0.3s;
-      text-decoration: none;
-    }
-
-    .whatsapp-float:hover {
-      transform: scale(1.1);
-      box-shadow: 0 6px 30px rgba(37, 211, 102, 0.5);
-    }
-
-    .whatsapp-float svg {
-      width: 28px;
-      height: 28px;
-      fill: white;
-    }
-  </style>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Growth Time — Está na hora de escalar</title>
+<link rel="stylesheet" href="landing.css?v=20260603b">
 </head>
 <body>
 
-  <div class="grid-bg"></div>
+<!-- NAV -->
+<nav class="nav" id="nav">
+  <div class="brand">
+    <img src="assets/logo.png" alt="GT">
+    <span>GT<span class="dot">.</span></span>
+  </div>
+  <div class="nav-links">
+    <a href="#pilares">Como funciona</a>
+    <a href="#sistema">O sistema</a>
+    <a href="#cta" class="btn btn-cta nav-cta">Agendar</a>
+  </div>
+</nav>
 
-  <!-- HEADER -->
-  <header>
-    <div class="header-inner">
-      <a href="#" class="logo">
-        <img src="images/GT_logo_logo_vertical_pretoverde.svg" alt="Growth Time">
-      </a>
-      <nav>
-        <a href="#sobre">Sobre</a>
-        <a href="#metodologia">Metodologia</a>
-        <a href="#resultados">Resultados</a>
-        <a href="#contato">Contato</a>
-        <a href="https://wa.me/558596684749" target="_blank" class="btn btn-primary btn-header">Começar agora</a>
-      </nav>
+<!-- HERO -->
+<header class="hero">
+  <div class="wrap">
+    <div class="hero-copy">
+    <div class="hero-kicker reveal">Atrair<span class="sep">·</span>Atender<span class="sep">·</span>Medir</div>
+    <h1 class="reveal d1">Está na hora de <span class="hl">escalar</span>.</h1>
+    <p class="lead reveal d2">Anúncios que lotam o WhatsApp, atendimento com IA e cada real rastreado até a venda — num sistema só.</p>
+    <div class="hero-cta reveal d3">
+      <a href="#cta" class="btn btn-cta btn-block">Agendar diagnóstico gratuito</a>
+      <a href="#pilares" class="btn btn-ghost btn-block">Ver como funciona ↓</a>
     </div>
-  </header>
+    <div class="hero-trust reveal d4">
+      <span><b data-count="58" data-suffix=" mil">0</b> pedidos</span>
+      <span class="dot"></span>
+      <span><b data-count="10" data-suffix="x">0</b> de crescimento</span>
+      <span class="dot"></span>
+      <span><b>API oficial</b></span>
+    </div>
+    </div><!-- /.hero-copy -->
 
-  <!-- HERO -->
-  <section class="hero">
-    <div class="glow-orb glow-orb-1"></div>
-    <div class="glow-orb glow-orb-2"></div>
-    <div class="container">
-      <div class="hero-content">
-        <div class="hero-text animate">
-          <div class="hero-badge">Marketing de Performance</div>
-          <h1>
-            Está na hora de <span class="highlight">escalar seu negócio</span>
-          </h1>
-          <p>Ajudamos empresas a vender todos os dias usando anúncios online e marketing de performance que gera resultados reais.</p>
-          <div class="hero-buttons">
-            <a href="https://wa.me/558596684749" target="_blank" class="btn btn-primary">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
-              Começar agora
-            </a>
-            <a href="#metodologia" class="btn btn-outline">Nossa metodologia</a>
+    <!-- phone = focal point, with external floating annotations -->
+    <div class="hero-stage reveal d2" id="heroStage">
+      <div class="stage-glow" id="glow"></div>
+      <div class="phone">
+        <div class="notch"></div>
+        <div class="pbar">
+          <div class="pav">PM</div>
+          <div style="flex:1"><div style="font-size:14px;font-weight:700">Patrícia · Loja</div><div style="font-size:11px;opacity:.85">online agora</div></div>
+        </div>
+        <div class="pbody" id="phoneFeed"></div>
+      </div>
+      <!-- external annotations (like the 'lead quente' tag — NOT chat messages) -->
+      <div class="annot a-ad" data-step="0">📣 Veio do anúncio</div>
+      <div class="annot a-ai" data-step="1"><span class="k">✨ IA</span> qualificou o lead</div>
+      <div class="annot a-hot" data-step="2">🔥 Lead quente</div>
+      <div class="annot a-meta" data-step="3">📈 +1 na meta do mês</div>
+      <div class="annot a-roas">ROAS <span class="k">7,2x</span></div>
+    </div>
+  </div>
+</header>
+
+<!-- MARQUEE -->
+<div class="marquee">
+  <div class="marquee-track" id="marquee">
+    <!-- duplicated in JS -->
+  </div>
+</div>
+
+<!-- PAIN -->
+<section class="block pain" id="dor">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="eyebrow reveal">A real do fim do mês</div>
+      <h2 class="reveal d1">Você investe, posta, atende… e no fim do mês não sabe o que virou venda?</h2>
+    </div>
+    <div class="pain-grid">
+      <div class="pain-card reveal d1">
+        <div class="ic">📉</div>
+        <h3>Anúncio sem rastreio</h3>
+        <p>O dinheiro entra, mas você não sabe de onde veio a venda — nem o que vale a pena repetir.</p>
+      </div>
+      <div class="pain-card reveal d2">
+        <div class="ic">💬</div>
+        <h3>WhatsApp no caos</h3>
+        <p>O lead chega, ninguém responde a tempo, e a venda escapa pela janela.</p>
+      </div>
+      <div class="pain-card reveal d3">
+        <div class="ic">🎯</div>
+        <h3>Post por achismo</h3>
+        <p>Você publica todo dia sem saber o que de fato vende e o que só gera curtida.</p>
+      </div>
+    </div>
+    <div class="pain-close reveal">Crescer no boca a boca tem teto. <span class="hl">Performance tem método.</span></div>
+  </div>
+</section>
+
+<!-- PILLARS -->
+<section class="block" id="pilares">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="eyebrow reveal">Atrair · Atender · Medir</div>
+      <h2 class="reveal d1">Uma máquina de vendas que funciona enquanto você dorme.</h2>
+    </div>
+
+    <div class="pillar">
+      <div class="ptext reveal">
+        <div class="num">01 — ATRAIR</div>
+        <h3>Anúncios que lotam o WhatsApp.</h3>
+        <p>Tráfego pago focado em quem realmente compra, na região que importa. A gente coloca gente certa na conversa da sua equipe.</p>
+      </div>
+      <div class="pvis reveal d1">
+        <div style="font-family:'Inter';font-size:13px;color:#737373;margin-bottom:10px">Mensagens · hoje</div>
+        <div style="display:flex;gap:16px;margin-bottom:12px">
+          <div style="flex:1">
+            <div style="font-family:'Inter';font-size:11px;color:#737373;margin-bottom:3px">Totais</div>
+            <div style="font-family:'Inter';font-size:28px;font-weight:800;color:#121212;line-height:1">410</div>
+          </div>
+          <div style="flex:1;border-left:1px solid #ececec;padding-left:16px">
+            <div style="font-family:'Inter';font-size:11px;color:#737373;margin-bottom:3px">Vindas pelo tráfego</div>
+            <div style="font-family:'Inter';font-size:28px;font-weight:800;color:#27ae8f;line-height:1">305</div>
           </div>
         </div>
-        <div class="hero-image animate delay-2">
-          <svg viewBox="0 0 440 400" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Ilustração de crescimento e marketing digital">
-            <defs>
-              <linearGradient id="bgGrad" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stop-color="#1a1a2e"/>
-                <stop offset="100%" stop-color="#16213e"/>
-              </linearGradient>
-              <linearGradient id="barGrad" x1="0" y1="1" x2="0" y2="0">
-                <stop offset="0%" stop-color="#33cc99" stop-opacity="0.6"/>
-                <stop offset="100%" stop-color="#33cc99"/>
-              </linearGradient>
-              <linearGradient id="areaGrad" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stop-color="#33cc99" stop-opacity="0.3"/>
-                <stop offset="100%" stop-color="#33cc99" stop-opacity="0.02"/>
-              </linearGradient>
-            </defs>
-
-            <!-- Fundo -->
-            <rect width="440" height="400" rx="16" fill="url(#bgGrad)"/>
-
-            <!-- Grid sutil -->
-            <g stroke="rgba(255,255,255,0.04)" stroke-width="1">
-              <line x1="80" y1="100" x2="400" y2="100"/>
-              <line x1="80" y1="160" x2="400" y2="160"/>
-              <line x1="80" y1="220" x2="400" y2="220"/>
-              <line x1="80" y1="280" x2="400" y2="280"/>
-              <line x1="80" y1="340" x2="400" y2="340"/>
-            </g>
-
-            <!-- Labels eixo Y -->
-            <g fill="rgba(255,255,255,0.2)" font-family="sans-serif" font-size="11" text-anchor="end">
-              <text x="70" y="104">500</text>
-              <text x="70" y="164">400</text>
-              <text x="70" y="224">300</text>
-              <text x="70" y="284">200</text>
-              <text x="70" y="344">100</text>
-            </g>
-
-            <!-- Barras de crescimento -->
-            <g fill="url(#barGrad)" rx="4">
-              <rect x="105" y="310" width="36" height="30" rx="4" opacity="0.5"/>
-              <rect x="160" y="285" width="36" height="55" rx="4" opacity="0.6"/>
-              <rect x="215" y="250" width="36" height="90" rx="4" opacity="0.7"/>
-              <rect x="270" y="200" width="36" height="140" rx="4" opacity="0.8"/>
-              <rect x="325" y="140" width="36" height="200" rx="4" opacity="0.9"/>
-            </g>
-
-            <!-- Area sob a linha -->
-            <path d="M105,300 L160,270 L215,230 L270,175 L325,110 L380,70 L380,340 L105,340 Z" fill="url(#areaGrad)"/>
-
-            <!-- Linha de crescimento -->
-            <polyline points="105,300 160,270 215,230 270,175 325,110 380,70" fill="none" stroke="#33cc99" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
-
-            <!-- Pontos na linha -->
-            <g fill="#33cc99">
-              <circle cx="105" cy="300" r="5"/>
-              <circle cx="160" cy="270" r="5"/>
-              <circle cx="215" cy="230" r="5"/>
-              <circle cx="270" cy="175" r="5"/>
-              <circle cx="325" cy="110" r="5"/>
-              <circle cx="380" cy="70" r="5"/>
-            </g>
-            <g fill="#1a1a2e">
-              <circle cx="105" cy="300" r="2.5"/>
-              <circle cx="160" cy="270" r="2.5"/>
-              <circle cx="215" cy="230" r="2.5"/>
-              <circle cx="270" cy="175" r="2.5"/>
-              <circle cx="325" cy="110" r="2.5"/>
-              <circle cx="380" cy="70" r="2.5"/>
-            </g>
-
-            <!-- Seta de crescimento -->
-            <g transform="translate(370, 55)" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <line x1="0" y1="12" x2="0" y2="-8"/>
-              <polyline points="-5,-3 0,-8 5,-3"/>
-            </g>
-
-            <!-- Indicador de porcentagem -->
-            <g transform="translate(340, 38)">
-              <rect x="-28" y="-14" width="56" height="22" rx="11" fill="#33cc99"/>
-              <text x="0" y="2" fill="white" font-family="sans-serif" font-size="11" font-weight="bold" text-anchor="middle">+247%</text>
-            </g>
-
-            <!-- Titulo -->
-            <text x="220" y="385" fill="rgba(255,255,255,0.3)" font-family="sans-serif" font-size="12" text-anchor="middle" letter-spacing="2">GROWTH TIME</text>
-          </svg>
-        </div>
+        <div class="mini-bars" style="height:64px"><i style="height:45%"></i><i style="height:60%"></i><i style="height:52%"></i><i style="height:78%"></i><i style="height:66%"></i><i style="height:90%"></i><i style="height:100%"></i></div>
       </div>
-      <div class="hero-stats animate delay-3">
-        <div class="stat-item">
-          <div class="stat-number">10x</div>
-          <div class="stat-label">Crescimento</div>
-        </div>
-        <div class="stat-item">
-          <div class="stat-number">58mil</div>
-          <div class="stat-label">Pedidos gerados</div>
-        </div>
-        <div class="stat-item">
-          <div class="stat-number">330mil</div>
-          <div class="stat-label">Faturados em 30 dias</div>
+    </div>
+
+    <div class="pillar rev">
+      <div class="ptext reveal">
+        <div class="num">02 — ATENDER</div>
+        <h3>Atendimento que não dorme.</h3>
+        <p>API oficial do WhatsApp — <b>sem perder o acesso pelo celular</b> —, agentes de IA e disparo em massa sem risco de bloqueio. Todos os nichos num só sistema.</p>
+      </div>
+      <div class="pvis reveal d1">
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <div class="msg them" style="max-width:90%;font-size:13px">Tem na grade P ao GG?</div>
+          <div class="msg me" style="max-width:90%;font-size:13px;align-self:flex-end;background:#d6f7c8">Temos sim! 😄 Respondido pela IA em 4s ⚡</div>
+          <div style="display:flex;align-items:center;gap:7px;font-family:'Inter';font-size:12px;color:#27ae8f;font-weight:600;margin-top:4px">✨ Resumo da conversa por IA</div>
         </div>
       </div>
     </div>
-  </section>
 
-  <!-- SOBRE -->
-  <section class="section" id="sobre" style="background: var(--bg-white);">
-    <div class="container">
-      <div class="about-grid">
-        <div class="about-text">
-          <span class="section-label">Sobre nós</span>
-          <p class="question">Você está satisfeito com seu crescimento?</p>
-          <h2 class="section-title">Cresça rápido usando a <span class="highlight">internet como aliada</span></h2>
-          <p class="section-desc">Se a resposta for não, você precisa ter um método de crescimento sustentável. Aplique um marketing de performance que além de pagar as contas, deixa lucro no final do mês.</p>
-          <div class="feature-list">
-            <div class="feature-item">
-              <div class="feature-icon">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
-              </div>
-              <div>
-                <h4>Resultados mensuráveis</h4>
-                <p>Foco em métricas que importam: vendas, faturamento e lucro real.</p>
-              </div>
-            </div>
-            <div class="feature-item">
-              <div class="feature-icon">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
-              </div>
-              <div>
-                <h4>Crescimento acelerado</h4>
-                <p>Capacidade infinita de encontrar novos clientes pela internet.</p>
-              </div>
-            </div>
-            <div class="feature-item">
-              <div class="feature-icon">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-              </div>
-              <div>
-                <h4>Retorno rápido</h4>
-                <p>Marketing que se paga e ainda gera lucro desde o primeiro mês.</p>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div class="about-visual">
-          <div class="data-card">
-            <h3>Marketing de Performance</h3>
-            <p>Com a internet, a capacidade de encontrar novos clientes é infinita. Nossas estratégias são focadas em resultados concretos e mensuráveis, sem distrações em métricas superficiais como seguidores ou curtidas.</p>
-            <br>
-            <p>Acreditamos que o único propósito do marketing é <strong style="color: var(--primary)">gerar mais vendas</strong>.</p>
-          </div>
+    <div class="pillar">
+      <div class="ptext reveal">
+        <div class="num">03 — MEDIR</div>
+        <h3>Cada real rastreado até a venda.</h3>
+        <p>Você vê o que o anúncio trouxe, o que o post vendeu e qual o seu retorno real (ROAS). Sem achismo, sem vaidade.</p>
+      </div>
+      <div class="pvis reveal d1">
+        <div style="font-family:'Inter';font-size:13px;color:#737373;margin-bottom:12px">A jornada de cada real</div>
+        <div style="display:flex;flex-direction:column;gap:7px">
+          <div style="display:flex;align-items:center;gap:10px;background:#f4f6f5;border-radius:12px;padding:13px 14px;border:1px solid #ececec"><span style="font-size:18px">💬</span><div style="font-family:'Inter';font-size:14px;font-weight:600;color:#121212">Lead veio pelo anúncio</div></div>
+          <div style="text-align:center;color:#38cc9c;font-size:18px;line-height:1">↓</div>
+          <div style="display:flex;align-items:center;gap:10px;background:#f4f6f5;border-radius:12px;padding:13px 14px;border:1px solid #ececec"><span style="font-size:18px">🛒</span><div style="font-family:'Inter';font-size:14px;font-weight:600;color:#121212">Se tornou cliente</div></div>
+          <div style="text-align:center;color:#38cc9c;font-size:18px;line-height:1">↓</div>
+          <div style="display:flex;align-items:center;gap:10px;background:linear-gradient(135deg,rgba(43,182,115,.12),rgba(39,174,143,.12));border-radius:12px;padding:13px 14px;border:1px solid rgba(39,174,143,.35)"><span style="font-size:18px">🏆</span><div style="font-family:'Inter';font-size:14px;font-weight:700;color:#27ae8f">Se tornou cliente ouro</div></div>
         </div>
       </div>
     </div>
-  </section>
+  </div>
+</section>
 
-  <!-- METODOLOGIA -->
-  <section class="section section-green" id="metodologia">
-    <div class="container">
-      <div class="section-header">
-        <span class="section-label">Nossa Metodologia</span>
-        <h2 class="section-title">Crescimento acelerado em <span class="highlight">3 passos</span></h2>
-        <p class="section-desc">Um processo validado que transforma seu investimento em marketing em resultados previsíveis e escaláveis.</p>
+<!-- SYSTEM SHOWCASE (embedded, interactive) -->
+<section class="block sys-sec" id="sistema">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="eyebrow reveal">O sistema por dentro</div>
+      <h2 class="reveal d1">Veja como a GT trabalha por você.</h2>
+      <p class="reveal d2">Dashboard, conversas com IA e métricas de tráfego — tudo num lugar só. Explore como ele é no computador e no celular.</p>
+    </div>
+
+    <div class="sys-toggle reveal d1" id="sysToggle">
+      <button class="sys-tg-btn active" data-device="desktop"><span class="ic">🖥️</span> Desktop</button>
+      <button class="sys-tg-btn" data-device="mobile"><span class="ic">📱</span> Mobile</button>
+    </div>
+
+    <div class="sys-frame-outer reveal d1">
+      <!-- DESKTOP frame -->
+      <div class="sys-window" id="sysDesktop">
+        <div class="sys-bar">
+          <span class="d" style="background:#ff5f57"></span><span class="d" style="background:#febc2e"></span><span class="d" style="background:#28c840"></span>
+          <span class="u">Pré-visualização do sistema</span>
+        </div>
+        <div class="sys-viewport" id="sysViewport">
+          <iframe id="sysFrame" src="system/index.html" title="Sistema GT — desktop" scrolling="no"></iframe>
+        </div>
       </div>
-      <div class="method-cards">
-        <div class="method-card animate">
-          <div class="method-step">01</div>
-          <img src="images/element_icon-1.svg" alt="Mapa" class="method-icon">
-          <h3>Mapa do seu crescimento</h3>
-          <p>Crie um mapa para o seu crescimento rápido. Defina um objetivo, mapeando quais são as oportunidades de crescimento, testando qual o melhor processo e escale os resultados positivos.</p>
+      <!-- MOBILE frame -->
+      <div class="sys-phone" id="sysMobile" hidden>
+        <div class="sys-phone-notch"></div>
+        <div class="sys-phone-viewport" id="sysPhoneViewport">
+          <iframe id="sysPhoneFrame" data-src="system/index.html?view=mobile" title="Sistema GT — mobile" scrolling="no"></iframe>
         </div>
-        <div class="method-card animate delay-1">
-          <div class="method-step">02</div>
-          <img src="images/element_icon-2.svg" alt="Marketing" class="method-icon">
-          <h3>Marketing focado em resultados</h3>
-          <p>As estratégias são focadas em resultados concretos e mensuráveis, sem distrações em métricas superficiais como seguidores ou curtidas. O único propósito do marketing é gerar mais vendas.</p>
-        </div>
-        <div class="method-card animate delay-2">
-          <div class="method-step">03</div>
-          <img src="images/element_icon-3.svg" alt="Dados" class="method-icon">
-          <h3>Análise de dados</h3>
-          <p>Para entender o momento certo de escalar os testes validados e acelerar a chegada na meta, utilizamos indicadores que norteiam o sucesso do negócio.</p>
-        </div>
+      </div>
+
+      <div class="sys-hint reveal d2" id="sysHint">👆 Navegue pelo Dashboard, Mensagens e Mkt &amp; Ads</div>
+      <div class="reveal d2" style="text-align:center;font-family:'Inter';font-size:12.5px;color:#9aa0a0;margin-top:8px;line-height:1.5">⚠️ Esta é uma pré-visualização do sistema · use o seletor acima pra ver no 🖥️ desktop ou 📱 celular (é totalmente responsivo).</div>
+      <div style="text-align:center">
+        <a href="system/index.html" target="_blank" class="btn btn-cta sys-full-btn reveal d2">Ver o sistema completo por dentro →</a>
       </div>
     </div>
-  </section>
+  </div>
+</section>
 
-  <!-- RESULTADOS -->
-  <section class="section section-dark" id="resultados">
-    <div class="container">
-      <div class="section-header">
-        <span class="section-label">Cases de Sucesso</span>
-        <h2 class="section-title">Resultados dos nossos <span class="highlight">clientes</span></h2>
-        <p class="section-desc">Empresas que confiaram na Growth Time e alcançaram resultados extraordinários.</p>
+<!-- SYSTEM EXPLAINER (accordion / toggles) -->
+<section class="block explain-sec" id="explica">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="eyebrow reveal">O que cada parte faz</div>
+      <h2 class="reveal d1">Por dentro de cada tela.</h2>
+      <p class="reveal d2">Toque em cada item para entender como o sistema trabalha por você.</p>
+    </div>
+    <div class="accordion reveal d1" id="accordion">
+
+      <div class="acc-item">
+        <button class="acc-head" aria-expanded="false">
+          <span class="acc-ic">📊</span>
+          <span class="acc-title">Dashboard</span>
+          <span class="acc-chev">+</span>
+        </button>
+        <div class="acc-body">
+          <div class="acc-inner">
+            <ul class="acc-list">
+              <li><b>Principais métricas, sem achismo.</b> Veja exatamente quanto você investiu em anúncio e quanto voltou para o seu bolso — fica claro se os seus anúncios estão funcionando ou não.</li>
+              <li><b>Recorrência dos clientes.</b> Entenda se os seus clientes estão voltando a comprar com você ou se estão se afastando.</li>
+              <li><b>Dados detalhados.</b> Valor da carteira, ticket médio, retenção e o quadro por safra — tudo aberto para você analisar a fundo.</li>
+            </ul>
+          </div>
+        </div>
       </div>
-      <div class="results-grid">
-        <div class="result-card">
-          <div class="result-image">
-            <img src="images/Resultado-Varejo-Alimentar.png" alt="E-commerce Varejo Alimentar">
-          </div>
-          <div class="result-info">
-            <span class="result-tag">E-commerce</span>
-            <h3>Varejo Alimentar</h3>
-            <p>Crescimento exponencial do faturamento em menos de 1 ano. Mais de 30 mil downloads e 58 mil pedidos realizados.</p>
-            <div class="result-metric">
-              <span class="metric-value">10x</span>
-              <span class="metric-label">crescimento do<br>faturamento</span>
-            </div>
-          </div>
-        </div>
-        <div class="result-card">
-          <div class="result-image">
-            <img src="images/Resultado-Curso-de-enfermagem.png" alt="Curso Enfermagem">
-          </div>
-          <div class="result-info">
-            <span class="result-tag">Educação</span>
-            <h3>Curso de Enfermagem</h3>
-            <p>Mais de 330 mil faturados em menos de 30 dias. Primeira turma lotada com estratégia de lançamento.</p>
-            <div class="result-metric">
-              <span class="metric-value">R$330k</span>
-              <span class="metric-label">faturados em<br>menos de 30 dias</span>
-            </div>
-          </div>
-        </div>
-        <div class="result-card">
-          <div class="result-image">
-            <img src="images/Captura-de-tela-2023-06-12-093215-1.png" alt="E-commerce Relógio">
-          </div>
-          <div class="result-info">
-            <span class="result-tag">E-commerce</span>
-            <h3>E-commerce de Relógios</h3>
-            <p>Crescimento de 96% no faturamento apenas no primeiro mês de trabalho com marketing de performance.</p>
-            <div class="result-metric">
-              <span class="metric-value">96%</span>
-              <span class="metric-label">crescimento no<br>1º mês</span>
+
+      <div class="acc-item">
+        <button class="acc-head" aria-expanded="false">
+          <span class="acc-ic">📺</span>
+          <span class="acc-title">Modo TV</span>
+          <span class="acc-chev">+</span>
+        </button>
+        <div class="acc-body">
+          <div class="acc-inner">
+            <ul class="acc-list">
+              <li><b>Sua operação ao vivo, na tela do escritório.</b> Uma área de atualização em tempo real: cada pedido e cada venda que acontece na sua operação aparece na hora, mantendo todo mundo ligado no que está rolando agora.</li>
+              <li><b>Time estimulado a vender mais.</b> Coloque numa TV e a vendedora acompanha, o dia todo, o quanto falta pra bater a meta <b style="color:#bd6b2f">Bronze</b>, <b style="color:#a3adba">Prata</b> e <b style="color:#f3b315">Ouro</b> — com ranking e comemoração a cada meta batida.</li>
+            </ul>
+            <div class="acc-tv">
+              <div class="acc-tv-head"><span class="acc-tv-dot"></span> Modo TV ao vivo · cada venda pipoca na hora</div>
+              <div class="acc-tv-vp" id="accTvVp">
+                <iframe class="acc-tv-frame" id="accTvFrame" data-src="system/index.html?view=tv" title="Modo TV — painel de metas ao vivo" scrolling="no" loading="lazy"></iframe>
+              </div>
             </div>
           </div>
         </div>
       </div>
-    </div>
-  </section>
 
-  <!-- CTA -->
-  <section class="cta-section">
-    <div class="container">
-      <div class="cta-box">
-        <div class="glow-orb"></div>
-        <h2>Pronto para vender <span class="highlight">todos os dias</span>?</h2>
-        <p>Marque uma consultoria gratuita e descubra como escalar seu negócio com marketing de performance.</p>
-        <a href="https://wa.me/558596684749" target="_blank" class="btn btn-green">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
-          Quero vender todos os dias
-        </a>
-      </div>
-    </div>
-  </section>
-
-  <!-- CONTATO -->
-  <section class="form-section" id="contato">
-    <div class="container">
-      <div class="section-header">
-        <span class="section-label">Contato</span>
-        <h2 class="section-title">Marque uma <span class="highlight">consultoria grátis</span></h2>
-        <p class="section-desc">Entre em contato pelo WhatsApp e nossa equipe vai agendar sua consultoria gratuita. Sem compromisso.</p>
-        <a href="https://wa.me/558596684749" target="_blank" class="btn btn-green" style="margin-top: 40px; font-size: 17px; padding: 18px 40px;">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
-          Falar pelo WhatsApp
-        </a>
-      </div>
-    </div>
-  </section>
-
-  <!-- FOOTER -->
-  <footer>
-    <div class="container">
-      <div class="footer-grid">
-        <div class="footer-brand">
-          <img src="images/GT_logo_logo_horizontal_cinzaverde.svg" alt="Growth Time">
-          <p>Growth Time Consultoria. Ajudamos empresas a vender todos os dias usando anúncios online e marketing de performance.</p>
+      <div class="acc-item">
+        <button class="acc-head" aria-expanded="false">
+          <span class="acc-ic">🎯</span>
+          <span class="acc-title">Minha Área</span>
+          <span class="acc-chev">+</span>
+        </button>
+        <div class="acc-body">
+          <div class="acc-inner">
+            <ul class="acc-list">
+              <li><b>Controle para o time todo.</b> Seu time de vendas e o de gestão têm controle de tudo num só lugar — incluindo designar tarefas para cada vendedora.</li>
+              <li><b>Leads por temperatura.</b> Veja quais leads estão <span class="hot">quentes</span>, <span class="cold">frios</span> ou <span class="frozen">congelados</span>.</li>
+              <li><b>Clientes por tier.</b> Separados em <b style="color:#ca8a04">Ouro</b>, <b style="color:#64748b">Prata</b> e <b style="color:#b45309">Bronze</b> — saiba a quem dar atenção e quem parou de comprar sem você perceber.</li>
+              <li><b>Resultado de cada vendedora.</b> Conversão média, tempo de resposta a um lead e quanto falta para ela bater a meta.</li>
+            </ul>
+          </div>
         </div>
-        <div class="footer-col">
+      </div>
+
+      <div class="acc-item">
+        <button class="acc-head" aria-expanded="false">
+          <span class="acc-ic">💬</span>
+          <span class="acc-title">Mensagens</span>
+          <span class="acc-chev">+</span>
+        </button>
+        <div class="acc-body">
+          <div class="acc-inner">
+            <ul class="acc-list">
+              <li><b>Tudo num lugar, via API oficial.</b> Visualização simples e fácil de todas as conversas — respondendo pela API oficial, sem chance de derrubar o seu número.</li>
+              <li><b>API Coexistence.</b> Você mantém o WhatsApp funcionando normalmente no celular, pelo próprio app, ao mesmo tempo.</li>
+              <li><b>Qualificação por IA.</b> A inteligência artificial lê as conversas, entende as objeções e qualifica o lead e a temperatura — sem a vendedora perder tempo. Ela só segue as direções que a GT dá.</li>
+              <li><b>Disparos em massa inteligentes.</b> Programe disparos automáticos para clientes inativos, que baixaram o ticket médio, que caíram de Ouro para Prata/Bronze — ou para uma lista personalizada.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <div class="acc-item">
+        <button class="acc-head" aria-expanded="false">
+          <span class="acc-ic">📈</span>
+          <span class="acc-title">Marketing &amp; Vendas</span>
+          <span class="acc-chev">+</span>
+        </button>
+        <div class="acc-body">
+          <div class="acc-inner">
+            <ul class="acc-list">
+              <li><b>Funil completo + mapa do Brasil.</b> Saiba qual região mais vende, quais estados trazem mais vendas e mensagens, e onde investir melhor o seu dinheiro.</li>
+              <li><b>Métricas do Instagram.</b> Qual estilo de post, formato de Reels e tipo de carrossel funciona — direcionando o seu time de marketing para o máximo de vendas.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ANTES → DEPOIS -->
+<section class="block ba" id="virada">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="eyebrow reveal">Antes → Depois</div>
+      <h2 class="reveal d1">Veja a virada acontecer.</h2>
+      <p class="reveal d2">Arraste pelos 12 meses e acompanhe a evolução desde o início com a GT.</p>
+    </div>
+    <div class="ba-stage reveal">
+      <div class="ba-monthbar">
+        <div class="ba-month" id="ba-month">Mês 1</div>
+        <div class="ba-date" id="ba-date">jun 2025</div>
+      </div>
+      <div class="ba-metrics">
+        <div class="ba-metric"><div class="lab">Faturamento / mês</div><div class="val" id="m-fat">R$ 18 mil</div></div>
+        <div class="ba-metric"><div class="lab">Contatos / mês</div><div class="val" id="m-leads">40</div></div>
+      </div>
+      <div class="ba-metrics">
+        <div class="ba-metric"><div class="lab">ROAS</div><div class="val" id="m-roas">1,2x</div></div>
+        <div class="ba-metric"><div class="lab">Tempo de resposta</div><div class="val" id="m-resp">4 h</div></div>
+      </div>
+    </div>
+    <div class="ba-slider-wrap reveal">
+      <input type="range" min="0" max="11" step="1" value="0" class="ba-track" id="ba-slider">
+      <div class="ba-scale" id="ba-scale"></div>
+      <div class="ba-labels"><span id="lbl-antes" class="on">MÊS 1 · antes</span><span id="lbl-depois">MÊS 12 · depois</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- CALCULADORA -->
+<section class="block calc-sec" id="calculadora">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="eyebrow reveal">Calculadora</div>
+      <h2 class="reveal d1">Veja o quanto você precisa investir.</h2>
+      <p class="reveal d2">Não fique mais investindo no escuro ou no achismo. Descubra o cálculo real com os números da sua operação.</p>
+    </div>
+
+    <div class="calc-grid reveal d1">
+      <!-- INPUTS -->
+      <div class="calc-inputs">
+        <div class="calc-field">
+          <label for="cf-ticket">Ticket médio mensal <span class="calc-help" tabindex="0" data-tip="Quanto o seu cliente gasta em média por mês com seus produtos?">?</span></label>
+          <div class="calc-input"><span class="pre">R$</span><input type="number" id="cf-ticket" value="300" min="0" step="10" inputmode="numeric"></div>
+        </div>
+        <div class="calc-field">
+          <label for="cf-vida">Tempo de vida do cliente <span class="calc-help" tabindex="0" data-tip="Por quantos meses, em média, um cliente continua ativo comprando na sua operação.">?</span></label>
+          <div class="calc-input"><input type="number" id="cf-vida" value="6" min="1" step="1" inputmode="numeric"><span class="suf">meses</span></div>
+        </div>
+        <div class="calc-field">
+          <label for="cf-margem">Margem do negócio <span class="calc-help" tabindex="0" data-tip="A margem que sobra depois de tirar TODOS os custos da sua empresa — é o que de fato fica no seu bolso.">?</span></label>
+          <div class="calc-input"><input type="number" id="cf-margem" value="40" min="0" max="100" step="1" inputmode="numeric"><span class="suf">%</span></div>
+        </div>
+        <div class="calc-field">
+          <label for="cf-conv">Conversão do time de vendas <span class="calc-help" tabindex="0" data-tip="Dos contatos qualificados, quantos % a vendedora fecha em venda.">?</span></label>
+          <div class="calc-input"><input type="number" id="cf-conv" value="20" min="0" max="100" step="1" inputmode="numeric"><span class="suf">%</span></div>
+        </div>
+        <div class="calc-field">
+          <label for="cf-qualif">Qualificação dos contatos <span class="calc-help" tabindex="0" data-tip="Quantos % dos contatos têm intenção real de compra. Desconsidere os que somem após a 1ª mensagem, procuram um produto de outro segmento ou chegaram perdidos no seu WhatsApp.">?</span></label>
+          <div class="calc-input"><input type="number" id="cf-qualif" value="70" min="0" max="100" step="1" inputmode="numeric"><span class="suf">%</span></div>
+        </div>
+        <div class="calc-field">
+          <label for="cf-cpc">Quanto você paga por contato</label>
+          <div class="calc-input"><span class="pre">R$</span><input type="number" id="cf-cpc" value="15" min="1" step="1" inputmode="numeric"></div>
+        </div>
+      </div>
+
+      <!-- RESULTADO -->
+      <div class="calc-result">
+        <div class="calc-invest">
+          <div class="calc-invest-lab">Se você investir</div>
+          <div class="calc-invest-val" id="cf-inv-val">R$ 5.000</div>
+          <input type="range" min="1000" max="30000" step="500" value="5000" class="ba-track" id="cf-invest">
+          <div class="calc-invest-range"><span>R$ 1 mil</span><span>R$ 30 mil</span></div>
+        </div>
+
+        <div class="calc-multi" id="cf-tier">
+          <div class="calc-multi-lab">Volta pro seu bolso</div>
+          <div class="calc-multi-val"><span id="cf-multi">1,1</span>x</div>
+          <div class="calc-multi-tag" id="cf-tag">No limite</div>
+        </div>
+
+        <div class="calc-metrics">
+          <div class="calc-m"><div class="lab">Contatos gerados</div><div class="val" id="cf-contatos">—</div></div>
+          <div class="calc-m"><div class="lab">Contatos qualificados</div><div class="val" id="cf-qual">—</div></div>
+          <div class="calc-m"><div class="lab">Novos clientes</div><div class="val" id="cf-vendas">—</div></div>
+          <div class="calc-m"><div class="lab">Cada cliente vale</div><div class="val" id="cf-ltv">—</div></div>
+          <div class="calc-m"><div class="lab">Faturamento no tempo de vida</div><div class="val" id="cf-fat">—</div></div>
+          <div class="calc-m"><div class="lab">Lucro (com margem)</div><div class="val" id="cf-lucro">—</div></div>
+          <div class="calc-m calc-m-hi"><div class="lab">Sobra no seu bolso</div><div class="val" id="cf-sobra">—</div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="calc-note reveal">
+      <div class="calc-note-big">Não sabe esses dados? É por isso que você precisa da <span class="hl-teal">GT</span>.</div>
+      <div class="calc-note-sm">Isso vai fazer com que você invista no seu negócio sabendo o quanto vai crescer.</div>
+    </div>
+
+    <p class="calc-foot reveal">Estimativa baseada nos números que você informou. Ajuste os campos e veja o cenário mudar em tempo real.</p>
+  </div>
+</section>
+
+<!-- GPS -->
+<section class="block gps">
+  <div class="wrap gps-grid">
+    <div>
+      <div class="eyebrow reveal">O sistema como GPS da vendedora</div>
+      <h2 class="reveal d1">Sua vendedora só faz uma coisa: vender.</h2>
+      <p class="reveal d2">O sistema lembra o follow-up, organiza as conversas, qualifica o lead e mostra o próximo passo. Nada de preencher CRM ou anotar à mão — ele é o GPS que conduz cada venda do início ao fim.</p>
+      <div class="gps-bullets reveal d3">
+        <div class="b">📍 Lembra por ela</div>
+        <div class="b">🎯 Qualifica sozinho</div>
+        <div class="b">✨ Resume com IA</div>
+        <div class="b">➡️ Mostra o próximo passo</div>
+      </div>
+    </div>
+    <div class="pvis reveal d1" style="background:#fff">
+      <div style="font-family:'Inter';font-size:12px;color:#737373;margin-bottom:4px">Próximo passo sugerido</div>
+      <div style="display:flex;align-items:center;gap:10px;background:#f4f6f5;border-radius:12px;padding:14px;border:1px solid #ececec;margin-bottom:10px"><span style="font-size:18px">✅</span><div style="font-family:'Inter';font-size:14px;font-weight:600">Enviar tabela de grades p/ Patrícia e fechar pedido</div></div>
+      <div style="display:flex;align-items:center;gap:10px;background:#f4f6f5;border-radius:12px;padding:14px;border:1px solid #ececec"><span style="font-size:18px">🔔</span><div style="font-family:'Inter';font-size:14px;font-weight:600">Follow-up com Revenda Bella — sem resposta há 2 dias</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- MAP (petróleo) -->
+<section class="block map-sec" id="mapa">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="eyebrow on-dark reveal">Presença nacional</div>
+      <h2 class="reveal d1">Do Ceará para todo o Brasil.</h2>
+      <p class="reveal d2">Nossas estratégias colocam clientes no WhatsApp de norte a sul do país.</p>
+    </div>
+    <div class="map-stage reveal" id="mapStage">
+      <img src="brazil-map.svg" alt="Mapa do Brasil" style="filter:brightness(0) saturate(100%) invert(64%) sepia(58%) saturate(560%) hue-rotate(110deg) brightness(92%);opacity:.32">
+      <svg viewBox="0 0 821 744" preserveAspectRatio="xMidYMid meet" style="position:absolute;inset:0;width:100%;height:100%">
+        <path class="arc" style="--len:520" d="M602 205 Q470 150 350 235"></path>
+        <path class="arc" style="--len:420" d="M602 205 Q660 300 600 370"></path>
+        <path class="arc" style="--len:480" d="M602 205 Q500 320 430 425"></path>
+        <path class="arc" style="--len:560" d="M602 205 Q520 380 560 525"></path>
+        <path class="arc" style="--len:680" d="M602 205 Q430 430 470 650"></path>
+        <!-- destination dots -->
+        <circle cx="350" cy="235" r="6" fill="#15dba8"></circle>
+        <circle cx="600" cy="370" r="6" fill="#15dba8"></circle>
+        <circle cx="430" cy="425" r="6" fill="#15dba8"></circle>
+        <circle cx="560" cy="525" r="6" fill="#15dba8"></circle>
+        <circle cx="470" cy="650" r="6" fill="#15dba8"></circle>
+        <!-- Ceará pulse -->
+        <circle class="pulse-ring" cx="602" cy="205" r="6"></circle>
+        <circle class="pulse" cx="602" cy="205" r="9"></circle>
+        <circle cx="602" cy="205" r="4" fill="#fff"></circle>
+      </svg>
+      <div class="map-widget" style="left:2%;top:30%"><b>+1.284</b><span>leads / mês</span></div>
+      <div class="map-widget" style="left:2%;bottom:20%"><b>5 / 5</b><span>regiões atendidas</span></div>
+      <div class="map-widget" style="right:2%;bottom:8%"><b>CE · BA · PE</b><span>estados líderes</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- CONFECÇÃO -->
+<section class="block conf" id="confeccao">
+  <div class="wrap conf-grid">
+    <div>
+      <div class="eyebrow reveal">Para quem vende confecção no atacado</div>
+      <h2 class="reveal d1">Sua coleção nova merece um WhatsApp que dá conta.</h2>
+      <p class="lead2 reveal d2">Pico de pedidos, revendedora perguntando grade e mínimo, vários números desorganizados. A GT centraliza tudo num sistema só, automatiza o atendimento e ainda traz lojista novo de toda região com anúncios certeiros.</p>
+      <a href="#cta" class="btn btn-cta reveal d3" style="margin-top:26px">Quero lotar o WhatsApp da minha confecção</a>
+    </div>
+    <div class="conf-rows">
+      <div class="conf-row reveal d1"><div class="pain-t">Pedido pipocando em pico de coleção</div><div class="arrow">→</div><div class="sol-t">Tudo num só painel, com IA respondendo o básico</div></div>
+      <div class="conf-row reveal d1"><div class="pain-t">"Tem na grade P ao GG?" toda hora</div><div class="arrow">→</div><div class="sol-t">Agente de IA responde na hora, qualquer horário</div></div>
+      <div class="conf-row reveal d2"><div class="pain-t">Base parada entre coleções</div><div class="arrow">→</div><div class="sol-t">Disparo em massa (API oficial) reativa sem bloqueio</div></div>
+      <div class="conf-row reveal d2"><div class="pain-t">Vendas espalhadas em vários números</div><div class="arrow">→</div><div class="sol-t">Um sistema, uma visão, métricas por vendedora</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- PROOF -->
+<section class="block proof" id="prova">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="eyebrow reveal">Prova acima de promessa</div>
+      <h2 class="reveal d1">Resultado não se promete. Se mostra.</h2>
+    </div>
+    <div class="proof-grid">
+      <div class="proof-card reveal d1"><div class="big"><span data-count="10">0</span>x</div><div class="cap">de faturamento em menos de 1 ano</div></div>
+      <div class="proof-card reveal d2"><div class="big">+<span data-count="58">0</span> mil</div><div class="cap">pedidos gerados pelo sistema</div></div>
+      <div class="proof-card reveal d3"><div class="big">+<span data-count="330">0</span> mil</div><div class="cap">faturados em menos de 30 dias</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- DIFERENCIAL -->
+<section class="block dif">
+  <div class="wrap">
+    <div class="eyebrow reveal">O diferencial GT</div>
+    <h2 class="reveal d1">Performance, não vaidade.</h2>
+    <p class="reveal d2">Esqueça seguidores e curtidas. A gente mede o que paga a conta: venda, retorno e lucro. Marketing, atendimento e sistema trabalhando juntos — e rastreáveis.</p>
+  </div>
+</section>
+
+<!-- FINAL CTA -->
+<section class="block cta-final" id="cta">
+  <div class="cta-glow"></div>
+  <div class="wrap" style="position:relative">
+    <h2 class="reveal">Está na hora. <span style="color:#15dba8">Vamos escalar?</span></h2>
+    <p class="reveal d1">Agende um diagnóstico gratuito. A gente mostra onde está o dinheiro que você está deixando na mesa.</p>
+    <a href="https://wa.me/5585997712121?text=Quero%20agendar%20um%20Diagn%C3%B3stico%20com%20a%20GT." target="_blank" rel="noopener" class="btn btn-cta reveal d2" style="font-size:18px;padding:18px 36px">Agendar meu diagnóstico</a>
+    <div class="reinforce reveal d3">Sem compromisso · resposta rápida no WhatsApp</div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="wrap">
+    <div class="foot-grid">
+      <div style="max-width:300px">
+        <div class="brand"><img src="assets/logo.png" alt="GT"><span>Growth Time<span class="dot">.</span></span></div>
+        <p style="font-size:14px;line-height:1.6">Marketing de performance e sistema de vendas para quem vende pelo WhatsApp.</p>
+      </div>
+      <div class="foot-links">
+        <div class="foot-col">
           <h4>Navegação</h4>
-          <a href="#sobre">Sobre</a>
-          <a href="#metodologia">Metodologia</a>
-          <a href="#resultados">Resultados</a>
-          <a href="#contato">Contato</a>
+          <a href="#pilares">Como funciona</a>
+          <a href="#confeccao">Confecção</a>
+          <a href="#prova">Resultados</a>
         </div>
-        <div class="footer-col">
-          <h4>Legal</h4>
-          <a href="/politica-de-privacidade/">Política de Privacidade</a>
-          <a href="/termos-de-uso/">Termos de Uso</a>
-        </div>
-        <div class="footer-col">
+        <div class="foot-col">
           <h4>Contato</h4>
-          <a href="https://wa.me/558596684749" target="_blank">(85) 9668-4749</a>
-          <a href="mailto:contato@growthtime.com.br">contato@growthtime.com.br</a>
-          <a href="https://instagram.com/growthtimebr" target="_blank">@growthtimebr</a>
+          <a href="#">WhatsApp</a>
+          <a href="#">@growthtimebr</a>
+          <a href="#">growthtime.com.br</a>
         </div>
-      </div>
-      <div class="footer-bottom">
-        <p>&copy; 2026 Growth Time Consultoria | CNPJ: 35.811.804/0001-55</p>
-        <div class="social-links">
-          <a href="https://instagram.com/growthtimebr" target="_blank" class="social-link" aria-label="Instagram">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1112.63 8 4 4 0 0116 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>
-          </a>
-          <a href="https://wa.me/558596684749" target="_blank" class="social-link" aria-label="WhatsApp">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
-          </a>
+        <div class="foot-col">
+          <h4>Legal</h4>
+          <a href="#">Política de Privacidade</a>
+          <a href="#">Termos de Uso</a>
         </div>
       </div>
     </div>
-  </footer>
+    <div class="foot-legal">
+      Growth Time Consultoria — CNPJ 35.811.804/0001-55 · Av. Santos Dumont 6740, Aldeota, Fortaleza/CE.<br>
+      © 2026 Growth Time. Todos os direitos reservados.
+    </div>
+  </div>
+</footer>
 
-  <!-- WHATSAPP FLOAT -->
-  <a href="https://wa.me/558596684749" target="_blank" class="whatsapp-float" aria-label="WhatsApp">
-    <svg viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
-  </a>
-
-  <!-- SCROLL ANIMATIONS -->
-  <script>
-    const observer = new IntersectionObserver((entries) => {
-      entries.forEach(entry => {
-        if (entry.isIntersecting) {
-          entry.target.style.animationPlayState = 'running';
-        }
-      });
-    }, { threshold: 0.1 });
-
-    document.querySelectorAll('.animate').forEach(el => {
-      el.style.animationPlayState = 'paused';
-      observer.observe(el);
-    });
-
-    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-      anchor.addEventListener('click', function (e) {
-        e.preventDefault();
-        const target = document.querySelector(this.getAttribute('href'));
-        if (target) {
-          target.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        }
-      });
-    });
-
-    const header = document.querySelector('header');
-    window.addEventListener('scroll', () => {
-      if (window.scrollY > 50) {
-        header.style.background = 'rgba(255, 255, 255, 0.97)';
-        header.style.boxShadow = '0 2px 12px rgba(0,0,0,0.06)';
-      } else {
-        header.style.background = 'rgba(255, 255, 255, 0.9)';
-        header.style.boxShadow = 'none';
-      }
-    });
-  </script>
-
+<script src="landing.js?v=20260603b"></script>
 </body>
 </html>

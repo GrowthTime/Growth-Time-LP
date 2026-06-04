@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GT System — UI Kit</title>
+<link rel="stylesheet" href="../colors_and_type.css">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; }
+  body { font-family: 'Inter', sans-serif; background: #fafafa; color: #171717; -webkit-font-smoothing: antialiased; }
+  #root { height: 100vh; }
+  .app { display: flex; height: 100vh; overflow: hidden; }
+  .main { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+  .topbar { height: 60px; border-bottom: 1px solid #eee; background: #fff; display: flex; align-items: center; justify-content: space-between; padding: 0 26px; flex-shrink: 0; }
+  .content { flex: 1; overflow-y: auto; padding: 26px; }
+  .content.flush { padding: 22px 26px; display: flex; overflow: auto; }
+  ::-webkit-scrollbar { width: 8px; height: 8px; }
+  ::-webkit-scrollbar-thumb { background: rgba(0,0,0,.15); border-radius: 999px; }
+  button { font-family: inherit; }
+
+  /* ---- MOBILE shell (when ?view=mobile) ---- */
+  .app.mobile { flex-direction: column; }
+  .app.mobile .main { min-height: 0; }
+  .app.mobile .topbar { height: 52px; padding: 0 16px; }
+  .app.mobile .content { padding: 16px 14px 84px; }
+  .app.mobile .content.flush { padding: 12px 0 84px; }
+  .bottom-nav { display: none; }
+  .app.mobile .bottom-nav { display: flex; position: fixed; bottom: 0; left: 0; right: 0; height: 64px; background: #121212; border-top: 1px solid #242424; z-index: 40; padding: 6px 4px; }
+  .bottom-nav button { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; background: transparent; border: none; cursor: pointer; color: rgba(245,245,245,.6); font-size: 10px; font-weight: 600; }
+  .bottom-nav button.on { color: #38cc9c; }
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+
+<script type="text/babel" src="Icon.jsx"></script>
+<script type="text/babel" src="Sidebar.jsx"></script>
+<script type="text/babel" src="GoalProgress.jsx"></script>
+<script type="text/babel" src="Prospeccao.jsx"></script>
+<script type="text/babel" src="TVMode.jsx"></script>
+<script type="text/babel" src="Dashboard.jsx"></script>
+<script type="text/babel" src="MinhaArea.jsx"></script>
+<script type="text/babel" src="Conversas.jsx"></script>
+<script type="text/babel" src="Traffic.jsx"></script>
+<script type="text/babel" src="Settings.jsx"></script>
+
+<script type="text/babel">
+const { useState } = React;
+const TITLES = { dashboard: 'Dashboard', conversas: 'Mensagens', trafego: 'Mkt & Ads', area: 'Minha Área', config: 'Configurações' };
+const MOBILE = new URLSearchParams(location.search).get('view') === 'mobile';
+const TVVIEW = new URLSearchParams(location.search).get('view') === 'tv';
+window.GT_MOBILE = MOBILE;
+const NAV = [
+  ['dashboard', 'Dashboard', 'layout-dashboard'],
+  ['area', 'Minha Área', 'user-circle'],
+  ['conversas', 'Mensagens', 'message-square'],
+  ['trafego', 'Mkt & Ads', 'trending-up'],
+  ['config', 'Config', 'settings'],
+];
+
+function BottomNav({ active, onNavigate }) {
+  return (
+    <div className="bottom-nav">
+      {NAV.map(([id, label, ic]) => (
+        <button key={id} className={active === id ? 'on' : ''} onClick={() => onNavigate(id)}>
+          <Icon name={ic} size={20} color={active === id ? '#38cc9c' : 'rgba(245,245,245,.6)'} />
+          {label}
+        </button>
+      ))}
+    </div>
+  );
+}
+
+function App() {
+  const [view, setView] = useState('dashboard');
+  const [tv, setTv] = useState(false);
+  if (TVVIEW) return <TVMode onClose={() => {}} />;
+  const flush = view === 'conversas';
+  return (
+    <div className={'app' + (MOBILE ? ' mobile' : '')}>
+      {!MOBILE && <Sidebar active={view} onNavigate={setView} />}
+      <div className="main">
+        <div className="topbar">
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: MOBILE ? 14 : 15, fontWeight: 600 }}>
+            {MOBILE && <img src="../assets/logo.png" alt="GT" style={{ height: 22 }} />}
+            {!MOBILE && <span style={{ color: '#a3a3a3', fontWeight: 500 }}>Moda Fashion</span>}
+            {!MOBILE && <Icon name="chevron-right" size={15} color="#d4d4d4" />}
+            <span>{TITLES[view]}</span>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: MOBILE ? 12 : 16 }}>
+            {!MOBILE && <button onClick={() => setTv(true)} title="Modo TV" style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, fontWeight: 600, padding: '7px 13px', borderRadius: 9, border: '1px solid #e5e5e5', background: '#fff', cursor: 'pointer' }}><Icon name="tv" size={15} color="#38cc9c" />Modo TV</button>}
+            <Icon name="search" size={18} color="#737373" />
+            <div style={{ position: 'relative' }}>
+              <Icon name="message-circle" size={18} color="#737373" />
+              <span style={{ position: 'absolute', top: -4, right: -4, height: 8, width: 8, borderRadius: 999, background: '#38cc9c' }}></span>
+            </div>
+            <div style={{ height: MOBILE ? 30 : 34, width: MOBILE ? 30 : 34, borderRadius: 999, background: '#38cc9c', color: '#fff', fontWeight: 600, fontSize: 13, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>MA</div>
+          </div>
+        </div>
+        <div className={'content' + (flush ? ' flush' : '')}>
+          {view === 'dashboard' && <Dashboard />}
+          {view === 'area' && <MinhaArea />}
+          {view === 'conversas' && <Conversas />}
+          {view === 'trafego' && <Traffic />}
+          {view === 'config' && <Settings />}
+        </div>
+      </div>
+      {MOBILE && <BottomNav active={view} onNavigate={setView} />}
+      {tv && <TVMode onClose={() => setTv(false)} />}
+    </div>
+  );
+}
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
+</body>
+</html>

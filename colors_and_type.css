@@ -1,0 +1,199 @@
+/* ============================================================
+   GROWTH TIME — Design Tokens
+   colors_and_type.css
+
+   Two surfaces share one teal-green identity:
+   1. SYSTEM  — the GT app (gt-system). Light UI, dark sidebar, Inter.
+   2. BRAND   — the marketing landing. Russo One + Open Sans, petróleo
+                + action-green, vibrant teal accents.
+
+   Fonts are loaded from Google Fonts CDN (the brand-kit .zip with the
+   licensed .ttf files did not upload — see README "Caveats").
+   ============================================================ */
+
+@import url('https://fonts.googleapis.com/css2?family=Russo+One&family=Open+Sans:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600;700;800&display=swap');
+
+:root {
+  /* ---------------------------------------------------------
+     CORE BRAND COLORS
+     The signature mark is teal-green. The marketing language adds
+     a darker "petróleo" for contrast and a slightly bluer action
+     green for buttons.
+     --------------------------------------------------------- */
+
+  /* Teal-green — the signature. Used in the logo arrow, system primary,
+     accents, charts, CTAs. */
+  --gt-teal:            #38cc9c;   /* system primary, hsl(156 54% 51%) */
+  --gt-teal-vibrant:    #15dba8;   /* marketing accent — arrows, glows, key numbers */
+  --gt-teal-logo:       #00cf9a;   /* the exact green of the logo arrow mark */
+  --gt-teal-dark:       #27ae8f;   /* CTA gradient end */
+  --gt-action:          #2bb673;   /* marketing action green — buttons (gradient start) */
+  --gt-green-inst:      #066767;   /* institutional / sober logo variant */
+
+  /* Petróleo — deep teal-black. Dark sections, footer, contrast moments. */
+  --gt-petroleo:        #0b2b29;
+  --gt-petroleo-deep:   #001516;
+  --gt-ink:             #121212;   /* sidebar, strong titles (hsl 0 0% 7%) */
+
+  /* Neutrals */
+  --gt-bg:              #fafafa;   /* app + landing light base (hsl 0 0% 98%) */
+  --gt-bg-alt:          #f4f6f5;   /* hero / alt light section */
+  --gt-surface:         #ffffff;   /* cards */
+  --gt-fg:              #171717;   /* foreground (hsl 0 0% 9%) */
+  --gt-fg-muted:        #5f5e5a;   /* secondary text / subtitles */
+  --gt-fg-subtle:       #737373;   /* muted-foreground (hsl 0 0% 45%) */
+  --gt-border:          #e5e5e5;   /* hsl 0 0% 90% */
+
+  /* ---------------------------------------------------------
+     SYSTEM (APP) SEMANTIC TOKENS  — mirrors gt-system index.css
+     --------------------------------------------------------- */
+  --background:         var(--gt-bg);
+  --foreground:         var(--gt-fg);
+  --card:               #ffffff;
+  --card-foreground:    var(--gt-fg);
+  --primary:            var(--gt-teal);
+  --primary-foreground: #ffffff;
+  --secondary:          #f5f5f5;          /* hsl 0 0% 96% */
+  --muted:              #f5f5f5;
+  --muted-foreground:   var(--gt-fg-subtle);
+  --accent:             var(--gt-teal);
+  --destructive:        #ef4444;          /* hsl 0 84% 60% */
+  --success:            var(--gt-teal);
+  --warning:            #f97316;          /* hsl 25 95% 53% */
+  --info:               var(--gt-teal);
+  --border:             var(--gt-border);
+  --input:              var(--gt-border);
+  --ring:               var(--gt-teal);
+
+  /* Sidebar — dark */
+  --sidebar-bg:         #121212;          /* hsl 0 0% 7% */
+  --sidebar-fg:         #f5f5f5;          /* hsl 0 0% 96% */
+  --sidebar-accent:     #242424;          /* hsl 0 0% 14% */
+  --sidebar-border:     #242424;
+  --sidebar-primary:    var(--gt-teal);
+
+  /* Tier colors (gamified seller goals: bronze / prata / ouro) */
+  --tier-bronze:        #bd6b2f;
+  --tier-prata:         #a3adba;
+  --tier-ouro:          #f3b315;
+
+  /* Funnel palette (the stacked sales funnel) — cyan→emerald→amber→orange→purple */
+  --funnel-1:           #06b6d4;   /* cyan-500  — Mensagens Recebidas */
+  --funnel-2:           #10b981;   /* emerald-500 — Leads Qualificados */
+  --funnel-3:           #f59e0b;   /* amber-500 — Pedidos */
+  --funnel-4:           #f97316;   /* orange-500 — Custos */
+  --funnel-5:           #a855f7;   /* purple-500 — Valor de Vendas */
+
+  /* KPI pastel card tints (app dashboard) */
+  --kpi-emerald-bg:     #ecfdf5;  --kpi-emerald-fg: #059669;
+  --kpi-purple-bg:      #faf5ff;  --kpi-purple-fg:  #9333ea;
+  --kpi-blue-bg:        #eff6ff;  --kpi-blue-fg:    #2563eb;
+  --kpi-slate-bg:       #f8fafc;  --kpi-slate-fg:   #475569;
+
+  /* ---------------------------------------------------------
+     GRADIENTS
+     --------------------------------------------------------- */
+  --gradient-primary:   linear-gradient(135deg, #38cc9c 0%, #2b9d78 100%);
+  --gradient-cta:       linear-gradient(135deg, #2bb673 0%, #27ae8f 100%); /* marketing buttons */
+  --gradient-petroleo:  linear-gradient(160deg, #0b2b29 0%, #001516 100%); /* dark sections */
+  --gradient-teal-glow: linear-gradient(135deg, #15dba8 0%, #38cc9c 100%);
+
+  /* ---------------------------------------------------------
+     RADII — system radius is 0.75rem (12px)
+     --------------------------------------------------------- */
+  --radius:             0.75rem;   /* 12px — default card/button (lg) */
+  --radius-md:          0.625rem;  /* calc(radius - 2px) */
+  --radius-sm:          0.5rem;    /* calc(radius - 4px) */
+  --radius-xl:          1rem;      /* 16px — large feature cards */
+  --radius-pill:        999px;
+
+  /* ---------------------------------------------------------
+     SHADOWS — soft, neutral, low-spread
+     --------------------------------------------------------- */
+  --shadow-sm:   0 1px 2px 0 hsl(0 0% 0% / 0.05);
+  --shadow-md:   0 4px 6px -1px hsl(0 0% 0% / 0.1), 0 2px 4px -2px hsl(0 0% 0% / 0.1);
+  --shadow-lg:   0 10px 15px -3px hsl(0 0% 0% / 0.1), 0 4px 6px -4px hsl(0 0% 0% / 0.1);
+  --shadow-xl:   0 20px 25px -5px hsl(0 0% 0% / 0.1), 0 8px 10px -6px hsl(0 0% 0% / 0.1);
+  --shadow-glow: 0 0 20px hsl(156 54% 51% / 0.3);   /* teal glow for accents */
+
+  /* ---------------------------------------------------------
+     TYPOGRAPHY
+     - Russo One : display / headlines / big numbers (MARKETING only)
+     - Open Sans : marketing body, subtitles, paragraphs
+     - Inter     : the SYSTEM UI font (all app mockups use Inter)
+     --------------------------------------------------------- */
+  --font-display: 'Russo One', system-ui, sans-serif;  /* headlines, uppercase-friendly */
+  --font-body:    'Open Sans', system-ui, sans-serif;  /* marketing prose */
+  --font-ui:      'Inter', system-ui, -apple-system, sans-serif; /* app interface */
+
+  /* Type scale (marketing landing) */
+  --text-hero:     clamp(2.75rem, 6vw, 5rem);   /* Russo One hero headline */
+  --text-display:  clamp(2rem, 4vw, 3.25rem);   /* section headlines */
+  --text-h2:       2rem;
+  --text-h3:       1.5rem;
+  --text-eyebrow:  0.8125rem;   /* the SUPER-TITLE / olho — uppercase, tracked */
+  --text-body-lg:  1.25rem;
+  --text-body:     1rem;
+  --text-sm:       0.875rem;
+  --text-xs:       0.75rem;
+
+  --tracking-eyebrow: 0.14em;
+  --leading-tight:    1.1;
+  --leading-body:     1.6;
+}
+
+/* ============================================================
+   SEMANTIC TYPE CLASSES
+   ============================================================ */
+
+/* --- Marketing (landing) --- */
+.gt-eyebrow {
+  font-family: var(--font-body);
+  font-weight: 700;
+  font-size: var(--text-eyebrow);
+  letter-spacing: var(--tracking-eyebrow);
+  text-transform: uppercase;
+  color: var(--gt-teal);
+}
+.gt-hero {
+  font-family: var(--font-display);
+  font-size: var(--text-hero);
+  line-height: var(--leading-tight);
+  letter-spacing: -0.01em;
+  color: var(--gt-ink);
+}
+.gt-display {
+  font-family: var(--font-display);
+  font-size: var(--text-display);
+  line-height: 1.12;
+  color: var(--gt-ink);
+}
+.gt-h2 { font-family: var(--font-display); font-size: var(--text-h2); line-height: 1.15; }
+.gt-h3 { font-family: var(--font-body); font-weight: 700; font-size: var(--text-h3); line-height: 1.25; }
+.gt-lead {
+  font-family: var(--font-body);
+  font-weight: 400;
+  font-size: var(--text-body-lg);
+  line-height: var(--leading-body);
+  color: var(--gt-fg-muted);
+}
+.gt-body {
+  font-family: var(--font-body);
+  font-weight: 400;
+  font-size: var(--text-body);
+  line-height: var(--leading-body);
+  color: var(--gt-fg-muted);
+}
+.gt-stat {
+  font-family: var(--font-display);
+  font-size: clamp(2.5rem, 5vw, 4rem);
+  line-height: 1;
+  color: var(--gt-teal);
+}
+
+/* --- System (app) --- */
+.ui-h1   { font-family: var(--font-ui); font-weight: 700; font-size: 1.5rem;  line-height: 1.2; color: var(--gt-fg); }
+.ui-h2   { font-family: var(--font-ui); font-weight: 600; font-size: 1.125rem; line-height: 1.3; color: var(--gt-fg); }
+.ui-body { font-family: var(--font-ui); font-weight: 400; font-size: 0.875rem; line-height: 1.5; color: var(--gt-fg); }
+.ui-label{ font-family: var(--font-ui); font-weight: 500; font-size: 0.8125rem; color: var(--muted-foreground); }
+.ui-kpi  { font-family: var(--font-ui); font-weight: 700; font-size: 1.5rem; letter-spacing: -0.01em; color: var(--gt-fg); }
