@@ -7,11 +7,11 @@
    2. BRAND   — the marketing landing. Russo One + Open Sans, petróleo
                 + action-green, vibrant teal accents.
 
-   Fonts are loaded from Google Fonts CDN (the brand-kit .zip with the
-   licensed .ttf files did not upload — see README "Caveats").
+   Fonts are now SELF-HOSTED on Cloudflare Pages (woff2 in fonts/files/,
+   @font-face rules in fonts/fonts.css) — no external CDN dependency.
    ============================================================ */
 
-@import url('https://fonts.googleapis.com/css2?family=Russo+One&family=Open+Sans:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600;700;800&display=swap');
+@import url('fonts/fonts.css');
 
 :root {
   /* ---------------------------------------------------------
