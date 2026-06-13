@@ -4,10 +4,21 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Growth Time — Está na hora de escalar</title>
+<link rel="icon" href="assets/logo.png">
+<link rel="apple-touch-icon" href="assets/logo.png">
 <link rel="preload" as="font" type="font/woff2" crossorigin href="fonts/files/Z9XUDmZRWg6M1LvRYsHOz8mJ.woff2">
 <link rel="preload" as="font" type="font/woff2" crossorigin href="fonts/files/memvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTS-muw.woff2">
 <link rel="preload" as="font" type="font/woff2" crossorigin href="fonts/files/UcC73FwrK3iLTeHuS_nVMrMxCp50SjIa1ZL7.woff2">
-<link rel="stylesheet" href="landing.css?v=20260603b">
+<link rel="stylesheet" href="landing.css?v=20260613a">
+<link rel="stylesheet" href="motion.css?v=20260613a">
+<script>/* gate PRÉ-PAINT do layout hero v3 (zero CLS no boot): mesma regra do
+initHero tier 2 — motion.js reconcilia (remove se não bootar tier 2) */
+(function(){try{
+  if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  if (!(window.CSS && CSS.supports && CSS.supports('overflow','clip'))) return;
+  var w = document.documentElement.clientWidth || innerWidth, h = innerHeight;
+  if (h >= (w >= 1080 ? 760 : 740)) document.documentElement.classList.add('mo-hero-v3');
+}catch(e){}})();</script>
 </head>
 <body>
 
@@ -36,26 +47,61 @@
       <a href="#pilares" class="btn btn-ghost btn-block">Ver como funciona ↓</a>
     </div>
     <div class="hero-trust reveal d4">
-      <span><b data-count="58" data-suffix=" mil">0</b> pedidos</span>
+      <span><b data-count="58" data-suffix=" mil">58 mil</b> pedidos</span>
       <span class="dot"></span>
-      <span><b data-count="10" data-suffix="x">0</b> de crescimento</span>
+      <span><b data-count="10" data-suffix="x">10x</b> de crescimento</span>
       <span class="dot"></span>
       <span><b>API oficial</b></span>
     </div>
     </div><!-- /.hero-copy -->
 
-    <!-- phone = focal point, with external floating annotations -->
+    <!-- phone = focal point (WhatsApp), aurora atrás, trilho de fases por cima (criado no motion.js) -->
     <div class="hero-stage reveal d2" id="heroStage">
+      <!-- aurora decorativa (só com motor; reage ao scroll) — wrapper recebe o parallax, blobs derivam -->
+      <div class="hero-aurora" id="heroAurora" aria-hidden="true"><div class="au-inner"><span class="au-blob au-1"></span><span class="au-blob au-2"></span><span class="au-blob au-3"></span></div></div>
       <div class="stage-glow" id="glow"></div>
-      <div class="phone">
-        <div class="notch"></div>
-        <div class="pbar">
-          <div class="pav">PM</div>
-          <div style="flex:1"><div style="font-size:14px;font-weight:700">Patrícia · Loja</div><div style="font-size:11px;opacity:.85">online agora</div></div>
+      <!-- rig: wrapper estrutural — motion.js escreve transform SÓ aqui;
+           landing.js segue dono do drift do .phone (transforms compõem) -->
+      <div class="phone-rig" id="phoneRig">
+        <span class="ph-shadow ph-shadow-near" aria-hidden="true"></span>
+        <span class="ph-shadow ph-shadow-far" aria-hidden="true"></span>
+        <div class="phone">
+          <span class="island" aria-hidden="true"></span>
+          <div class="pstatus" aria-hidden="true">
+            <span class="pst-time">9:41</span>
+            <span class="pst-ic">
+              <svg width="17" height="11" viewBox="0 0 17 11" fill="currentColor"><rect x="0" y="7" width="3" height="4" rx=".6"/><rect x="4.5" y="5" width="3" height="6" rx=".6"/><rect x="9" y="2.5" width="3" height="8.5" rx=".6"/><rect x="13.5" y="0" width="3" height="11" rx=".6"/></svg>
+              <svg width="16" height="12" viewBox="0 0 16 12" fill="currentColor"><path d="M8 11.2 1 4.2a9.9 9.9 0 0 1 14 0L8 11.2z" fill-opacity=".28"/><path d="M8 11.2 4 7.2a5.6 5.6 0 0 1 8 0l-4 4z"/></svg>
+              <svg width="24" height="12" viewBox="0 0 24 12" fill="none"><rect x="1" y="1" width="19" height="10" rx="2.5" stroke="currentColor" stroke-opacity=".4"/><rect x="3" y="3" width="14.5" height="6" rx="1" fill="currentColor"/><rect x="21" y="4" width="1.6" height="4" rx=".8" fill="currentColor" fill-opacity=".4"/></svg>
+            </span>
+          </div>
+          <div class="pbar">
+            <span class="pbk" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></span>
+            <div class="pav">P<span class="dot"></span></div>
+            <div class="pbar-id">
+              <div class="pbar-name"><span class="nm">Patrícia · Loja</span> <span class="vf" aria-hidden="true"><svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.4 1.8 3 .2.9 2.9 2.3 1.9-.9 2.9.9 2.9-2.3 1.9-.9 2.9-3 .2L12 22l-2.4-1.8-3-.2-.9-2.9L3.4 15l.9-2.9-.9-2.9 2.3-1.9.9-2.9 3-.2L12 2z"/><path d="M8.5 12.2l2.3 2.3 4.7-4.7" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span></div>
+              <div class="pbar-sub">online</div>
+            </div>
+            <div class="pbar-acts" aria-hidden="true">
+              <svg width="21" height="21" viewBox="0 0 24 24" fill="currentColor"><path d="M4 7a2 2 0 0 1 2-2h7a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V7zm13 3.2 3.3-2.4c.5-.4 1.2 0 1.2.6v7.2c0 .6-.7 1-1.2.6L17 13.8v-3.6z"/></svg>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M6.6 10.8a14 14 0 0 0 6.6 6.6l2.2-2.2c.3-.3.7-.4 1-.2 1.1.4 2.3.6 3.6.6.6 0 1 .5 1 1V20c0 .6-.4 1-1 1A17 17 0 0 1 3 4c0-.6.5-1 1-1h3.4c.6 0 1 .5 1 1 0 1.2.2 2.4.6 3.6.1.4 0 .8-.3 1l-2.1 2.2z"/></svg>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="12" cy="19" r="2"/></svg>
+            </div>
+          </div>
+          <div class="pbody" id="phoneFeed" role="log" aria-label="Conversa de exemplo no WhatsApp: lead do anúncio vira cliente ouro"></div>
+          <div class="pcompose" aria-hidden="true">
+            <div class="pcomp-pill">
+              <span class="em"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M8.5 14.5a4 4 0 0 0 7 0"/><circle cx="9" cy="10" r=".8" fill="currentColor" stroke="none"/><circle cx="15" cy="10" r=".8" fill="currentColor" stroke="none"/></svg></span>
+              <span class="ph">Mensagem</span>
+              <span class="at"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11.5 12.2 19.3a4.5 4.5 0 0 1-6.4-6.4l8-8a3 3 0 0 1 4.3 4.3l-8 8a1.5 1.5 0 0 1-2.2-2.2l7.1-7.1"/></svg></span>
+              <span class="cm"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8a2 2 0 0 1 2-2h1.5l1-1.5h7l1 1.5H18a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V8z"/><circle cx="12" cy="12.5" r="3.2"/></svg></span>
+            </div>
+            <span class="pcomp-send"><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 14a3 3 0 0 0 3-3V6a3 3 0 0 0-6 0v5a3 3 0 0 0 3 3z"/><path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" d="M6 11a6 6 0 0 0 12 0M12 17v3.5M9 20.5h6"/></svg></span>
+          </div>
         </div>
-        <div class="pbody" id="phoneFeed"></div>
       </div>
-      <!-- external annotations (like the 'lead quente' tag — NOT chat messages) -->
+      <!-- external annotations: aposentadas no v3 (a história virou o trilho + card de anúncio);
+           mantidas só p/ o fallback sticky (tier 1) — a-roas é o carimbo final em todos -->
       <div class="annot a-ad" data-step="0">📣 Veio do anúncio</div>
       <div class="annot a-ai" data-step="1"><span class="k">✨ IA</span> qualificou o lead</div>
       <div class="annot a-hot" data-step="2">🔥 Lead quente</div>
@@ -498,9 +544,9 @@
       <h2 class="reveal d1">Resultado não se promete. Se mostra.</h2>
     </div>
     <div class="proof-grid">
-      <div class="proof-card reveal d1"><div class="big"><span data-count="10">0</span>x</div><div class="cap">de faturamento em menos de 1 ano</div></div>
-      <div class="proof-card reveal d2"><div class="big">+<span data-count="58">0</span> mil</div><div class="cap">pedidos gerados pelo sistema</div></div>
-      <div class="proof-card reveal d3"><div class="big">+<span data-count="330">0</span> mil</div><div class="cap">faturados em menos de 30 dias</div></div>
+      <div class="proof-card reveal d1"><div class="big"><span data-count="10">10</span>x</div><div class="cap">de faturamento em menos de 1 ano</div></div>
+      <div class="proof-card reveal d2"><div class="big">+<span data-count="58">58</span> mil</div><div class="cap">pedidos gerados pelo sistema</div></div>
+      <div class="proof-card reveal d3"><div class="big">+<span data-count="330">330</span> mil</div><div class="cap">faturados em menos de 30 dias</div></div>
     </div>
   </div>
 </section>
@@ -560,6 +606,9 @@
   </div>
 </footer>
 
-<script src="landing.js?v=20260603b"></script>
+<script src="landing.js?v=20260613a"></script>
+<script src="vendor/gsap.min.js"></script>
+<script src="vendor/ScrollTrigger.min.js"></script>
+<script src="motion.js?v=20260613a"></script>
 </body>
 </html>

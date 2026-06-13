@@ -62,15 +62,64 @@ h1, h2, h3, .display { font-family: 'Russo One', sans-serif; font-weight: 400; }
 .hero-stage { position: relative; height: 600px; margin: 44px auto 0; max-width: 460px; }
 .stage-glow { position: absolute; left: 50%; top: 46%; width: 360px; height: 360px; transform: translate(-50%,-50%); border-radius: 999px; background: radial-gradient(circle, rgba(56,204,156,.32) 0%, rgba(56,204,156,0) 66%); z-index: 0; will-change: transform, opacity; }
 
-.phone { position: absolute; left: 50%; top: 0; transform: translateX(-50%); width: 290px; height: 560px; background: #fff; border-radius: 46px; box-shadow: 0 44px 90px rgba(11,43,41,.28), 0 10px 24px rgba(11,43,41,.12); border: 10px solid #15171a; overflow: hidden; z-index: 3; will-change: transform; }
-.phone .notch { position: absolute; top: 0; left: 50%; transform: translateX(-50%); width: 120px; height: 26px; background: #15171a; border-radius: 0 0 16px 16px; z-index: 5; }
-.phone .pbar { background: #075e54; color: #fff; padding: 26px 15px 12px; display: flex; align-items: center; gap: 10px; }
-.phone .pav { height: 36px; width: 36px; border-radius: 999px; background: rgba(255,255,255,.22); display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700; }
-.phone .pbody { background: #e5ddd3; height: 100%; padding: 14px 12px; display: flex; flex-direction: column; justify-content: flex-start; gap: 8px; }
-.msg { max-width: 82%; font-size: 12.5px; line-height: 1.38; padding: 8px 11px; border-radius: 12px; box-shadow: 0 1px 1px rgba(0,0,0,.07); font-family: 'Open Sans'; }
-.msg.them { background: #fff; align-self: flex-start; border-top-left-radius: 3px; }
-.msg.me { background: #d9fdd3; align-self: flex-end; border-top-right-radius: 3px; }
-.msg .meta { display: block; font-size: 9px; opacity: .55; text-align: right; margin-top: 2px; }
+/* ===== WhatsApp moderno (modo claro) — chrome credível, papel de parede,
+   balões com rabinho, ticks SVG, barra de status + barra de digitar ===== */
+.phone { position: absolute; left: 50%; top: 0; transform: translateX(-50%); width: 290px; height: 560px; background: #fff; border-radius: 46px; box-shadow: 0 44px 90px rgba(11,43,41,.28), 0 10px 24px rgba(11,43,41,.12); border: 10px solid #0e1013; overflow: hidden; z-index: 3; will-change: transform; display: flex; flex-direction: column;
+  font-family: -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; -webkit-font-smoothing: antialiased; }
+/* Dynamic Island (pílula central) */
+.phone .island { position: absolute; top: 8px; left: 50%; transform: translateX(-50%); width: 86px; height: 24px; background: #0a0a0a; border-radius: 999px; z-index: 9; }
+/* barra de status do aparelho */
+.phone .pstatus { flex: 0 0 auto; height: 32px; display: flex; align-items: flex-end; justify-content: space-between; padding: 0 16px 5px; background: #fff; color: #0b141a; }
+.phone .pst-time { font-size: 12.5px; font-weight: 600; letter-spacing: .02em; }
+.phone .pst-ic { display: flex; align-items: center; gap: 5px; }
+.phone .pst-ic svg { display: block; }
+/* header do chat (branco, ícones verdes — WhatsApp 2024) */
+.phone .pbar { flex: 0 0 auto; background: #fff; color: #111b21; display: flex; align-items: center; gap: 6px; padding: 6px 6px 7px 2px; border-bottom: 1px solid #e9edef; }
+.phone .pbk { flex: 0 0 auto; display: flex; color: #008069; padding: 0; }
+.phone .pbk svg { display: block; }
+.phone .pav { position: relative; flex: 0 0 auto; height: 34px; width: 34px; border-radius: 999px; background: linear-gradient(135deg,#25d366,#128c7e); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 700; }
+.phone .pav .dot { position: absolute; right: -1px; bottom: -1px; width: 10px; height: 10px; border-radius: 999px; background: #25d366; border: 2px solid #fff; }
+.phone .pbar-id { flex: 1 1 auto; min-width: 0; }
+.phone .pbar-name { display: flex; align-items: center; gap: 4px; font-size: 14px; font-weight: 600; color: #111b21; line-height: 1.15; white-space: nowrap; }
+.phone .pbar-name .nm { overflow: hidden; text-overflow: ellipsis; }
+.phone .pbar-name .vf { flex: 0 0 auto; display: flex; color: #25d366; }
+.phone .pbar-sub { font-size: 11.5px; color: #667781; line-height: 1.2; }
+.phone .pbar-acts { flex: 0 0 auto; display: flex; align-items: center; gap: 12px; color: #008069; padding-right: 3px; }
+.phone .pbar-acts svg { display: block; }
+/* feed = papel de parede de rabiscos do WhatsApp (claro) */
+.phone .pbody { flex: 1 1 auto; min-height: 0; height: auto; display: flex; flex-direction: column; justify-content: flex-end; gap: 3px; padding: 10px 11px 8px; overflow: hidden;
+  text-align: left; /* o .hero é center; o chat tem que ser left (WhatsApp real) */
+  background-color: #efeae2;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='150' height='150' viewBox='0 0 150 150'%3E%3Cg fill='none' stroke='%23000' stroke-opacity='0.035' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M26 34c0-4 3-7 7-7s6 3 6 6c0 5-6 9-6 9s-7-4-7-8z'/%3E%3Ccircle cx='112' cy='30' r='9'/%3E%3Cpath d='M108 31a4 3 0 0 0 8 0'/%3E%3Cpath d='M64 78l3 7 7 1-5 5 1 7-6-3-7 3 1-7-5-5 7-1z'/%3E%3Cpath d='M122 92c4 0 6 3 6 6s-2 6-6 6'/%3E%3Cpath d='M22 108h13M28 102v13'/%3E%3Cpath d='M44 118c0-7 5-12 12-12'/%3E%3Crect x='96' y='118' width='17' height='13' rx='2.5'/%3E%3Ccircle cx='104.5' cy='124.5' r='3.2'/%3E%3Cpath d='M100 118l1.5-2.5h6L109 118'/%3E%3Cpath d='M132 56v13M138 60l-6-4-6 4'/%3E%3Cpath d='M20 66c3-3 8-3 11 0'/%3E%3Ccircle cx='78' cy='30' r='3'/%3E%3C/g%3E%3C/svg%3E");
+  background-size: 150px; }
+/* barra de digitar */
+.phone .pcompose { flex: 0 0 auto; display: flex; align-items: flex-end; gap: 7px; padding: 6px 8px; background: #f0f2f5; }
+.phone .pcomp-pill { flex: 1 1 auto; display: flex; align-items: center; gap: 8px; background: #fff; border-radius: 20px; min-height: 36px; padding: 6px 10px; }
+.phone .pcomp-pill .em, .phone .pcomp-pill .at, .phone .pcomp-pill .cm { flex: 0 0 auto; display: flex; color: #8696a0; }
+.phone .pcomp-pill .ph { flex: 1 1 auto; font-size: 14px; color: #8696a0; }
+.phone .pcomp-send { flex: 0 0 auto; width: 38px; height: 38px; border-radius: 999px; background: #00a884; color: #fff; display: flex; align-items: center; justify-content: center; }
+
+/* ----- balões com rabinho (CSS puro) ----- */
+.msg { position: relative; max-width: 78%; font-size: 14px; line-height: 1.32; color: #111b21; padding: 5px 8px 6px 9px; box-shadow: 0 1px .5px rgba(11,20,26,.13); font-family: -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; word-wrap: break-word; }
+.msg.them { background: #fff; align-self: flex-start; border-radius: 1px 8px 8px 8px; }
+.msg.me { background: #d9fdd3; align-self: flex-end; border-radius: 8px 1px 8px 8px; }
+.msg.them::before { content: ''; position: absolute; top: 0; left: -7px; width: 0; height: 0; border-style: solid; border-width: 0 0 10px 8px; border-color: transparent transparent transparent #fff; }
+.msg.me::after { content: ''; position: absolute; top: 0; right: -7px; width: 0; height: 0; border-style: solid; border-width: 0 8px 10px 0; border-color: transparent #d9fdd3 transparent transparent; }
+.msg .meta { float: right; display: inline-flex; align-items: center; gap: 3px; font-size: 10.5px; color: #667781; margin: 7px 0 -2px 10px; line-height: 1; }
+.msg .tick { display: inline-flex; color: #8696a0; }
+.msg .tick.blue { color: #53bdeb; }
+.msg .tick svg { display: block; }
+
+/* ----- card de referral de anúncio (CTWA): "Conversa iniciada por um anúncio" ----- */
+.chip-ad { align-self: flex-start; max-width: 84%; background: #fff; border-radius: 5px 10px 10px 10px; box-shadow: 0 1px .5px rgba(11,20,26,.14); padding: 7px 8px; margin-bottom: 2px; position: relative; }
+.chip-ad::before { content: ''; position: absolute; top: 0; left: -7px; width: 0; height: 0; border-style: solid; border-width: 0 0 9px 8px; border-color: transparent transparent transparent #fff; }
+.chip-ad .ad-h { display: flex; align-items: center; gap: 5px; color: #667781; font-size: 10.5px; font-weight: 600; margin-bottom: 6px; }
+.chip-ad .ad-h svg { width: 12px; height: 12px; flex: 0 0 auto; }
+.chip-ad .ad-b { display: flex; gap: 8px; align-items: center; }
+.chip-ad .ad-thumb { flex: 0 0 auto; width: 50px; height: 50px; border-radius: 7px; background: linear-gradient(135deg,#27ae8f,#0b6b56); display: flex; align-items: center; justify-content: center; color: rgba(255,255,255,.92); }
+.chip-ad .ad-tx { min-width: 0; }
+.chip-ad .ad-tt { font-size: 12.5px; font-weight: 600; color: #111b21; line-height: 1.25; margin-bottom: 2px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.chip-ad .ad-ds { font-size: 11px; color: #667781; line-height: 1.2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
 /* floating annotation widgets (facilpay-coin equivalent) */
 .annot { position: absolute; z-index: 6; background: #fff; border-radius: 13px; box-shadow: 0 16px 36px rgba(11,43,41,.18); padding: 9px 13px; font-family: 'Inter', sans-serif; font-size: 12.5px; font-weight: 600; display: flex; align-items: center; gap: 7px; white-space: nowrap; opacity: 0; will-change: transform, opacity; }

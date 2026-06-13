@@ -81,7 +81,8 @@ const fonts = read(path.join(ROOT, 'fonts/fonts.css'))
   .replace(/url\(files\//g, 'url(fonts/files/');           // GOTCHA: path relativo à raiz agora
 const landing = read(path.join(ROOT, 'landing.css'))
   .replace(/@import\s+url\(['"]?colors_and_type\.css['"]?\)\s*;?/, '/* tokens merged above */');
-const mergedCss = colors + '\n\n' + fonts + '\n\n' + landing;
+const motionCss = existsSync(path.join(ROOT, 'motion.css')) ? read(path.join(ROOT, 'motion.css')) : '';
+const mergedCss = colors + '\n\n' + fonts + '\n\n' + landing + '\n\n' + motionCss;
 const cssName = `landing.${sha8(mergedCss)}.css`;
 writeFileSync(path.join(DIST, cssName), mergedCss);
 // sanidade: nenhuma url(files/...) não-reescrita e nenhum @import sobrando
@@ -93,9 +94,31 @@ log(`css fundido -> ${cssName} (${(mergedCss.length/1024).toFixed(1)} KB)`);
 // 4. content-hash no landing.js
 // ---------------------------------------------------------------------------
 const jsBuf = readFileSync(path.join(ROOT, 'landing.js'));
+// sanidade: o roteiro do chat é fonte única no landing.js (motion.js consome __gtSeq)
+if (!jsBuf.includes('window.__gtSeq')) throw new Error('landing.js perdeu window.__gtSeq — motion.js ficaria sem roteiro');
 const jsName = `landing.${sha8(jsBuf)}.js`;
 writeFileSync(path.join(DIST, jsName), jsBuf);
 log(`js -> ${jsName}`);
+
+const motionBuf = existsSync(path.join(ROOT, 'motion.js')) ? readFileSync(path.join(ROOT, 'motion.js')) : null;
+const motionJsName = motionBuf ? `motion.${sha8(motionBuf)}.js` : null;
+if (motionBuf) { writeFileSync(path.join(DIST, motionJsName), motionBuf); log(`js -> ${motionJsName}`); }
+
+// ---------------------------------------------------------------------------
+// 4b. content-hash nos vendor/*.js referenciados pelo index.html (GSAP etc.)
+// ---------------------------------------------------------------------------
+const vendorMap = {};
+{
+  const idx = read(path.join(ROOT, 'index.html'));
+  for (const m of idx.matchAll(/src="(vendor\/[^"?]+\.js)(\?[^"]*)?"/g)) {
+    const rel = m[1];
+    const buf = readFileSync(path.join(ROOT, rel));
+    const hashed = rel.replace(/\.js$/, `.${sha8(buf)}.js`);
+    writeFileSync(path.join(DIST, hashed), buf);
+    vendorMap[rel] = hashed;
+    log(`vendor -> ${hashed}`);
+  }
+}
 
 // ---------------------------------------------------------------------------
 // 5. brazil-map.svg: svgo best-effort + content-hash
@@ -131,14 +154,21 @@ log(`svg -> ${svgName}`);
 // ---------------------------------------------------------------------------
 let html = read(path.join(DIST, 'index.html'));
 html = html.replace(/href="landing\.css(\?v=[^"]*)?"/, `href="${cssName}"`);
+html = html.replace(/[ \t]*<link rel="stylesheet" href="motion\.css[^"]*">\n?/, ''); // fundido no landing.css
 html = html.replace(/src="landing\.js(\?v=[^"]*)?"/, `src="${jsName}"`);
+if (motionJsName) html = html.replace(/src="motion\.js(\?v=[^"]*)?"/, `src="${motionJsName}"`);
+// sanidade: se motion.js existe na raiz, o HTML final PRECISA referenciá-lo
+if (motionJsName && !html.includes(motionJsName)) throw new Error('index.html não referencia motion.js — reexport dropou o script?');
 html = html.replace(/src="brazil-map\.svg"/, `src="${svgName}"`);
+for (const [rel, hashed] of Object.entries(vendorMap)) {
+  html = html.split(`src="${rel}"`).join(`src="${hashed}"`);
+}
 writeFileSync(path.join(DIST, 'index.html'), html);
 // sanidade
 for (const must of [cssName, jsName, svgName]) {
   if (!html.includes(must)) throw new Error(`index.html não referencia ${must}`);
 }
-if (/landing\.css\?v=|src="landing\.js\?v=|src="brazil-map\.svg"/.test(html)) throw new Error('index.html ainda referencia asset não-hasheado');
+if (/landing\.css\?v=|src="landing\.js\?v=|src="brazil-map\.svg"|motion\.css\?v=|src="motion\.js\?v=/.test(html)) throw new Error('index.html ainda referencia asset não-hasheado');
 log('index.html reescrito');
 
 // ---------------------------------------------------------------------------
@@ -157,6 +187,10 @@ const headers = `# Gerado por build.mjs — não editar à mão
   cache-control: public, max-age=31536000, immutable
 /landing.*.js
   cache-control: public, max-age=31536000, immutable
+/motion.*.js
+  cache-control: public, max-age=31536000, immutable
+/vendor/*
+  cache-control: public, max-age=31536000, immutable
 /brazil-map.*.svg
   cache-control: public, max-age=31536000, immutable
 /*.html
@@ -172,6 +206,8 @@ log('_headers emitido');
 // ---------------------------------------------------------------------------
 const purge = [
   'landing.css', 'landing.js', 'brazil-map.svg',          // versões não-hasheadas
+  'motion.css', 'motion.js',                               // fundido/hasheado acima
+  ...Object.keys(vendorMap),                               // vendor não-hasheado
   'system/vendor/babel.min.js',                            // não vai mais ao ar
   'system/vendor/react.development.js',
   'system/vendor/react-dom.development.js',

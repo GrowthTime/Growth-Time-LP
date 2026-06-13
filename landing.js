@@ -18,9 +18,11 @@
     var mqW = 0;
     setTimeout(function () { mqW = track.scrollWidth / 2; }, 50);
     if (!reduce) {
-      var mq0 = now();
+      var mq0 = now(), mqX = 0, mqLast = mq0;
       (function mq(t) {
-        if (mqW) { var x = ((t - mq0) * 0.045) % mqW; track.style.transform = 'translateX(' + (-x) + 'px)'; }
+        // __mqBoost: o fio verde (path.js) acelera a faixa junto com o scroll
+        if (mqW) { mqX = (mqX + (t - mqLast) * 0.045 * (window.__mqBoost || 1)) % mqW; track.style.transform = 'translateX(' + (-mqX) + 'px)'; }
+        mqLast = t;
         requestAnimationFrame(mq);
       })(mq0);
     }
@@ -48,7 +50,13 @@
     })(null);
   }
   var revs = [].slice.call(document.querySelectorAll('.reveal'));
-  function checkReveal() { for (var i = revs.length - 1; i >= 0; i--) if (inView(revs[i])) { tweenReveal(revs[i]); revs.splice(i, 1); } }
+  function checkReveal() {
+    for (var i = revs.length - 1; i >= 0; i--) if (inView(revs[i])) {
+      // seções coreografadas pelo motion.js cuidam da própria entrada
+      if (window.__gtJourney && revs[i].closest('[data-mo]')) { revs.splice(i, 1); continue; }
+      tweenReveal(revs[i]); revs.splice(i, 1);
+    }
+  }
 
   /* ---------- Count-up ---------- */
   function animateCount(el) {
@@ -62,7 +70,13 @@
     })(now());
   }
   var counters = [].slice.call(document.querySelectorAll('[data-count]'));
-  function checkCounters() { for (var i = counters.length - 1; i >= 0; i--) if (inView(counters[i], 0.98)) { animateCount(counters[i]); counters.splice(i, 1); } }
+  function checkCounters() {
+    for (var i = counters.length - 1; i >= 0; i--) if (inView(counters[i], 0.98)) {
+      // com o fio verde ativo, os counters da prova disparam quando o orbe chega (path.js)
+      if (window.__gtJourney && counters[i].closest('.proof')) { counters.splice(i, 1); continue; }
+      animateCount(counters[i]); counters.splice(i, 1);
+    }
+  }
 
   /* ---------- HERO: phone float + glow + annotations + conversation ---------- */
   var heroPhone = document.querySelector('.hero .phone');
@@ -80,8 +94,8 @@
     var dt = t - h0;
     var sy = window.scrollY || 0;
     var par = Math.max(-60, -sy * 0.12); // parallax lift
-    if (heroPhone) heroPhone.style.transform = 'translateX(-50%) translateY(' + (Math.sin(dt / 2100) * 9 + par * 0.4).toFixed(2) + 'px)';
-    if (glow) { var g = 1 + Math.sin(dt / 1500) * 0.08; glow.style.transform = 'translate(-50%,-50%) scale(' + g.toFixed(3) + ')'; glow.style.opacity = (0.75 + Math.sin(dt / 1500) * 0.18).toFixed(2); }
+    if (heroPhone && !window.__gtHeroRig) heroPhone.style.transform = 'translateX(-50%) translateY(' + (Math.sin(dt / 2100) * 9 + par * 0.4).toFixed(2) + 'px)'; // sob o rig v3 o drift é do rig (sombras viajam junto)
+    if (glow && !window.__gtHeroRig) { var g = 1 + Math.sin(dt / 1500) * 0.08; glow.style.transform = 'translate(-50%,-50%) scale(' + g.toFixed(3) + ')'; glow.style.opacity = (0.75 + Math.sin(dt / 1500) * 0.18).toFixed(2); }
     annots.forEach(function (a) {
       a._op += (a._target - a._op) * 0.08;
       var dx = Math.sin(dt * a._sp + a._ph) * a._ax;
@@ -94,17 +108,47 @@
   else { annots.forEach(function (a) { a.style.opacity = 1; }); }
 
   // natural WhatsApp conversation (no "I saw the ad" text — that's the external annotation)
-  var SEQ = [
+  // FONTE ÚNICA do roteiro: motion.js consome window.__gtSeq (não duplicar lá).
+  // 1ª venda (4 msgs) → salto temporal → recompra (3 msgs) → cliente ouro.
+  // chipBefore: separador de data estilo WhatsApp antes desta msg;
+  // goldAfter: badge de cliente ouro depois desta msg.
+  var SEQ = window.__gtSeq = [
     { k: 'them', t: 'Oi! Vocês têm grade no atacado? 👗', at: '12:01', step: 0 },
     { k: 'me', t: 'Oi! 💚 Temos sim — grade P ao GG, mínimo 10 peças', at: '12:01', step: 1 },
     { k: 'them', t: 'Perfeito! Quero fechar 🔥', at: '12:02', step: 2 },
-    { k: 'me', t: 'Show! Já montei seu pedido 🚀', at: '12:02', step: 3 }
+    { k: 'me', t: 'Show! Já montei seu pedido 🚀', at: '12:02', step: 3 },
+    { k: 'me', t: 'Oi, Patrícia! 🎉 Chegou coleção nova — já separei as novidades pra você', at: '09:14', chipBefore: '3 semanas depois' },
+    { k: 'them', t: 'Aii amei! Pode mandar dobrado dessa vez 🙌', at: '09:15' },
+    { k: 'me', t: 'Fechado! Já tô montando seu pedido 🚀', at: '09:15', goldAfter: '🏆 Cliente ouro · 3ª recompra' }
   ];
+  // ticks SVG (✓ / ✓✓) — fonte única; motion.js troca o estado por scroll
+  var TICK1 = '<svg width="16" height="11" viewBox="0 0 18 12" fill="none"><path d="M3 6.5 6.5 9.7 14 2.3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+  var TICK2 = '<svg width="16" height="11" viewBox="0 0 18 12" fill="none"><path d="M1 6.5 4 9.5 10 2.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/><path d="M6.5 6.8 9 9.3 15 2.3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+  window.__gtTick = { one: TICK1, two: TICK2 };
+  // card de referral de anúncio (CTWA) — "Conversa iniciada por um anúncio"
+  var AD_GLYPH = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l16-7-3 16-4-5-5-1z"/></svg>';
+  var AD_THUMB = '<svg width="26" height="26" viewBox="0 0 24 24" fill="currentColor"><path d="M9.2 3 5 5.6l1.8 3.1 1.4-.8V21h7.6V7.9l1.4.8L20 5.6 15.8 3l-.5.4a3 3 0 0 1-5.6 0L9.2 3z"/></svg>';
+  window.__gtAdCard = { label: 'Conversa iniciada por um anúncio', tt: 'Atacado direto da fábrica — grade fechada', ds: 'Instagram · GT Moda Atacado' };
+  function buildAdCard() {
+    var a = window.__gtAdCard, c = document.createElement('div');
+    c.className = 'chip-ad';
+    c.innerHTML = '<div class="ad-h">' + AD_GLYPH + ' ' + a.label + '</div>' +
+      '<div class="ad-b"><div class="ad-thumb">' + AD_THUMB + '</div>' +
+      '<div class="ad-tx"><div class="ad-tt">' + a.tt + '</div><div class="ad-ds">' + a.ds + '</div></div></div>';
+    return c;
+  }
+  window.__gtBuildAd = buildAdCard;
+  function buildChip(cls, txt) {
+    var c = document.createElement('div');
+    c.className = cls; c.textContent = txt;
+    return c;
+  }
   function setAnnot(step, on) { annots.forEach(function (a) { if (a.getAttribute('data-step') == step) a._target = on ? 1 : 0; }); }
+  window.__heroAnnot = setAnnot; // motion.js coreografa a visibilidade; o drift continua aqui
   function buildMsg(m) {
     var d = document.createElement('div');
     d.className = 'msg ' + m.k;
-    d.innerHTML = m.t + '<span class="meta">' + m.at + (m.k === 'me' ? ' ✓✓' : '') + '</span>';
+    d.innerHTML = m.t + '<span class="meta" aria-hidden="true">' + m.at + (m.k === 'me' ? ' <i class="tick blue">' + TICK2 + '</i>' : '') + '</span>';
     d.style.opacity = 0; d.style.transform = 'translateY(10px) scale(.96)';
     return d;
   }
@@ -116,23 +160,39 @@
   function playPhone() {
     if (!feed) return;
     feed.innerHTML = '';
+    feed.appendChild(buildAdCard()); // contexto do anúncio fica fixo no topo do chat
     annots.forEach(function (a) { if (!a.classList.contains('a-roas')) a._target = 0; });
     var i = 0;
     (function next() {
+      if (window.__gtHero) { playing = false; return; } // motion.js assumiu o chat (mata cadeia em voo)
       if (i >= SEQ.length) { setTimeout(function () { playing = false; if (inView(heroPhone, 0.98)) start2(); }, 3000); return; }
-      var m = SEQ[i], el = buildMsg(m); feed.appendChild(el);
+      var m = SEQ[i];
+      if (m.chipBefore) { var ch = buildChip('chip-date on', m.chipBefore); feed.appendChild(ch); if (!reduce) popIn(ch); }
+      var el = buildMsg(m); feed.appendChild(el);
       if (reduce) { el.style.opacity = ''; el.style.transform = ''; } else popIn(el);
       setAnnot(m.step, true);
+      if (m.goldAfter) setTimeout(function () {
+        if (window.__gtHero || !el.isConnected) return;
+        var g = buildChip('chip-gold on', m.goldAfter); feed.appendChild(g); if (!reduce) popIn(g);
+      }, 650);
       i++;
       setTimeout(next, i === 1 ? 700 : 1350);
     })();
   }
   function start2() { if (playing) return; playing = true; playPhone(); }
   function checkPhone() {
+    if (window.__gtHero) return; // motion.js dirige a conversa pelo scroll
     if (started || !heroPhone || !feed) return;
     if (inView(heroPhone, 0.95)) {
       started = true;
-      if (reduce) { SEQ.forEach(function (m) { var e = buildMsg(m); e.style.opacity = ''; e.style.transform = ''; feed.appendChild(e); setAnnot(m.step, true); }); }
+      if (reduce) {
+        feed.appendChild(buildAdCard());
+        SEQ.forEach(function (m) {
+          if (m.chipBefore) feed.appendChild(buildChip('chip-date on', m.chipBefore));
+          var e = buildMsg(m); e.style.opacity = ''; e.style.transform = ''; feed.appendChild(e); setAnnot(m.step, true);
+          if (m.goldAfter) feed.appendChild(buildChip('chip-gold on', m.goldAfter));
+        });
+      }
       else start2();
     }
   }
@@ -196,6 +256,7 @@
     (function f(t) { if (start === null) start = t; var e = t - start; if (e < delay) { requestAnimationFrame(f); return; } var p = Math.min((e - delay) / dur, 1); a.style.strokeDashoffset = len * Math.pow(1 - p, 3); if (p < 1) requestAnimationFrame(f); })(null);
   }
   function checkMap() {
+    if (window.__gtJourney) return; // o fio verde rege os arcos do mapa (path.js)
     if (mapDone || !mapStage) return;
     if (inView(mapStage, 0.7)) { mapDone = true; mapStage.querySelectorAll('.arc').forEach(function (a, i) { drawArc(a, i * 200); }); }
   }
@@ -242,9 +303,10 @@
     function stop() { userTouched = true; }
     slider.addEventListener('input', function () { stop(); render(parseInt(this.value, 10)); });
     ['pointerdown', 'keydown'].forEach(function (ev) { slider.addEventListener(ev, stop); });
-    render(0); window.__baRender = function (p) { render(Math.round(p * (MONTHS - 1))); };
+    render(0); window.__baRender = function (p) { var idx = Math.round(p * (MONTHS - 1)); slider.value = idx; render(idx); };
     // animation starts as soon as the stage is on screen — quick play through the year
     window.__checkBA = function () {
+      if (window.__baExt) return; // o fio verde (path.js) dirige os 12 meses pelo scroll
       if (baPlayed || !baStage || !inView(baStage, 0.82)) return;
       baPlayed = true;
       if (reduce) { slider.value = MONTHS - 1; render(MONTHS - 1); return; }
