@@ -659,11 +659,10 @@ html.mo-degrade .au-inner, html.mo-lite .au-inner { animation: none !important; 
   .mo-on .btn-cta:hover::after { animation: mo-shine .85s cubic-bezier(.5,0,.3,1) 1; }
 }
 
-/* ---------- marquee: fade nas bordas + hover acende o item ---------- */
-.mo-on .marquee { -webkit-mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent); mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent); }
+/* ---------- marquee: hover acende a logo (o fade das bordas é sempre-ligado em landing.css/.marquee-viewport) ---------- */
 @media (hover: hover) and (pointer: fine) {
-  .mo-on .marquee-track .it { transition: color .2s ease; }
-  .mo-on .marquee-track .it:hover { color: #5f5e5a; }
+  /* hover acende a logo em cor cheia (e o strip pausa via JS __mqPause) */
+  .marquee-track .cl-logo:hover { filter: grayscale(0) brightness(1) opacity(1); }
 }
 
 /* ---------- sistema: spring no toggle, hint chega depois ---------- */

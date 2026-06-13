@@ -840,21 +840,12 @@
       var ws = splitWords(h1, 'mo-hw');
       gsap.from(ws, { y: '0.75em', opacity: 0, duration: 0.85, stagger: 0.07, delay: 0.18, ease: 'power3.out', clearProps: 'all' });
     }
-    // marquee com inércia: velocidade (__mqBoost, hook do landing.js) + skew no PAI (sem brigar com o track)
-    var mq = qs('.marquee');
-    if (mq) mqSet = gsap.quickSetter(mq, 'skewX', 'deg');
+    // esteira de LOGOS: velocidade calma e constante — sem inércia de scroll, sem skew
+    // (logos não devem entortar nem acelerar; mqSet fica nulo de propósito)
   }
   var boost = 1, skew = 0;
   function renderMarquee() {
-    var dy = window.scrollY - lastY;
-    var tgt = Math.min(2.6, 1 + Math.abs(dy) * 0.045);
-    boost += (tgt - boost) * 0.07;
-    window.__mqBoost = degraded ? 1 : boost;
-    if (mqSet && !degraded) {
-      var sTgt = Math.max(-5, Math.min(5, dy * 0.35));
-      skew += (sTgt - skew) * 0.08;
-      mqSet(skew);
-    }
+    window.__mqBoost = 1;
   }
 
   /* ================= kill-switch (relativo à cadência base) ================= */

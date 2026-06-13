@@ -9,19 +9,54 @@
   var nav = document.getElementById('nav');
   function onNav() { nav.classList.toggle('scrolled', window.scrollY > 24); }
 
-  /* ---------- Marquee (rAF) ---------- */
-  var items = ['API oficial Meta', 'Confecção & Atacado', 'Tráfego Pago', 'Agentes de IA', 'Disparo em massa', 'CRM no WhatsApp', 'ROAS rastreável', 'Moda Feminina', 'Calçados', 'Semijoias', 'Cosméticos', 'Multi-nicho'];
+  /* ---------- Marquee de logos de clientes (rAF) ---------- */
+  // ordem intercalada: nunca colar 2 variações da mesma marca lado a lado
+  var logos = [
+    { src: 'assets/logos/clara-jeans.png',   alt: 'Clara Jeans Wear' },
+    { src: 'assets/logos/pinkcom-jeans.png', alt: 'Pink.Com Jeans' },
+    { src: 'assets/logos/quids.png',         alt: 'Quids' },
+    { src: 'assets/logos/moov.png',          alt: 'Moov Watches' },
+    { src: 'assets/logos/clara-plus.png',    alt: 'Clara Plus Size' },
+    { src: 'assets/logos/fornelle.png',      alt: 'Fornelle Pizzaria' },
+    { src: 'assets/logos/pinkcom-fit.png',   alt: 'Pink.Com Fit' },
+    { src: 'assets/logos/uece.png',          alt: 'Universidade Estadual do Ceará' },
+    { src: 'assets/logos/q.png',             alt: 'Q.' }
+  ];
   var track = document.getElementById('marquee');
   if (track) {
-    var h = items.map(function (t) { return '<span class="it">' + t + '</span>'; }).join('');
-    track.innerHTML = h + h;
+    function buildLogos(hidden) {
+      return logos.map(function (l) {
+        var slug = l.src.replace(/.*\/(.*)\.png$/, '$1');
+        return '<img class="cl-logo cl-logo--' + slug + '" src="' + l.src + '"'
+          + ' alt="' + (hidden ? '' : l.alt) + '"' + (hidden ? ' aria-hidden="true"' : '')
+          + ' loading="eager" decoding="async">';
+      }).join('');
+    }
+    // 1ª cópia acessível + 2ª cópia (loop infinito) com aria-hidden
+    track.innerHTML = buildLogos(false) + buildLogos(true);
+
     var mqW = 0;
-    setTimeout(function () { mqW = track.scrollWidth / 2; }, 50);
+    function measureMq() { mqW = track.scrollWidth / 2; }
+    // medir SÓ depois das imagens decodificarem (senão a largura sai errada e o loop "salta")
+    var imgs = track.querySelectorAll('img');
+    Promise.all([].map.call(imgs, function (i) {
+      return (i.decode ? i.decode() : Promise.resolve()).catch(function () {});
+    })).then(measureMq);
+    setTimeout(measureMq, 400); // fallback caso decode não dispare
+    window.addEventListener('resize', measureMq);
+
+    // pausa no hover do strip (desktop) — toque premium
+    if (window.matchMedia('(hover: hover) and (pointer: fine)').matches) {
+      var strip = track.parentNode;
+      strip.addEventListener('mouseenter', function () { window.__mqPause = true; });
+      strip.addEventListener('mouseleave', function () { window.__mqPause = false; });
+    }
+
     if (!reduce) {
       var mq0 = now(), mqX = 0, mqLast = mq0;
       (function mq(t) {
-        // __mqBoost: o fio verde (path.js) acelera a faixa junto com o scroll
-        if (mqW) { mqX = (mqX + (t - mqLast) * 0.045 * (window.__mqBoost || 1)) % mqW; track.style.transform = 'translateX(' + (-mqX) + 'px)'; }
+        // velocidade calma e constante p/ logos (__mqBoost fixado em 1 no motion.js)
+        if (mqW && !window.__mqPause) { mqX = (mqX + (t - mqLast) * 0.028 * (window.__mqBoost || 1)) % mqW; track.style.transform = 'translateX(' + (-mqX) + 'px)'; }
         mqLast = t;
         requestAnimationFrame(mq);
       })(mq0);
