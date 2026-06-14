@@ -136,19 +136,24 @@ h1, h2, h3, .display { font-family: 'Russo One', sans-serif; font-weight: 400; }
 .marquee { border-top: 1px solid #ececec; border-bottom: 1px solid #ececec; background: #fff; padding: 17px 0 19px; text-align: center; }
 .marquee-label { font-family: 'Open Sans'; font-weight: 700; font-size: 10px; letter-spacing: .14em; text-transform: uppercase; color: #6b726f; margin: 0 0 13px; }
 /* viewport clipa o trilho e faz o fade nas bordas (sempre ligado, independe do motor); NÃO mascara o rótulo */
-.marquee-viewport { overflow: hidden; -webkit-mask-image: linear-gradient(90deg, transparent, #000 10%, #000 90%, transparent); mask-image: linear-gradient(90deg, transparent, #000 10%, #000 90%, transparent); }
+.marquee-viewport { overflow: hidden; -webkit-mask-image: linear-gradient(90deg, transparent, #000 10%, #000 90%, transparent); mask-image: linear-gradient(90deg, transparent, #000 10%, #000 90%, transparent); touch-action: pan-y; cursor: grab; -webkit-user-select: none; user-select: none; }
+.marquee-viewport.mq-grab { cursor: grabbing; }
 /* font-size do track = altura base das logos (em); muda só ele p/ escalar tudo */
 .marquee-track { display: flex; gap: 46px; width: max-content; align-items: center; font-size: 34px; will-change: transform; }
-.cl-logo { height: 1em; width: auto; object-fit: contain; display: block; flex: none; filter: grayscale(1) opacity(.7); transition: filter .28s ease; }
+.cl-logo { height: 1em; width: auto; object-fit: contain; display: block; flex: none; filter: grayscale(1) opacity(.7); transition: filter .28s ease; -webkit-user-drag: none; user-select: none; }
 /* peso óptico por-logo: brightness escurece os claros + opacity clareia os escuros -> mesmo cinza exibido (~140); em-height equaliza o tamanho */
 .cl-logo--clara-jeans   { height: 0.818em; filter: grayscale(1) brightness(1)   opacity(.92); }
 .cl-logo--pinkcom-jeans { height: 1.045em; filter: grayscale(1) brightness(1)   opacity(.74); }
 .cl-logo--quids         { height: 1.068em; filter: grayscale(1) brightness(.72) opacity(1);   }
 .cl-logo--moov          { height: 1.023em; filter: grayscale(1) brightness(1)   opacity(.62); }
+.cl-logo--levoo         { height: 0.909em; filter: grayscale(1) brightness(1)   opacity(.63); }
 .cl-logo--clara-plus    { height: 0.909em; filter: grayscale(1) brightness(1)   opacity(.68); }
+.cl-logo--gl            { height: 1.136em; filter: grayscale(1) brightness(1)   opacity(.98); }
 .cl-logo--fornelle      { height: 1.045em; filter: grayscale(1) brightness(1)   opacity(.94); }
-.cl-logo--pinkcom-fit   { height: 0.864em; filter: grayscale(1) brightness(.83) opacity(1);   }
 .cl-logo--uece          { height: 1.023em; filter: grayscale(1) brightness(1)   opacity(.8);  }
+.cl-logo--lb            { height: 1.114em; filter: grayscale(1) brightness(1)   opacity(.96); }
+.cl-logo--pinkcom-fit   { height: 0.864em; filter: grayscale(1) brightness(.83) opacity(1);   }
+.cl-logo--chefclaudia   { height: 1.091em; filter: grayscale(1) brightness(1)   opacity(.5);  }
 .cl-logo--q             { height: 0.977em; filter: grayscale(1) brightness(1)   opacity(.5);   }
 @media (min-width: 760px) {
   .marquee-track { font-size: 44px; gap: 72px; }

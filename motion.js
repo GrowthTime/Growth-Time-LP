@@ -213,7 +213,10 @@
   /* alvo da pose do rig em função do progresso efetivo do trilho */
   function poseTargets(effP) {
     var k = clampN(0, effP / ACT, 1), e = smooth(k);
-    return { s: 1 + (POSE.s - 1) * e, x: POSE.x * e, y: POSE.y * e, sh: e, phase: k };
+    // respiro na ENTRADA (mobile/tablet): empurra o celular grande p/ baixo no scroll 0
+    // (y de entrada era 0 -> topo do celular colava no hero-trust); some conforme docka
+    var entryY = lvw() < 1080 ? 30 : 0;
+    return { s: 1 + (POSE.s - 1) * e, x: POSE.x * e, y: entryY + (POSE.y - entryY) * e, sh: e, phase: k };
   }
   function effPNow() {
     var p = trackP(heroEl);

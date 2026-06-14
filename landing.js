@@ -16,10 +16,14 @@
     { src: 'assets/logos/pinkcom-jeans.png', alt: 'Pink.Com Jeans' },
     { src: 'assets/logos/quids.png',         alt: 'Quids' },
     { src: 'assets/logos/moov.png',          alt: 'Moov Watches' },
+    { src: 'assets/logos/levoo.png',         alt: 'Levoo' },
     { src: 'assets/logos/clara-plus.png',    alt: 'Clara Plus Size' },
+    { src: 'assets/logos/gl.png',            alt: 'GL' },
     { src: 'assets/logos/fornelle.png',      alt: 'Fornelle Pizzaria' },
-    { src: 'assets/logos/pinkcom-fit.png',   alt: 'Pink.Com Fit' },
     { src: 'assets/logos/uece.png',          alt: 'Universidade Estadual do Ceará' },
+    { src: 'assets/logos/lb.png',            alt: 'LB' },
+    { src: 'assets/logos/pinkcom-fit.png',   alt: 'Pink.Com Fit' },
+    { src: 'assets/logos/chefclaudia.png',   alt: 'Chef Cláudia Salgadeira' },
     { src: 'assets/logos/q.png',             alt: 'Q.' }
   ];
   var track = document.getElementById('marquee');
@@ -29,13 +33,14 @@
         var slug = l.src.replace(/.*\/(.*)\.png$/, '$1');
         return '<img class="cl-logo cl-logo--' + slug + '" src="' + l.src + '"'
           + ' alt="' + (hidden ? '' : l.alt) + '"' + (hidden ? ' aria-hidden="true"' : '')
-          + ' loading="eager" decoding="async">';
+          + ' loading="eager" decoding="async" draggable="false">';
       }).join('');
     }
     // 1ª cópia acessível + 2ª cópia (loop infinito) com aria-hidden
     track.innerHTML = buildLogos(false) + buildLogos(true);
 
-    var mqW = 0;
+    var mqW = 0, mqX = 0, held = false;
+    function applyMq() { track.style.transform = 'translateX(' + (-mqX) + 'px)'; }
     function measureMq() { mqW = track.scrollWidth / 2; }
     // medir SÓ depois das imagens decodificarem (senão a largura sai errada e o loop "salta")
     var imgs = track.querySelectorAll('img');
@@ -45,18 +50,47 @@
     setTimeout(measureMq, 400); // fallback caso decode não dispare
     window.addEventListener('resize', measureMq);
 
+    var strip = track.parentNode; // .marquee-viewport
+
     // pausa no hover do strip (desktop) — toque premium
     if (window.matchMedia('(hover: hover) and (pointer: fine)').matches) {
-      var strip = track.parentNode;
       strip.addEventListener('mouseenter', function () { window.__mqPause = true; });
       strip.addEventListener('mouseleave', function () { window.__mqPause = false; });
     }
 
+    // arrastar p/ rolar manualmente (toque/mouse): segurar pausa, arrastar move o trilho,
+    // soltar volta a rolar sozinho. touch-action:pan-y (CSS) deixa o scroll vertical passar.
+    var startX = 0, startY = 0, startMq = 0, downId = -1, decided = false;
+    strip.addEventListener('pointerdown', function (e) {
+      if (!mqW) return;
+      downId = e.pointerId; decided = false; held = true;
+      startX = e.clientX; startY = e.clientY; startMq = mqX;
+    });
+    window.addEventListener('pointermove', function (e) {
+      if (downId !== e.pointerId) return;
+      var dx = e.clientX - startX;
+      if (!decided) {                          // só vira arrasto se o horizontal DOMINAR o vertical
+        if (Math.abs(dx) < 5 || Math.abs(dx) <= Math.abs(e.clientY - startY)) return;
+        decided = true; strip.classList.add('mq-grab');
+        try { strip.setPointerCapture(e.pointerId); } catch (x) {}
+      }
+      mqX = ((startMq - dx) % mqW + mqW) % mqW; // o trilho segue o dedo
+      applyMq();
+    });
+    function mqEnd(e) {
+      if (downId !== e.pointerId) return;
+      downId = -1; held = false; decided = false;
+      strip.classList.remove('mq-grab');
+    }
+    window.addEventListener('pointerup', mqEnd);
+    window.addEventListener('pointercancel', mqEnd);
+
     if (!reduce) {
-      var mq0 = now(), mqX = 0, mqLast = mq0;
+      var mq0 = now(), mqLast = mq0;
       (function mq(t) {
         // velocidade calma e constante p/ logos (__mqBoost fixado em 1 no motion.js)
-        if (mqW && !window.__mqPause) { mqX = (mqX + (t - mqLast) * 0.028 * (window.__mqBoost || 1)) % mqW; track.style.transform = 'translateX(' + (-mqX) + 'px)'; }
+        // pausa enquanto o dedo/mouse segura (held) ou no hover desktop (__mqPause)
+        if (mqW && !window.__mqPause && !held) { mqX = (mqX + (t - mqLast) * 0.028 * (window.__mqBoost || 1)) % mqW; applyMq(); }
         mqLast = t;
         requestAnimationFrame(mq);
       })(mq0);
