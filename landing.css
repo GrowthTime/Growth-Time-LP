@@ -32,7 +32,13 @@ h1, h2, h3, .display { font-family: 'Russo One', sans-serif; font-weight: 400; }
 .btn-cta { background: var(--gradient-cta); color: #fff; box-shadow: 0 10px 26px rgba(43,182,115,.36); }
 .btn-cta:hover { transform: translateY(-2px); filter: brightness(1.04); }
 .btn-cta:active { transform: translateY(0) scale(.98); }
-.btn-ghost { background: #fff; color: #171717; font-weight: 700; border: 1px solid #e7e7e7; }
+/* CTA secundário "Ver como funciona": pílula on-brand + chevron que pulsa (afordância de rolar) */
+.btn-howto { background: #fff; color: #1f9a78; border: 1.5px solid #bfe6d8; box-shadow: 0 4px 14px rgba(39,174,143,.10); }
+.btn-howto:hover { background: #f1faf6; border-color: #27ae8f; transform: translateY(-2px); box-shadow: 0 8px 20px rgba(39,174,143,.16); }
+.btn-howto:active { transform: translateY(0) scale(.98); }
+.btn-howto .ht-arrow { display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 22px; border-radius: 999px; background: rgba(39,174,143,.12); animation: ht-bounce 1.7s ease-in-out infinite; }
+@keyframes ht-bounce { 0%, 100% { transform: translateY(-1px); } 50% { transform: translateY(3px); } }
+@media (prefers-reduced-motion: reduce) { .btn-howto .ht-arrow { animation: none; } }
 .btn-block { width: 100%; }
 
 /* ============================== NAV ============================== */
