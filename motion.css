@@ -557,8 +557,8 @@ html.mo-degrade .au-inner, html.mo-lite .au-inner { animation: none !important; 
    CTA — duas metades se encaixam; shine 1x; pulso calmo (≥4s)
    ============================================================ */
 .mo-on .cta-final h2 .mo-half { display: inline-block; opacity: 0; transition: opacity .5s ease, transform .55s cubic-bezier(.22,.9,.3,1); }
-.mo-on .cta-final h2 .mo-half:first-child { transform: translateX(-28px); }
-.mo-on .cta-final h2 .mo-half:last-child { transform: translateX(28px); transition-delay: .08s; }
+.mo-on .cta-final h2 .mo-half { transform: translateY(14px); }
+.mo-on .cta-final h2 .mo-half:last-child { transition-delay: .06s; }
 .mo-on .cta-final.go h2 .mo-half { opacity: 1; transform: none; }
 .mo-on .cta-final .btn-cta { opacity: 0; transform: scale(.9); transition: opacity .45s ease, transform .55s cubic-bezier(.34,1.5,.5,1); transition-delay: .2s; }
 .mo-on .cta-final.go .btn-cta { opacity: 1; transform: none; }
@@ -604,7 +604,7 @@ html.mo-degrade .au-inner, html.mo-lite .au-inner { animation: none !important; 
 .mo-on [data-mo] .pain-card:nth-child(2) .ic { animation-delay: -1.8s; }
 .mo-on [data-mo] .pain-card:nth-child(3) .ic { animation-delay: -3.6s; }
 .mo-on [data-mo].mo-idle .pain-card .ic { animation-play-state: running; }
-.mo-on .pain-close .hl { margin-left: .22em; }
+.mo-on .pain-close .hl { margin-left: 0; }
 
 /* ---------- PILARES: números vivos, bars que re-quicam, jornada que respira ---------- */
 .mo-on .pillar .num {
@@ -732,6 +732,70 @@ html.mo-degrade .au-inner, html.mo-lite .au-inner { animation: none !important; 
 }
 .mo-on footer.go .brand .dot, .mo-on footer.go .dot { animation: mo-dot .7s var(--es) .4s 1; }
 @keyframes mo-dot { 40% { transform: scale(1.6); } 100% { transform: scale(1); } }
+
+/* ============================================================
+   DOR — cenas animadas (estado INICIAL + sticky/runway + degrade)
+   gates: .mo-on (motor vivo) · .mo-scn-* (cena ativada pelo seu init)
+   ============================================================ */
+/* sticky + runway por cena — só quando o init ativa (reduced/no-JS = sem trilho morto)
+   bases dos clamps recalibradas p/ a narração fixada (+~94px) + card novo de cada cena
+   (cena 1 fork mais enxuto; cena 2 phone menor). Conferir por medição no QA e afinar. */
+.mo-scn-rastreio #dor-rastreio .wrap::after { content: ''; display: block; height: 150vh; height: 150svh; }
+.mo-scn-caos #dor-whatsapp .wrap::after { content: ''; display: block; height: 135vh; height: 135svh; }
+.mo-scn-cliente #dor-cliente .wrap::after { content: ''; display: block; height: 150vh; height: 150svh; }
+.mo-scn-rastreio #dor-rastreio .scn-stage { position: sticky; position: -webkit-sticky; top: clamp(72px, calc((100vh - 450px) / 2), 140px); top: clamp(72px, calc((100svh - 450px) / 2), 140px); }
+.mo-scn-caos #dor-whatsapp .scn-stage { position: sticky; position: -webkit-sticky; top: clamp(64px, calc((100vh - 545px) / 2), 110px); top: clamp(64px, calc((100svh - 545px) / 2), 110px); }
+.mo-scn-cliente #dor-cliente .scn-stage { position: sticky; position: -webkit-sticky; top: clamp(72px, calc((100vh - 440px) / 2), 140px); top: clamp(72px, calc((100svh - 440px) / 2), 140px); }
+html.mo-degrade #dor-rastreio .wrap::after, html.mo-degrade #dor-whatsapp .wrap::after, html.mo-degrade #dor-cliente .wrap::after { display: none; }
+html.mo-degrade #dor-rastreio .scn-stage, html.mo-degrade #dor-whatsapp .scn-stage, html.mo-degrade #dor-cliente .scn-stage { position: static; }
+
+/* dica "arraste para baixo": só visível enquanto uma cena dirigida por scroll tem animação a revelar */
+html.mo-cue .scroll-cue { display: flex; animation: sc-in .28s ease both; }
+html.mo-cue .scroll-cue .sc-chev { animation: sc-bounce 1.25s ease-in-out infinite; }
+html.mo-degrade .scroll-cue { display: none !important; }
+@keyframes sc-bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(4px); } }
+@keyframes sc-in { from { opacity: 0; transform: translateX(-50%) translateY(8px); } to { opacity: 1; transform: translateX(-50%) translateY(0); } }
+
+/* narração fixada: troca de linha por etapa com micro cross-fade (só opacity/transform → zero CLS) */
+.mo-on .scn-narr-txt { transition: opacity .22s ease, transform .28s var(--eo); }
+.mo-on .scn-narr-txt.swap { opacity: 0; transform: translateY(6px); }
+.mo-fast .scn-narr-txt { transition: none !important; }
+html.mo-degrade .scn-narr-txt { transition: none !important; opacity: 1 !important; transform: none !important; }
+
+/* ---------- cena 1: nós acendem; rastro cresce; dot viaja; fork revela (JS por frame) ---------- */
+.mo-on .trk-node { opacity: 0; transform: translateY(8px); transition: opacity .4s ease, transform .45s var(--es); }
+@media (min-width: 760px) { .mo-on .trk-node { transform: translateY(0) scale(.9); } }
+.mo-on .trk-node.on { opacity: 1; transform: none; }
+.mo-on .trk-trail { transform: scaleY(var(--p, 0)); }
+@media (min-width: 760px) { .mo-on .trk-trail { transform: scaleX(var(--p, 0)); } }
+.mo-on .trk-dot-com { opacity: 1; }
+/* fork escondido sob .mo-on; o JS revela por frame (opacity/transform/filter inline) */
+.mo-on .trk-end-com, .mo-on .trk-end-sem { opacity: 0; }
+.mo-fast .trk-node { transition: none !important; }
+/* degrade / kill-switch = congelamento final coerente (tronco completo + os dois finais) */
+html.mo-degrade .trk-node { opacity: 1 !important; transform: none !important; }
+html.mo-degrade .trk-trail { transform: none !important; }
+html.mo-degrade .trk-dot { opacity: 0 !important; }
+html.mo-degrade .trk-end-com { opacity: 1 !important; transform: none !important; filter: none !important; }
+html.mo-degrade .trk-end-sem { opacity: .55 !important; transform: none !important; filter: grayscale(1) !important; }
+
+/* ---------- cena 2: feed escondido até .on; overlay de bloqueio entra ---------- */
+.mo-on #caosFeed { justify-content: flex-end; contain: layout paint; }
+.mo-on #caosFeed .cmsg, .mo-on #caosFeed .caos-chip { display: none; }
+.mo-on #caosFeed .cmsg.on, .mo-on #caosFeed .caos-chip.on { display: block; animation: mo-msg .38s cubic-bezier(.34,1.45,.5,1) both; }
+.mo-fast #caosFeed .cmsg.on, .mo-fast #caosFeed .caos-chip.on { animation: none !important; }
+.mo-on .caos-block { transition: opacity .5s ease, visibility 0s; }
+html.mo-degrade .caos-block { transition: none; }
+
+/* ---------- cena 3: cliente vivo no início (JS dirige o decaimento por frame) ---------- */
+.mo-on .cs-avatar { opacity: 1; filter: none; }
+.mo-on .cs-money-val { color: var(--gt-teal-dark); }
+.mo-on .cs-bars i b { background: none; background-image: linear-gradient(to top, #27ae8f, #15dba8); transform: scaleY(1); }
+.mo-on .cs-last { background: rgba(56,204,156,.12); color: var(--gt-teal-dark); }
+html.mo-degrade .cs-avatar { opacity: .12 !important; filter: grayscale(1) !important; transform: none !important; }
+html.mo-degrade .cs-money-val { color: #ef4444 !important; }
+html.mo-degrade .cs-bars i b { background-image: none !important; background: #d6dbd9 !important; transform: scaleY(calc(var(--h) / 100)) !important; filter: none !important; }
+html.mo-degrade .cs-last { background: rgba(239,68,68,.1) !important; color: #ef4444 !important; }
 
 /* ============================================================
    Acessibilidade — segurança dupla (o motor nem boota com reduce)

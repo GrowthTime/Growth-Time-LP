@@ -470,29 +470,196 @@
       function () { classEl.classList.remove('go'); });
   }
 
-  var PAIN_RZ = [-2, 1.6, -1.2]; // rotação residual = o caos ainda existe
-  function initPain() {
-    var grid = qs('.pain-grid'), pain = qs('.pain'), close = qs('.pain-close');
-    if (!grid || !pain) throw new Error('pain: âncoras ausentes');
-    pain.setAttribute('data-mo', '');
-    var cards = qsa('.pain-card', grid);
-    cards.forEach(function (c, i) { c.dataset.rz = String(PAIN_RZ[i] || 0); });
-    classTrigger(grid, grid, 'top 78%');
-    if (close) onceTrigger(close, 'top 84%',
-      function () {
-        pain.classList.add('cured');
-        cards.forEach(function (c) { c.dataset.rz = '0'; });
-        // cards já tomados pelo tilt (mo-settled) curam via GSAP (CSS cuida do resto)
-        var settled = cards.filter(function (c) { return c.classList.contains('mo-settled'); });
-        if (settled.length) gsap.to(settled, { rotationZ: 0, duration: 0.7, ease: 'back.out(1.4)', stagger: 0.08 });
-      },
-      function () {
-        pain.classList.remove('cured');
-        cards.forEach(function (c, i) {
-          c.dataset.rz = String(PAIN_RZ[i] || 0);
-          if (c.classList.contains('mo-settled')) gsap.to(c, { rotationZ: PAIN_RZ[i] || 0, duration: 0.5, ease: 'power2.out' });
-        });
+  /* ================= DOR — 3 cenas animadas dirigidas pelo scroll ================= */
+  /* narração fixada: troca a linha por etapa com micro cross-fade; diff por índice
+     (só escreve quando muda — espelha o padrão caos.on/cli.mk; zero thrash de DOM) */
+  function makeNarr(el) {
+    var cur = -1;
+    return function (idx, txt) {
+      if (idx === cur || !el) return;
+      cur = idx;
+      el.classList.add('swap');
+      requestAnimationFrame(function () {
+        el.textContent = txt;
+        requestAnimationFrame(function () { el.classList.remove('swap'); });
       });
+    };
+  }
+
+  /* fecho: "Performance tem método" dá o pop final no destaque */
+  function initDorFoot() {
+    var foot = qs('.pain-foot'), close = foot && qs('.pain-close', foot);
+    if (!foot || !close) throw new Error('dor-foot: âncoras ausentes');
+    onceTrigger(close, 'top 86%',
+      function () { foot.classList.add('cured'); },
+      function () { foot.classList.remove('cured'); });
+  }
+
+  /* ---- cena 1: um trilho, dois finais (com vs sem rastreio) ---- */
+  var TRK_NARR = [
+    { at: 0.00, t: 'Você investe R$ 12 num anúncio.' },
+    { at: 0.22, t: 'Um lead clica e chama no WhatsApp.' },
+    { at: 0.42, t: 'Sua equipe atende o cliente.' },
+    { at: 0.58, t: 'Daqui em diante, dois caminhos.' },
+    { at: 0.80, t: 'Sem rastreio, o dinheiro some sem deixar pista.' },
+    { at: 0.93, t: 'Com a Growth Time, R$ 12 em anúncio viram R$ 5.569 faturados.' }
+  ];
+  var trk = { ok: false, sec: null, nodes: [], trail: null, dot: null, endSem: null, endCom: null, retNum: null, setNarr: null, counted: false, len: 0 };
+  function initRastreio() {
+    var sec = qs('#dor-rastreio'), stage = qs('.trk-wrap', sec);
+    if (!sec || !stage) throw new Error('rastreio: âncoras ausentes');
+    if (lvw() < 360 || vh() < 640) return false;        // tela curta: estado final estático
+    trk.sec = sec;
+    trk.nodes = qsa('.trk-rail .trk-node', sec);         // 3 nós do tronco
+    trk.trail = qs('.trk-trail', sec);
+    trk.dot = qs('.trk-dot-com', sec);
+    trk.endSem = qs('.trk-end-sem', sec);
+    trk.endCom = qs('.trk-end-com', sec);
+    trk.retNum = qs('.trk-ret-num', sec);
+    trk.setNarr = makeNarr(qs('.scn-narr-txt', sec));
+    html.classList.add('mo-scn-rastreio');              // liga sticky+runway (CSS)
+    trk.ok = true;
+    return true;
+  }
+  function renderRastreio() {
+    if (!trk.ok || degraded || !trk.sec.classList.contains('mo-idle')) return; // só trabalha na tela
+    var ep = clampN(0, (trackP(trk.sec) - 0.05) / 0.85, 1);
+    var vert = lvw() < 760;
+    // TRONCO: nós acendem conforme o dot chega (ep 0..0.55); rastro cresce (--p); dot percorre
+    var trunkP = clampN(0, ep / 0.55, 1), n = trk.nodes.length, fill = trunkP * (n - 1);
+    for (var i = 0; i < n; i++) trk.nodes[i].classList.toggle('on', fill >= i - 0.2);
+    trk.trail.style.setProperty('--p', trunkP.toFixed(3));
+    if (!trk.len) trk.len = vert ? trk.trail.offsetHeight : trk.trail.offsetWidth;
+    if (trk.len) gsap.set(trk.dot, vert ? { y: trunkP * trk.len, x: 0 } : { x: trunkP * trk.len, y: 0 });
+    // BIFURCAÇÃO: os dois finais sobem (ep 0.55..0.75); o SEM esmaece depois (ep 0.78..0.96)
+    var rise = clampN(0, (ep - 0.55) / 0.20, 1);
+    var dissolve = clampN(0, (ep - 0.78) / 0.18, 1);
+    var ty = ((1 - rise) * 10).toFixed(1) + 'px';
+    trk.endCom.style.opacity = rise.toFixed(3);
+    trk.endCom.style.transform = 'translateY(' + ty + ')';
+    trk.endSem.style.opacity = (rise * (1 - dissolve * 0.45)).toFixed(3);
+    trk.endSem.style.transform = 'translateY(' + ty + ')';
+    trk.endSem.style.filter = 'grayscale(' + dissolve.toFixed(2) + ')';
+    // RETORNO conta uma vez quando o COM aparece
+    if (!trk.counted && rise > 0.35 && trk.retNum) {
+      trk.counted = true;
+      countUp(trk.retNum, parseInt(trk.retNum.getAttribute('data-rs'), 10), { prefix: 'R$ ', loc: true, dur: 0.9 });
+    }
+    // narração que acompanha
+    var ni = 0; for (var k = 0; k < TRK_NARR.length; k++) if (ep >= TRK_NARR[k].at) ni = k;
+    trk.setNarr(ni, TRK_NARR[ni].t);
+  }
+
+  /* ---- cena 2: WhatsApp no caos ---- */
+  var caos = { ok: false, sec: null, stage: null, feed: null, sub: null, min: null, msgs: [], typ: null, blocked: false, on: -1, narr: -1, setNarr: null };
+  var CAOS_THR = [0.10, 0.26, 0.42, 0.58, 0.72];
+  var CAOS_NARR = [
+    'Uma cliente real chama no WhatsApp.',
+    'As horas passam… e ninguém responde.',
+    'Quando a loja vai responder…',
+    '…e o WhatsApp bloqueia. Sem aviso, sem motivo.'
+  ];
+  function buildCaosMsgFallback(m, on) { var d = document.createElement('div'); d.className = 'cmsg them' + (on ? ' on' : ''); d.innerHTML = m.t + '<span class="meta" aria-hidden="true">' + m.at + '</span>'; return d; }
+  function buildCaosChipFallback(t, on) { var c = document.createElement('div'); c.className = 'caos-chip' + (on ? ' on' : ''); c.textContent = t; return c; }
+  function initCaos() {
+    var sec = qs('#dor-whatsapp'), stage = qs('#caosStage'), feed = qs('#caosFeed');
+    if (!sec || !stage || !feed) throw new Error('caos: âncoras ausentes');
+    if (!window.__gtCaosSeq) throw new Error('caos: window.__gtCaosSeq ausente');
+    if (lvw() < 360 || vh() < 640) return false;        // tela curta: fallback estático (landing.js)
+    window.__gtCaosExt = true;                           // desliga o fallback do landing.js
+    caos.sec = sec; caos.stage = stage; caos.feed = feed;
+    caos.sub = qs('#caosSub'); caos.min = qs('#caosMin');
+    caos.setNarr = makeNarr(qs('.scn-narr-txt', sec));
+    feed.innerHTML = '';
+    feed.appendChild((window.__gtBuildCaosChip || buildCaosChipFallback)('hoje', false));
+    window.__gtCaosSeq.forEach(function (m) {
+      var d = (window.__gtBuildCaosMsg || buildCaosMsgFallback)(m, false);
+      feed.appendChild(d); caos.msgs.push(d);
+    });
+    caos.typ = document.createElement('div'); caos.typ.className = 'mo-typing me'; caos.typ.innerHTML = '<i></i><i></i><i></i>';
+    feed.appendChild(caos.typ);
+    html.classList.add('mo-scn-caos');
+    caos.ok = true;
+    return true;
+  }
+  function renderCaos() {
+    if (!caos.ok || degraded || !caos.sec.classList.contains('mo-idle')) return; // só trabalha na tela
+    var ep = clampN(0, (trackP(caos.sec) - 0.06) / 0.84, 1);
+    var mins = Math.round(ep * ep * 327);               // quadrática: o tempo "voa" no fim
+    if (caos.min) caos.min.textContent = mins < 60 ? (mins + ' min') : (Math.floor(mins / 60) + ' h ' + (mins % 60) + ' min');
+    var on = 0; for (var i = 0; i < CAOS_THR.length; i++) if (ep >= CAOS_THR[i]) on = i + 1;
+    if (on !== caos.on) { caos.on = on; for (var k = 0; k < caos.msgs.length; k++) caos.msgs[k].classList.toggle('on', k < on); }
+    var typing = ep >= 0.80 && ep < 0.90;
+    caos.typ.classList.toggle('on', typing);
+    if (typing && caos.typ !== caos.feed.lastElementChild) caos.feed.appendChild(caos.typ);
+    var block = caos.blocked ? ep >= 0.86 : ep >= 0.90; // histerese
+    if (block !== caos.blocked) { caos.blocked = block; caos.stage.classList.toggle('caos-blocked', block); if (block) caos.typ.classList.remove('on'); }
+    if (caos.sub) caos.sub.textContent = caos.blocked ? 'este número foi banido' : (typing ? 'digitando…' : 'visto às 10:48');
+    // narração que acompanha: msg chega → horas passam → vai responder → bloqueio
+    var ns = caos.blocked ? 3 : (typing ? 2 : (on >= 2 ? 1 : 0));
+    if (ns !== caos.narr) { caos.narr = ns; caos.setNarr(ns, CAOS_NARR[ns]); }
+  }
+
+  /* ---- cena 3: cliente que para de comprar ---- */
+  var cli = { ok: false, sec: null, bars: [], val: null, last: null, av: null, mk: -1, narr: -1, setNarr: null };
+  var CS_VALS = [7531, 5200, 2800, 900, 0];
+  var CS_DEAD = [100, 69, 37, 12, 0];
+  var CS_LAST = ['compra recente', 'há 1 mês sem comprar', 'há 2 meses sem comprar', 'há 3 meses sem comprar', 'há 4 meses sem comprar'];
+  var CS_NARR = ['Uma cliente que comprava todo mês.', 'As compras vão diminuindo, mês após mês…', '…até pararem de vez.', 'E ninguém percebeu. Ninguém reativou.'];
+  function initCliente() {
+    var sec = qs('#dor-cliente'), stage = qs('.cs-stage', sec);
+    if (!sec || !stage) throw new Error('cliente: âncoras ausentes');
+    if (lvw() < 360 || vh() < 640) return false;
+    cli.sec = sec;
+    cli.bars = qsa('.cs-bars i b', sec);
+    cli.val = qs('#cs-val'); cli.last = qs('#cs-last'); cli.av = qs('.cs-avatar', sec);
+    cli.setNarr = makeNarr(qs('.scn-narr-txt', sec));
+    html.classList.add('mo-scn-cliente');
+    cli.ok = true;
+    return true;
+  }
+  function renderCliente() {
+    if (!cli.ok || degraded || !cli.sec.classList.contains('mo-idle')) return; // só trabalha na tela
+    var ep = clampN(0, (trackP(cli.sec) - 0.06) / 0.86, 1);
+    var f = ep * 4, i = Math.min(3, Math.floor(f)), t = f - i;
+    for (var k = 0; k < cli.bars.length; k++) {
+      var local = clampN(0, f - k * 0.5, 1);
+      cli.bars[k].style.transform = 'scaleY(' + ((100 + (CS_DEAD[k] - 100) * local) / 100).toFixed(3) + ')';
+      cli.bars[k].style.filter = 'grayscale(' + local.toFixed(2) + ')';
+    }
+    var v = CS_VALS[i] + (CS_VALS[Math.min(4, i + 1)] - CS_VALS[i]) * t;
+    if (cli.val) { cli.val.textContent = 'R$ ' + Math.round(v).toLocaleString('pt-BR'); cli.val.style.color = ep > 0.7 ? '#ef4444' : '#27ae8f'; }
+    if (cli.av) { cli.av.style.opacity = (1 - ep * 0.88).toFixed(3); cli.av.style.filter = 'grayscale(' + ep.toFixed(2) + ')'; cli.av.style.transform = 'translateY(' + (ep * 6).toFixed(1) + 'px) scale(' + (1 - ep * 0.06).toFixed(3) + ')'; }
+    var mk = Math.round(f);
+    if (mk !== cli.mk && cli.last) {
+      cli.mk = mk;
+      cli.last.textContent = CS_LAST[mk];
+      var bad = mk >= 2;
+      cli.last.style.background = bad ? 'rgba(239,68,68,.1)' : 'rgba(56,204,156,.12)';
+      cli.last.style.color = bad ? '#ef4444' : '#27ae8f';
+      gsap.fromTo(cli.last, { scale: 0.9 }, { scale: 1, duration: 0.25, ease: 'back.out(2)' });
+      // narração que acompanha (mesma cadência do badge)
+      var cns = mk <= 0 ? 0 : (mk <= 2 ? 1 : (mk === 3 ? 2 : 3));
+      if (cns !== cli.narr) { cli.narr = cns; cli.setNarr(cns, CS_NARR[cns]); }
+    }
+  }
+
+  /* ---- dica "arraste para baixo": some/aparece com as cenas dirigidas por scroll ---- */
+  var cueEl = null;
+  function updateCue() {
+    if (!cueEl) return;
+    var show = false;
+    if (!degraded) {
+      // [seção, progresso-final em que a dica some]
+      var ck = [[heroEl, 0.90], [trk.sec, 0.90], [caos.sec, 0.90], [cli.sec, 0.90]];
+      for (var i = 0; i < ck.length; i++) {
+        var el = ck[i][0];
+        if (!el || !el.classList.contains('mo-idle')) continue;
+        var p = trackP(el);
+        if (p < ck[i][1]) { show = true; break; }   // ainda há animação por revelar → convida a arrastar
+      }
+    }
+    if (show !== html.classList.contains('mo-cue')) html.classList.toggle('mo-cue', show);
   }
 
   function initPillars() {
@@ -900,6 +1067,13 @@
     if (hero.tier === 2 && rigEl && !liteHero) gsap.set(rigEl, { clearProps: 'transform' });
     // cards: congela loops idle e derruba camadas extras (CSS via .mo-degrade)
     if (idleIO) { idleIO.disconnect(); qsa('.mo-idle').forEach(function (s) { s.classList.remove('mo-idle'); }); }
+    // cenas da #dor: saltam pro estado final (CSS .mo-degrade força os visuais; texto via JS)
+    if (caos.ok) { caos.stage.classList.add('caos-blocked'); var cch = caos.feed.querySelector('.caos-chip'); if (cch) cch.classList.add('on'); caos.msgs.forEach(function (m) { m.classList.add('on'); }); if (caos.typ) caos.typ.classList.remove('on'); if (caos.min) caos.min.textContent = '5 h 27 min'; if (caos.sub) caos.sub.textContent = 'este número foi banido'; }
+    if (cli.ok) { if (cli.val) cli.val.textContent = 'R$ 0'; if (cli.last) cli.last.textContent = CS_LAST[4]; }
+    // narração das 3 cenas → linha final (coerente com o congelamento do kill-switch)
+    var nR = qs('#dor-rastreio .scn-narr-txt'); if (nR) nR.textContent = TRK_NARR[TRK_NARR.length - 1].t;
+    var nW = qs('#dor-whatsapp .scn-narr-txt'); if (nW) nW.textContent = CAOS_NARR[CAOS_NARR.length - 1];
+    var nL = qs('#dor-cliente .scn-narr-txt'); if (nL) nL.textContent = CS_NARR[CS_NARR.length - 1];
     // sticky fica (CSS puro; soltar teleporta o usuário); chat passa a passos por scroll throttled
     var lastApply = 0;
     window.addEventListener('scroll', function () {
@@ -928,18 +1102,20 @@
   /* ================= boot ================= */
   function start() {
     html.classList.add('mo-on');
+    cueEl = qs('#scrollCue');
     var MODULES = [
       ['hero', function () { if (initHero() === 1) initHeroParallax(); }],
       ['virada', initVirada],
-      ['pain', initPain],
+      ['rastreio', initRastreio],
+      ['caos', initCaos],
+      ['cliente', initCliente],
+      ['dorfoot', initDorFoot],
       ['pilares', initPillars],
       ['sistema', initSistema],
       ['explica', initExplica],
       ['calc', initCalc],
       ['gps', initGps],
       ['mapa', initMapa],
-      ['confeccao', initConf],
-      ['prova', initProva],
       ['dif', initDif],
       ['cta', initCta],
       ['footer', initFooter],
@@ -967,8 +1143,12 @@
       if (!degraded) {
         renderHero();
         renderVirada();
+        renderRastreio();
+        renderCaos();
+        renderCliente();
         heroAutoplay(now);
       }
+      updateCue();
       renderMarquee();
       lastY = window.scrollY;
       watchPerf(now);
@@ -982,6 +1162,7 @@
       if (w === lastW) return; // barra de URL/teclado só mudam altura
       lastW = w;
       if (window.visualViewport && window.visualViewport.scale > 1.01) return; // pinch-zoom
+      trk.len = 0; // re-medir comprimento do trilho da cena 1 (eixo muda no bp)
       measureHero();
       ScrollTrigger.refresh();
     });

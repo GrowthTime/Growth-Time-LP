@@ -9,8 +9,8 @@
 <link rel="preload" as="font" type="font/woff2" crossorigin href="fonts/files/Z9XUDmZRWg6M1LvRYsHOz8mJ.woff2">
 <link rel="preload" as="font" type="font/woff2" crossorigin href="fonts/files/memvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTS-muw.woff2">
 <link rel="preload" as="font" type="font/woff2" crossorigin href="fonts/files/UcC73FwrK3iLTeHuS_nVMrMxCp50SjIa1ZL7.woff2">
-<link rel="stylesheet" href="landing.css?v=20260613b">
-<link rel="stylesheet" href="motion.css?v=20260613b">
+<link rel="stylesheet" href="landing.css?v=20260614a">
+<link rel="stylesheet" href="motion.css?v=20260614a">
 <script>/* gate PRÉ-PAINT do layout hero v3 (zero CLS no boot): mesma regra do
 initHero tier 2 — motion.js reconcilia (remove se não bootar tier 2) */
 (function(){try{
@@ -34,6 +34,12 @@ initHero tier 2 — motion.js reconcilia (remove se não bootar tier 2) */
     <a href="#cta" class="btn btn-cta nav-cta">Agendar</a>
   </div>
 </nav>
+
+<!-- dica de scroll: aparece durante as animações dirigidas por scroll -->
+<div class="scroll-cue" id="scrollCue" aria-hidden="true">
+  <span class="sc-txt">arraste para baixo</span>
+  <span class="sc-chev"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></span>
+</div>
 
 <!-- HERO -->
 <header class="hero">
@@ -122,31 +128,125 @@ initHero tier 2 — motion.js reconcilia (remove se não bootar tier 2) */
   </div>
 </div>
 
-<!-- PAIN -->
-<section class="block pain" id="dor">
+<!-- DOR — intro -->
+<section class="block pain" id="dor" data-mo>
   <div class="wrap">
     <div class="sec-head">
       <div class="eyebrow reveal">A real do fim do mês</div>
-      <h2 class="reveal d1">Você investe, posta, atende… e no fim do mês não sabe o que virou venda?</h2>
+      <h2 class="reveal d1">Você investe, anuncia, atende… e no fim do mês o resultado só diminui.</h2>
+      <p class="reveal d2">Role e veja, passo a passo, onde o dinheiro escapa da sua operação.</p>
     </div>
-    <div class="pain-grid">
-      <div class="pain-card reveal d1">
-        <div class="ic">📉</div>
-        <h3>Anúncio sem rastreio</h3>
-        <p>O dinheiro entra, mas você não sabe de onde veio a venda — nem o que vale a pena repetir.</p>
+  </div>
+</section>
+
+<!-- DOR cena 1 — um trilho, dois finais (com vs sem rastreio) -->
+<section class="block scn scn-rastreio" id="dor-rastreio" data-mo>
+  <div class="wrap">
+    <div class="scn-stage trk-wrap" aria-label="Um real investido no anúncio, dois finais possíveis">
+      <!-- narração fixada (pina junto com o card) -->
+      <div class="scn-narr" aria-live="polite">
+        <span class="scn-narr-eye">Do anúncio à venda</span>
+        <p class="scn-narr-txt">Com a Growth Time, R$ 12 em anúncio viram R$ 5.569 faturados.</p>
       </div>
-      <div class="pain-card reveal d2">
-        <div class="ic">💬</div>
-        <h3>WhatsApp no caos</h3>
-        <p>O lead chega, ninguém responde a tempo, e a venda escapa pela janela.</p>
+      <!-- TRONCO ÚNICO: investe → anuncia → atende -->
+      <div class="trk-rail" aria-hidden="true">
+        <span class="trk-trail"></span>
+        <span class="trk-dot trk-dot-com"></span>
+        <div class="trk-node trk-invest" data-i="0">
+          <span class="trk-chip">investimento</span>
+          <b class="trk-val trk-in-val" data-rs="12">R$ 12</b>
+          <span class="trk-lbl">no anúncio</span>
+        </div>
+        <div class="trk-node" data-i="1"><span class="trk-lbl">o lead clica e chama no WhatsApp</span></div>
+        <div class="trk-node" data-i="2"><span class="trk-lbl">sua equipe atende</span></div>
       </div>
-      <div class="pain-card reveal d3">
-        <div class="ic">🎯</div>
-        <h3>Post por achismo</h3>
-        <p>Você publica todo dia sem saber o que de fato vende e o que só gera curtida.</p>
+      <!-- BIFURCAÇÃO: dois finais lado a lado -->
+      <div class="trk-split">
+        <div class="trk-end trk-end-sem" data-i="3">
+          <span class="trk-tag trk-tag-sem">Sem rastreio</span>
+          <b class="trk-end-val trk-lost">perdido</b>
+          <span class="trk-lbl">não soube o que virou venda</span>
+        </div>
+        <div class="trk-end trk-end-com" data-i="4">
+          <span class="trk-tag trk-tag-com">Com a Growth Time</span>
+          <b class="trk-end-val trk-return"><span class="trk-star" aria-hidden="true">★</span> <span class="trk-ret-num" data-rs="5569">R$ 5.569</span></b>
+          <span class="trk-lbl trk-ret-cue">faturados através dos anúncios online</span>
+        </div>
       </div>
     </div>
-    <div class="pain-close reveal">Crescer no boca a boca tem teto. <span class="hl">Performance tem método.</span></div>
+  </div>
+</section>
+
+<!-- DOR cena 2 — WhatsApp no caos: cliente esperando + bloqueio -->
+<section class="block scn scn-caos" id="dor-whatsapp" data-mo>
+  <div class="wrap">
+    <div class="scn-stage caos-stage" id="caosStage">
+      <div class="scn-narr" aria-live="polite">
+        <span class="scn-narr-eye">WhatsApp no caos</span>
+        <p class="scn-narr-txt">…e o WhatsApp bloqueia. Sem aviso, sem motivo.</p>
+      </div>
+      <div class="caos-chat">
+        <div class="caos-chead">
+          <div class="caos-cav" aria-hidden="true">C<span class="caos-cdot"></span></div>
+          <div class="caos-cid">
+            <div class="caos-cname">Cliente · não atendida</div>
+            <div class="caos-csub" id="caosSub">visto às 10:48</div>
+          </div>
+        </div>
+        <div class="caos-cbody" id="caosFeed" role="log" aria-label="Cliente esperando resposta no WhatsApp"></div>
+        <!-- overlay de bloqueio (estado final da dor) -->
+        <div class="caos-block" id="caosBlock" aria-hidden="true">
+          <div class="caos-block-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="4.5" y="10.5" width="15" height="10" rx="2.2"/><path d="M8 10.5V7.5a4 4 0 0 1 8 0v3"/><circle cx="12" cy="15.2" r="1.3" fill="currentColor" stroke="none"/></svg></div>
+          <div class="caos-block-tt">Esta conta não está mais<br>autorizada a usar o WhatsApp</div>
+          <div class="caos-block-ds">Seu número foi banido e você perdeu o acesso às conversas.</div>
+          <div class="caos-block-why">Sem aviso. Sem motivo. Sem como recuperar.</div>
+        </div>
+      </div>
+      <div class="caos-meter" aria-hidden="true">⏱ sem resposta há <b id="caosMin">0 min</b></div>
+    </div>
+  </div>
+</section>
+
+<!-- DOR cena 3 — cliente que para de comprar -->
+<section class="block scn scn-cliente" id="dor-cliente" data-mo>
+  <div class="wrap">
+    <div class="scn-stage cs-stage">
+      <div class="cs-card">
+        <div class="scn-narr" aria-live="polite">
+          <span class="scn-narr-eye">O vazamento silencioso</span>
+          <p class="scn-narr-txt">E ninguém percebeu. Ninguém reativou.</p>
+        </div>
+        <div class="cs-head">
+          <div class="cs-avatar" aria-hidden="true"><span class="cs-ini">MR</span></div>
+          <div class="cs-id">
+            <div class="cs-name">Cliente recorrente</div>
+            <div class="cs-tag">comprava todo mês</div>
+          </div>
+          <div class="cs-money">
+            <div class="cs-money-lab">por mês</div>
+            <div class="cs-money-val" id="cs-val">R$ 0</div>
+          </div>
+        </div>
+        <div class="cs-bars" aria-hidden="true">
+          <i style="--h:100"><b></b><span>jan</span></i>
+          <i style="--h:69"><b></b><span>fev</span></i>
+          <i style="--h:37"><b></b><span>mar</span></i>
+          <i style="--h:12"><b></b><span>abr</span></i>
+          <i style="--h:0"><b></b><span>mai</span></i>
+        </div>
+        <div class="cs-foot"><span class="cs-last" id="cs-last">há 4 meses sem comprar</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- DOR — fechamento -->
+<section class="block pain pain-foot">
+  <div class="wrap">
+    <div class="pain-close">
+      <span class="pc-line pc-sub reveal d1">Crescer no boca a boca tem teto.</span>
+      <span class="pc-line pc-main reveal d2"><span class="hl">Performance tem método.</span></span>
+    </div>
   </div>
 </section>
 
@@ -155,13 +255,13 @@ initHero tier 2 — motion.js reconcilia (remove se não bootar tier 2) */
   <div class="wrap">
     <div class="sec-head">
       <div class="eyebrow reveal">Atrair · Atender · Medir</div>
-      <h2 class="reveal d1">Uma máquina de vendas que funciona enquanto você dorme.</h2>
+      <h2 class="reveal d1">Você precisa de uma máquina de vendas que funciona 24h/7.</h2>
     </div>
 
     <div class="pillar">
       <div class="ptext reveal">
         <div class="num">01 — ATRAIR</div>
-        <h3>Anúncios que lotam o WhatsApp.</h3>
+        <h3>Anúncios que realmente vendem.</h3>
         <p>Tráfego pago focado em quem realmente compra, na região que importa. A gente coloca gente certa na conversa da sua equipe.</p>
       </div>
       <div class="pvis reveal d1">
@@ -183,7 +283,7 @@ initHero tier 2 — motion.js reconcilia (remove se não bootar tier 2) */
     <div class="pillar rev">
       <div class="ptext reveal">
         <div class="num">02 — ATENDER</div>
-        <h3>Atendimento que não dorme.</h3>
+        <h3>Atendimento profissional via API Oficial.</h3>
         <p>API oficial do WhatsApp — <b>sem perder o acesso pelo celular</b> —, agentes de IA e disparo em massa sem risco de bloqueio. Todos os nichos num só sistema.</p>
       </div>
       <div class="pvis reveal d1">
@@ -220,7 +320,7 @@ initHero tier 2 — motion.js reconcilia (remove se não bootar tier 2) */
   <div class="wrap">
     <div class="sec-head">
       <div class="eyebrow reveal">O sistema por dentro</div>
-      <h2 class="reveal d1">Veja como a GT trabalha por você.</h2>
+      <h2 class="reveal d1">Conte com nosso sistema personalizado para acelerar suas vendas. Veja por dentro.</h2>
       <p class="reveal d2">Dashboard, conversas com IA e métricas de tráfego — tudo num lugar só. Explore como ele é no computador e no celular.</p>
     </div>
 
@@ -367,7 +467,7 @@ initHero tier 2 — motion.js reconcilia (remove se não bootar tier 2) */
   <div class="wrap">
     <div class="sec-head">
       <div class="eyebrow reveal">Antes → Depois</div>
-      <h2 class="reveal d1">Veja a virada acontecer.</h2>
+      <h2 class="reveal d1">Veja como pode ser sua jornada em 12 meses.</h2>
       <p class="reveal d2">Arraste pelos 12 meses e acompanhe a evolução desde o início com a GT.</p>
     </div>
     <div class="ba-stage reveal">
@@ -522,39 +622,6 @@ initHero tier 2 — motion.js reconcilia (remove se não bootar tier 2) */
   </div>
 </section>
 
-<!-- CONFECÇÃO -->
-<section class="block conf" id="confeccao">
-  <div class="wrap conf-grid">
-    <div>
-      <div class="eyebrow reveal">Para quem vende confecção no atacado</div>
-      <h2 class="reveal d1">Sua coleção nova merece um WhatsApp que dá conta.</h2>
-      <p class="lead2 reveal d2">Pico de pedidos, revendedora perguntando grade e mínimo, vários números desorganizados. A GT centraliza tudo num sistema só, automatiza o atendimento e ainda traz lojista novo de toda região com anúncios certeiros.</p>
-      <a href="#cta" class="btn btn-cta reveal d3" style="margin-top:26px">Quero lotar o WhatsApp da minha confecção</a>
-    </div>
-    <div class="conf-rows">
-      <div class="conf-row reveal d1"><div class="pain-t">Pedido pipocando em pico de coleção</div><div class="arrow">→</div><div class="sol-t">Tudo num só painel, com IA respondendo o básico</div></div>
-      <div class="conf-row reveal d1"><div class="pain-t">"Tem na grade P ao GG?" toda hora</div><div class="arrow">→</div><div class="sol-t">Agente de IA responde na hora, qualquer horário</div></div>
-      <div class="conf-row reveal d2"><div class="pain-t">Base parada entre coleções</div><div class="arrow">→</div><div class="sol-t">Disparo em massa (API oficial) reativa sem bloqueio</div></div>
-      <div class="conf-row reveal d2"><div class="pain-t">Vendas espalhadas em vários números</div><div class="arrow">→</div><div class="sol-t">Um sistema, uma visão, métricas por vendedora</div></div>
-    </div>
-  </div>
-</section>
-
-<!-- PROOF -->
-<section class="block proof" id="prova">
-  <div class="wrap">
-    <div class="sec-head">
-      <div class="eyebrow reveal">Prova acima de promessa</div>
-      <h2 class="reveal d1">Resultado não se promete. Se mostra.</h2>
-    </div>
-    <div class="proof-grid">
-      <div class="proof-card reveal d1"><div class="big"><span data-count="10">10</span>x</div><div class="cap">de faturamento em menos de 1 ano</div></div>
-      <div class="proof-card reveal d2"><div class="big">+<span data-count="58">58</span> mil</div><div class="cap">pedidos gerados pelo sistema</div></div>
-      <div class="proof-card reveal d3"><div class="big">+<span data-count="330">330</span> mil</div><div class="cap">faturados em menos de 30 dias</div></div>
-    </div>
-  </div>
-</section>
-
 <!-- DIFERENCIAL -->
 <section class="block dif">
   <div class="wrap">
@@ -587,8 +654,7 @@ initHero tier 2 — motion.js reconcilia (remove se não bootar tier 2) */
         <div class="foot-col">
           <h4>Navegação</h4>
           <a href="#pilares">Como funciona</a>
-          <a href="#confeccao">Confecção</a>
-          <a href="#prova">Resultados</a>
+          <a href="#sistema">O sistema</a>
         </div>
         <div class="foot-col">
           <h4>Contato</h4>
@@ -610,9 +676,9 @@ initHero tier 2 — motion.js reconcilia (remove se não bootar tier 2) */
   </div>
 </footer>
 
-<script src="landing.js?v=20260613b"></script>
+<script src="landing.js?v=20260614a"></script>
 <script src="vendor/gsap.min.js"></script>
 <script src="vendor/ScrollTrigger.min.js"></script>
-<script src="motion.js?v=20260613b"></script>
+<script src="motion.js?v=20260614a"></script>
 </body>
 </html>

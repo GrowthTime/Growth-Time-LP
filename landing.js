@@ -266,6 +266,45 @@
     }
   }
 
+  /* ---------- Cena 2 da #dor: WhatsApp no caos ----------
+     FONTE ÚNICA do roteiro: motion.js consome window.__gtCaosSeq (dirige por scroll).
+     Aqui fica o fallback estático (estado FINAL = bloqueado) p/ reduced-motion / motor off. */
+  var CAOS_SEQ = window.__gtCaosSeq = [
+    { t: 'Oi! Vocês têm vestido de festa? 👗', at: '11:02' },
+    { t: 'Alô? Ainda tem no tamanho M?', at: '11:19' },
+    { t: '?', at: '12:40' },
+    { t: 'Vou ver em outra loja então…', at: '14:07' },
+    { t: 'Ainda dá tempo de hoje?', at: '16:31' }
+  ];
+  function buildCaosMsg(m, on) {
+    var d = document.createElement('div');
+    d.className = 'cmsg them' + (on ? ' on' : '');
+    d.innerHTML = m.t + '<span class="meta" aria-hidden="true">' + m.at + '</span>';
+    return d;
+  }
+  function buildCaosChip(txt, on) {
+    var c = document.createElement('div');
+    c.className = 'caos-chip' + (on ? ' on' : '');
+    c.textContent = txt;
+    return c;
+  }
+  window.__gtBuildCaosMsg = buildCaosMsg;
+  window.__gtBuildCaosChip = buildCaosChip;
+  var caosFeed = document.getElementById('caosFeed'), caosBuilt = false;
+  function checkCaos() {
+    if (window.__gtCaosExt) return;            // motor assumiu a cena (dirige por scroll)
+    if (caosBuilt || !caosFeed) return;
+    var stage = document.getElementById('caosStage');
+    if (!stage) return;
+    if (!reduce && !inView(stage, 0.95)) return;
+    caosBuilt = true;
+    caosFeed.appendChild(buildCaosChip('hoje', true));
+    CAOS_SEQ.forEach(function (m) { caosFeed.appendChild(buildCaosMsg(m, true)); });
+    stage.classList.add('caos-blocked');       // estado final = número bloqueado
+    var min = document.getElementById('caosMin'); if (min) min.textContent = '5 h 27 min';
+    var sub = document.getElementById('caosSub'); if (sub) sub.textContent = 'este número foi banido';
+  }
+
   /* ---------- Embedded system: desktop + mobile frames with toggle ---------- */
   var sysFrame = document.getElementById('sysFrame'), sysVp = document.getElementById('sysViewport');
   var sysPhoneFrame = document.getElementById('sysPhoneFrame'), sysPhoneVp = document.getElementById('sysPhoneViewport');
@@ -426,7 +465,7 @@
       else body.style.height = open ? 'auto' : '0px';
     })(null);
   }
-  function tickAll() { onNav(); checkReveal(); checkCounters(); checkMap(); checkPhone(); if (window.__checkBA) window.__checkBA(); }
+  function tickAll() { onNav(); checkReveal(); checkCounters(); checkMap(); checkPhone(); checkCaos(); if (window.__checkBA) window.__checkBA(); }
   window.addEventListener('scroll', tickAll, { passive: true });
   window.addEventListener('resize', function () { tickAll(); fitSys(); fitTV(); });
   fitSys();

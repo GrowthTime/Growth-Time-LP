@@ -77,6 +77,9 @@
   --tier-prata:         #a3adba;
   --tier-ouro:          #f3b315;
 
+  /* Investment tone (#dor cena 1: custo/entrada — NÃO é receita) */
+  --invest:             #6b7472;   /* cinza-petróleo neutro: dinheiro que entra (input) */
+
   /* Funnel palette (the stacked sales funnel) — cyan→emerald→amber→orange→purple */
   --funnel-1:           #06b6d4;   /* cyan-500  — Mensagens Recebidas */
   --funnel-2:           #10b981;   /* emerald-500 — Leads Qualificados */
