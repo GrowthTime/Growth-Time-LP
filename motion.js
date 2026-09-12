@@ -1167,7 +1167,7 @@
       ScrollTrigger.refresh();
     });
     qsa('iframe').forEach(function (f) {
-      f.addEventListener('load', function () { setTimeout(function () { ScrollTrigger.refresh(); measureHero(); }, 120); });
+      f.addEventListener('load', function () { var h0 = document.documentElement.scrollHeight; setTimeout(function () { if (Math.abs(document.documentElement.scrollHeight - h0) < 8) return; var h = document.documentElement, sb = h.style.scrollBehavior; h.style.scrollBehavior = 'auto'; ScrollTrigger.refresh(); measureHero(); h.style.scrollBehavior = sb; }, 120); }); // 12/09: só re-mede se o iframe mudou a altura da página — refresh() faz scrollTo e CANCELA o scroll suave em andamento (o iframe do sistema ficou mais pesado e passou a carregar no meio do scroll)
     });
     if (document.fonts && document.fonts.ready) document.fonts.ready.then(function () { ScrollTrigger.refresh(); measureHero(); reAnchor(); });
 

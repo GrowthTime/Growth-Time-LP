@@ -48,7 +48,7 @@ const transpile = (code, file) => Babel.transform(code, { presets: ['react'], fi
 const sysHtmlSrc = read(path.join(ROOT, 'system/index.html'));
 // ordem dos .jsx vem do próprio HTML (não hardcode)
 const jsxFiles = [...sysHtmlSrc.matchAll(/<script type="text\/babel" src="([^"]+)"><\/script>/g)].map(m => m[1]);
-if (jsxFiles.length !== 10) throw new Error(`esperava 10 .jsx, achei ${jsxFiles.length}: ${jsxFiles}`);
+if (jsxFiles.length < 10) throw new Error(`esperava >= 10 .jsx, achei ${jsxFiles.length}: ${jsxFiles}`);
 // bootstrap inline = o único <script type="text/babel"> sem src
 const bootstrapMatch = sysHtmlSrc.match(/<script type="text\/babel">([\s\S]*?)<\/script>/);
 if (!bootstrapMatch) throw new Error('bootstrap inline <script type=text/babel> não encontrado');

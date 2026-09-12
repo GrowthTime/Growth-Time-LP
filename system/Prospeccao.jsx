@@ -1,54 +1,59 @@
-// GT System — Lista de Prospecção (CRMPriorityLists). Faithful to gt-system.
+// GT System — Lista de Prospecção (CRMPriorityLists): listas prontas de quem chamar hoje. Vendedoras vêm de GT.sellers.
+const prospSellerName = (id) => GT.seller(id).name;
 function ProspeccaoLists() {
   const reativacao = [
     { id: 'ouro', title: 'Clientes Ouro Inativos', desc: 'Prioridade máxima — clientes premium sem compra recente', ic: 'crown', col: '#ca8a04', bg: 'rgba(234,179,8,.1)',
       clients: [
-        { n: 'Atacado Premium CE', s: 'Marina Alves', v: 'R$ 24.800', ad: true },
-        { n: 'Boutique Aurora', s: 'Ana Silva', v: 'R$ 18.200', ad: false },
-        { n: 'Modas Lúcia', s: 'Júlia Costa', v: 'R$ 15.640', ad: true },
-        { n: 'Loja Vitrine SP', s: 'Marina Alves', v: 'R$ 12.900', ad: false },
+        { n: 'Atacado Premium', s: 'marina', v: 24800, ad: true, days: 34 },
+        { n: 'Boutique Aurora', s: 'ana', v: 18200, ad: false, days: 41 },
+        { n: 'Modas Lúcia', s: 'julia', v: 15640, ad: true, days: 38 },
+        { n: 'Loja Vitrine SP', s: 'paula', v: 12900, ad: false, days: 52 },
       ] },
     { id: 'prata', title: 'Clientes Prata Inativos', desc: 'Prioridade importante — clientes intermediários inativos', ic: 'medal', col: '#64748b', bg: 'rgba(148,163,184,.12)',
       clients: [
-        { n: 'Ateliê Sul', s: 'Ana Silva', v: 'R$ 7.300', ad: false },
-        { n: 'Bella Confecções', s: 'Bia Ramos', v: 'R$ 6.150', ad: true },
-        { n: 'Revenda Estrela', s: 'Júlia Costa', v: 'R$ 5.480', ad: false },
+        { n: 'Ateliê Sul', s: 'ana', v: 7300, ad: false, days: 36 },
+        { n: 'Bella Confecções', s: 'bia', v: 6150, ad: true, days: 44 },
+        { n: 'Revenda Estrela', s: 'julia', v: 5480, ad: false, days: 61 },
       ] },
     { id: 'bronze', title: 'Clientes Bronze Inativos', desc: 'Prioridade menor — clientes iniciais inativos', ic: 'award', col: '#b45309', bg: 'rgba(180,83,9,.1)',
       clients: [
-        { n: 'Loja da Duda', s: 'Bia Ramos', v: 'R$ 1.240', ad: false },
-        { n: 'Encanto Kids', s: 'Ana Silva', v: 'R$ 980', ad: true },
+        { n: GT.conversations[4].name, s: 'bia', v: 1240, ad: true, days: 33 },
+        { n: 'Encanto Kids', s: 'paula', v: 980, ad: false, days: 47 },
       ] },
   ];
   const fortalecer = [
     { id: 'ativos', title: 'Clientes Ativos', desc: 'Ordenados por valor total comprado (maior → menor)', ic: 'users', col: '#059669', bg: 'rgba(16,185,129,.1)',
       clients: [
-        { n: 'Patrícia Modas', s: 'Marina Alves', v: 'R$ 12.480', ad: true },
-        { n: 'Camila Atacado', s: 'Júlia Costa', v: 'R$ 8.910', ad: false },
-        { n: 'Bella Store', s: 'Ana Silva', v: 'R$ 5.300', ad: true },
-        { n: 'Moda & Cia', s: 'Bia Ramos', v: 'R$ 4.120', ad: true },
+        { n: GT.conversations[0].name, s: 'marina', v: 12480, ad: true },
+        { n: GT.conversations[5].name, s: 'ana', v: 9640, ad: false },
+        { n: GT.conversations[2].name, s: 'julia', v: 8910, ad: false },
+        { n: 'Moda & Cia', s: 'bia', v: 4120, ad: true },
       ] },
-    { id: 'do_mes', title: 'Clientes do Mês', desc: 'Ordenados por valor total comprado (maior → menor)', ic: 'star', col: '#38cc9c', bg: 'rgba(56,204,156,.1)',
+    { id: 'do_mes', title: 'Clientes do Mês', desc: 'Primeira compra neste mês — hora de garantir a segunda', ic: 'star', col: '#38cc9c', bg: 'rgba(56,204,156,.1)',
       clients: [
-        { n: 'Revenda Bella', s: 'Marina Alves', v: 'R$ 9.640', ad: true },
-        { n: 'Fashion Norte', s: 'Júlia Costa', v: 'R$ 6.880', ad: false },
+        { n: GT.conversations[7].name, s: 'paula', v: 3500, ad: false },
+        { n: 'Fashion Norte', s: 'julia', v: 6880, ad: true },
       ] },
   ];
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 28 }}>
-      <Category badge="Reativação" badgeBg="#ef4444" icon="history" cols={3} lists={reativacao} />
-      <Category badge="Fortalecer Relacionamento" badgeBg="#38cc9c" icon="heart" cols={2} lists={fortalecer} />
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+      <ProspCategory badge="Reativação" badgeBg="#ef4444" icon="history" cols={3} lists={reativacao} hint="Sem compra há mais de 30 dias · quem vale mais aparece primeiro" />
+      <ProspCategory badge="Fortalecer Relacionamento" badgeBg="#38cc9c" icon="heart" cols={2} lists={fortalecer} hint="Quem compra bem merece atenção antes de esfriar" />
     </div>
   );
 }
 
-function Category({ badge, badgeBg, icon, cols, lists }) {
+function ProspCategory({ badge, badgeBg, icon, cols, lists, hint }) {
+  const M = K.M();
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-      <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, alignSelf: 'flex-start', fontSize: 12, fontWeight: 600, color: '#fff', background: badgeBg, padding: '5px 12px', borderRadius: 999 }}>
-        <Icon name={icon} size={13} color="#fff" />{badge}
-      </span>
-      <div style={{ display: 'grid', gridTemplateColumns: `repeat(${cols},1fr)`, gap: 14 }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 12, fontWeight: 600, color: '#fff', background: badgeBg, padding: '5px 12px', borderRadius: 999 }}>
+          <Icon name={icon} size={13} color="#fff" />{badge}
+        </span>
+        {hint && <span style={{ fontSize: 12, color: '#a3a3a3' }}>{hint}</span>}
+      </div>
+      <div style={{ display: 'grid', gridTemplateColumns: `repeat(${M ? 1 : cols},minmax(0,1fr))`, gap: 14 }}>
         {lists.map((l) => <ProspCard key={l.id} list={l} />)}
       </div>
     </div>
@@ -76,11 +81,13 @@ function ProspCard({ list }) {
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0, flex: 1 }}>
               <Icon name="store" size={15} color="#a3a3a3" />
               <div style={{ minWidth: 0 }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6, minWidth: 0 }}>
                   <span style={{ fontSize: 13, fontWeight: 600, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{c.n}</span>
-                  {c.ad && <span style={{ fontSize: 9, fontWeight: 700, color: '#2563eb', background: 'rgba(37,99,235,.1)', padding: '1px 6px', borderRadius: 5, whiteSpace: 'nowrap' }}>📣 Anúncio</span>}
+                  {c.ad && <span style={{ fontSize: 9, fontWeight: 700, color: '#2563eb', background: 'rgba(37,99,235,.1)', padding: '1px 6px', borderRadius: 5, whiteSpace: 'nowrap', flexShrink: 0 }}>📣 Anúncio</span>}
                 </div>
-                <div style={{ fontSize: 11.5, color: '#737373' }}>{c.s} · {c.v}</div>
+                <div style={{ fontSize: 11.5, color: '#737373', display: 'flex', alignItems: 'center', gap: 5, whiteSpace: 'nowrap', flexWrap: 'wrap' }}>
+                  <K.SellerAvatar id={c.s} size={14} />{prospSellerName(c.s).split(' ')[0]} · {GT.fmt.brl(c.v)}{c.days ? <span style={{ color: '#a3a3a3' }}> · há {c.days} dias</span> : null}
+                </div>
               </div>
             </div>
             <button style={{ height: 32, width: 32, borderRadius: 8, border: 'none', background: 'transparent', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }} title="Abrir conversa"><Icon name="message-circle" size={16} color="#059669" /></button>

@@ -1,362 +1,224 @@
-// GT System — Conversas (WhatsApp CRM inbox, 3 columns)
-const CONVOS = [
-  { id: 1, name: 'Patrícia Modas', phone: '+55 85 99812-3344', initials: 'PM', temp: 'hot', qual: 'qualified', last: 'Fechei! Pode mandar a grade P ao GG 🙌', time: '2min', unread: 2,
-    summary: 'Lojista de Fortaleza (CE). Quer grade completa P–GG da coleção verão. Já comprou 2x. Pronta para fechar pedido de atacado.', tier: 'ouro', total: 'R$ 12.480', orders: 8 },
-  { id: 2, name: 'Revenda Bella', phone: '+55 11 98444-1290', initials: 'RB', temp: 'hot', qual: 'pending', last: 'Qual o mínimo do atacado?', time: '8min', unread: 1,
-    summary: 'Revendedora de São Paulo. Perguntou mínimo do atacado e formas de pagamento. Lead novo vindo de anúncio. Qualificação pendente.', tier: 'prata', total: 'R$ 0', orders: 0 },
-  { id: 3, name: 'Camila Atacado', phone: '+55 71 99655-7781', initials: 'CA', temp: 'cold', qual: 'qualified', last: 'Você: Te enviei o catálogo novo 👗', time: '1h', unread: 0,
-    summary: 'Cliente de Salvador (BA). Compra recorrente. Recebeu catálogo da nova coleção, ainda não respondeu. Reativar.', tier: 'ouro', total: 'R$ 8.910', orders: 5 },
-  { id: 4, name: 'Loja da Duda', phone: '+55 31 98123-0098', initials: 'LD', temp: 'frozen', qual: 'not_qualified', last: 'Obrigada, vou pensar', time: 'Ontem', unread: 0,
-    summary: 'Contato de BH. Pediu preço, achou alto, parou de responder. Marcado como congelado. Base para disparo de reativação.', tier: 'bronze', total: 'R$ 1.240', orders: 1 },
-  { id: 5, name: 'Grupo · Equipe Vendas', phone: '4 participantes', initials: 'EV', group: true, last: 'Marina: bati a meta de hoje! 🎉', time: '3h', unread: 0 },
-];
+// GT System — Mensagens. Estrutura = pages/Messages.tsx do GTR: seletor "Todas instâncias" (é aqui que os VÁRIOS NÚMEROS aparecem),
+// lista (ConversationList: avatar verde-claro + selo do canal + emoji de temperatura · nome · última msg · badge Cliente/Pendente/Qualificado · tempo de resposta · não lidas),
+// conversa (ChatPanel: cabeçalho nome/telefone/badge · balões · abas Mensagem/Nota interna · composer) e "Informações do Contato" (ContactSidebar).
+// Disparos vive como sub-item da sidebar (?tab=disparos) e renderiza <Disparos/>.
+const cvClient = { 1: { total: 12480, ticket: 1560, orders: 8, last: '09/09/26', tier: 'Ouro', month: true }, 3: { total: 7494, ticket: 242, orders: 31, last: '08/09/26', tier: 'Prata' }, 6: { total: 21900, ticket: 1825, orders: 12, last: '11/09/26', tier: 'Ouro' }, 9: { total: 3120, ticket: 390, orders: 8, last: '02/09/26', tier: 'Prata' }, 8: { total: 1240, ticket: 620, orders: 2, last: '30/08/26', tier: 'Bronze' } };
+const cvResp = { 1: ['agora', 'ok'], 2: ['1min', 'ok'], 3: ['agora', 'ok'], 4: ['2min', 'ok'], 5: ['3min', 'ok'], 6: ['5min', 'warn'], 7: ['13min', 'bad'], 8: ['1min', 'ok'], 9: ['agora', 'ok'], 10: ['4min', 'ok'], 11: ['', ''] };
+const cvBadge = (c) => c.group ? ['Grupo', 'secondary'] : cvClient[c.id] ? ['Cliente', 'cliente'] : c.qual === 'qualified' ? ['Qualificado', 'qualificado'] : ['Pendente', 'pendente'];
+const cvTemp = { hot: '🔥', cold: '❄️', frozen: '🧊' };
+const cvSummary = { 1: ['Cliente recorrente pediu a grade completa do vestido midi; interessada nas 3 cores.', 'Enviar link de pagamento da grade P ao GG (terracota, off-white, verde).', 'Sem objeções · decisão tomada'], 2: ['Lead novo vindo do link da bio perguntando o pedido mínimo.', 'Responder o mínimo (1 grade) e pedir a cidade para calcular frete.', 'Objeção provável: valor mínimo'], 4: ['Comentou "quero" no post do conjunto linho e recebeu a tabela pela automação.', 'Responder o preço da grade de 6 e oferecer montar o pedido.', '—'] };
+const cvAiReply = { 1: 'Patrícia, monto a grade mista com as 3 cores pra você? Acima de 3 grades o frete é por nossa conta 😉', 2: 'O mínimo é 1 grade (6 peças) por R$ 389. Me diz sua cidade que já calculo o frete!', 4: 'A grade de 6 sai por R$ 389 💚 Levando 2, a segunda vai com 5% off. Monto pra você?' };
 
-const TEMP = { hot: { e: '🔥', t: 'Quente' }, cold: { e: '❄️', t: 'Frio' }, frozen: { e: '🧊', t: 'Congelado' } };
-const QUAL = {
-  qualified: { t: 'Qualificado', bg: 'rgba(34,197,94,.1)', fg: '#16a34a', bd: 'rgba(34,197,94,.3)' },
-  pending: { t: 'Pendente', bg: 'rgba(234,179,8,.1)', fg: '#ca8a04', bd: 'rgba(234,179,8,.3)' },
-  not_qualified: { t: 'Não Qualif.', bg: 'rgba(239,68,68,.1)', fg: '#dc2626', bd: 'rgba(239,68,68,.3)' },
-};
-const TIER = { ouro: { t: 'Ouro', c: '#f3b315' }, prata: { t: 'Prata', c: '#a3adba' }, bronze: { t: 'Bronze', c: '#bd6b2f' } };
-
-function Inbox() {
-  const [sel, setSel] = React.useState(1);
-  const [filter, setFilter] = React.useState('all');
-  const [draft, setDraft] = React.useState('');
-  const [msgs, setMsgs] = React.useState({
-    1: [
-      { me: false, t: 'Oi! Vi o anúncio de vocês, tenho loja aqui em Fortaleza', at: '14:02' },
-      { me: true, t: 'Oi Patrícia! Que ótimo 💚 Trabalhamos com atacado mínimo de 10 peças. Posso te mandar a grade?', at: '14:03' },
-      { me: false, t: 'Pode sim!', at: '14:04' },
-      { me: false, t: 'Fechei! Pode mandar a grade P ao GG 🙌', at: '14:06' },
-    ],
-    2: [{ me: false, t: 'Qual o mínimo do atacado?', at: '13:50' }],
-    3: [{ me: true, t: 'Te enviei o catálogo novo 👗', at: '12:10' }],
-    4: [{ me: false, t: 'Obrigada, vou pensar', at: 'Ontem' }],
-    5: [{ me: false, t: 'Marina: bati a meta de hoje! 🎉', at: '11:00' }],
-  });
-  const c = CONVOS.find((x) => x.id === sel);
-  const list = CONVOS.filter((x) => filter === 'all' ? true : filter === 'unread' ? x.unread > 0 : filter === 'leads' ? x.qual === 'pending' || x.qual === 'not_qualified' : x.qual === 'qualified');
-
-  const send = () => {
-    if (!draft.trim()) return;
-    setMsgs((m) => ({ ...m, [sel]: [...(m[sel] || []), { me: true, t: draft, at: 'agora' }] }));
-    setDraft('');
-  };
-
-  const M = window.GT_MOBILE;
-  // mobile single-pane flow: inbox -> chat -> contact (mirrors Messages.tsx)
-  const [mView, setMView] = React.useState('inbox');
-  const openChat = (id) => { setSel(id); setMView('chat'); };
-  if (M) {
-    return (
-      <div style={{ ...cv.wrap, flexDirection: 'column', minWidth: 0, height: 'auto', borderRadius: 12 }}>
-        {mView === 'inbox' && (
-          <div style={{ display: 'flex', flexDirection: 'column', width: '100%' }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, padding: '10px 12px', borderBottom: '1px solid #eee', background: '#f7f8f8' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}><Icon name="smartphone" size={15} color="#737373" /><span style={{ fontSize: 12.5, fontWeight: 500 }}>WhatsApp Moda Fashion</span><span style={{ height: 7, width: 7, borderRadius: 999, background: '#22c55e' }}></span></div>
-            </div>
-            <div style={{ padding: '12px 12px 10px', borderBottom: '1px solid #eee' }}>
-              <div style={cv.search}><Icon name="search" size={15} color="#a3a3a3" /><input placeholder="Buscar conversa..." style={cv.searchInput} /></div>
-              <div style={cv.tabs}>
-                {[['all', 'Todos'], ['unread', 'Não lidos'], ['leads', 'Leads'], ['clients', 'Clientes']].map(([k, l]) => (
-                  <button key={k} onClick={() => setFilter(k)} style={{ ...cv.tab, ...(filter === k ? cv.tabOn : {}) }}>{l}</button>
-                ))}
-              </div>
-            </div>
-            <div>
-              {list.map((x) => (
-                <button key={x.id} onClick={() => openChat(x.id)} style={cv.item}>
-                  <div style={{ position: 'relative', flexShrink: 0 }}>
-                    <div style={{ ...cv.avatar, background: x.group ? 'rgba(59,130,246,.1)' : 'rgba(56,204,156,.1)', color: x.group ? '#2563eb' : '#27ae8f' }}>{x.group ? <Icon name="users" size={20} color="#2563eb" /> : x.initials}</div>
-                    {x.temp && <span style={cv.tempDot}>{TEMP[x.temp].e}</span>}
-                  </div>
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8 }}>
-                      <span style={{ fontWeight: 500, fontSize: 14, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{x.name}</span>
-                      <span style={{ fontSize: 11, color: '#a3a3a3', whiteSpace: 'nowrap' }}>{x.time}</span>
-                    </div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8, alignItems: 'center', marginTop: 2 }}>
-                      <span style={{ fontSize: 12.5, color: x.unread ? '#171717' : '#737373', fontWeight: x.unread ? 500 : 400, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{x.last}</span>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
-                        {x.qual && !x.group && <Badge q={x.qual} />}
-                        {x.unread > 0 && <span style={cv.unread}>{x.unread}</span>}
-                      </div>
-                    </div>
-                  </div>
-                </button>
-              ))}
-            </div>
-          </div>
-        )}
-        {mView === 'chat' && (
-          <div style={{ display: 'flex', flexDirection: 'column', width: '100%', minHeight: 420 }}>
-            <div style={{ ...cv.chatHead, cursor: 'pointer' }}>
-              <button onClick={() => setMView('inbox')} style={{ background: 'transparent', border: 'none', cursor: 'pointer', padding: 0, display: 'flex' }}><Icon name="arrow-left" size={20} color="#171717" /></button>
-              <div onClick={() => setMView('contact')} style={{ display: 'flex', alignItems: 'center', gap: 10, flex: 1, cursor: 'pointer' }}>
-                <div style={{ ...cv.avatar, height: 36, width: 36, background: 'rgba(56,204,156,.1)', color: '#27ae8f' }}>{c.initials}</div>
-                <div style={{ flex: 1 }}><div style={{ fontWeight: 600, fontSize: 14 }}>{c.name}</div><div style={{ fontSize: 11.5, color: '#737373' }}>{c.phone}</div></div>
-              </div>
-              {c.temp && <span style={{ fontSize: 13 }}>{TEMP[c.temp].e}</span>}
-            </div>
-            <div style={{ ...cv.chatBody, flex: 1 }}>
-              {(msgs[sel] || []).map((m, i) => (
-                <div key={i} style={{ display: 'flex', justifyContent: m.me ? 'flex-end' : 'flex-start' }}>
-                  <div style={{ ...cv.bubble, ...(m.me ? cv.bubbleMe : cv.bubbleThem) }}>{m.t}<span style={{ fontSize: 10, opacity: .6, marginLeft: 8, display: 'inline-flex', alignItems: 'center', gap: 2 }}>{m.at}{m.me && <Icon name="check-check" size={12} color="#38cc9c" />}</span></div>
-                </div>
-              ))}
-            </div>
-            <div style={cv.composer}>
-              <Icon name="paperclip" size={19} color="#a3a3a3" />
-              <input value={draft} onChange={(e) => setDraft(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && send()} placeholder="Digite uma mensagem..." style={cv.composerInput} />
-              <button onClick={send} style={cv.sendBtn}><Icon name="send" size={17} color="#fff" /></button>
-            </div>
-          </div>
-        )}
-        {mView === 'contact' && (
-          <div style={{ display: 'flex', flexDirection: 'column', width: '100%' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '12px 14px', borderBottom: '1px solid #eee', background: '#fff' }}>
-              <button onClick={() => setMView('chat')} style={{ background: 'transparent', border: 'none', cursor: 'pointer', padding: 0, display: 'flex' }}><Icon name="arrow-left" size={20} color="#171717" /></button>
-              <span style={{ fontWeight: 600, fontSize: 14 }}>Detalhes do contato</span>
-            </div>
-            <div style={{ padding: 16 }}>
-              <div style={{ textAlign: 'center', padding: '6px 0 14px' }}>
-                <div style={{ ...cv.avatar, height: 64, width: 64, margin: '0 auto 10px', fontSize: 22, background: 'rgba(56,204,156,.1)', color: '#27ae8f' }}>{c.initials}</div>
-                <div style={{ fontWeight: 600, fontSize: 16 }}>{c.name}</div>
-                <div style={{ fontSize: 12.5, color: '#737373' }}>{c.phone}</div>
-                {c.tier && <span style={{ display: 'inline-block', marginTop: 8, fontSize: 12, fontWeight: 600, color: TIER[c.tier].c, background: TIER[c.tier].c + '22', padding: '3px 12px', borderRadius: 999 }}>● {TIER[c.tier].t}</span>}
-              </div>
-              {c.qual && <div style={{ display: 'flex', gap: 8, marginBottom: 14 }}>
-                <div style={cv.statBox}><div style={cv.statLab}>Total comprado</div><div style={cv.statVal}>{c.total}</div></div>
-                <div style={cv.statBox}><div style={cv.statLab}>Pedidos</div><div style={cv.statVal}>{c.orders}</div></div>
-              </div>}
-              {c.summary && (
-                <div style={cv.aiBox}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 7, marginBottom: 8 }}><Icon name="sparkles" size={16} color="#38cc9c" /><span style={{ fontSize: 13, fontWeight: 600, color: '#27ae8f' }}>Resumo da conversa por IA</span></div>
-                  <p style={{ fontSize: 12.5, lineHeight: 1.55, color: '#5f5e5a' }}>{c.summary}</p>
-                </div>
-              )}
-              <div style={{ marginTop: 14 }}>
-                <div style={cv.statLab}>Próximo passo sugerido</div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 6, fontSize: 13, fontWeight: 500, color: '#171717', background: '#fff', border: '1px solid #eee', borderRadius: 10, padding: '10px 12px' }}><Icon name="circle-check" size={16} color="#38cc9c" />Enviar tabela de grades e fechar pedido</div>
-              </div>
-            </div>
-          </div>
-        )}
-      </div>
-    );
-  }
+function CvList({ rows, sel, onOpen, chipId, onChip, filter, onFilter, unread }) {
+  const M = K.M();
+  const opts = [['all', 'Todas instâncias'], ...GT.chips.map((c) => [c.id, c.label])];
   return (
-    <div style={{ ...cv.wrap }}>
-      {/* Column 1: conversation list */}
-      <div style={{ ...cv.listCol }}>
-        <div style={{ padding: 14, borderBottom: '1px solid #eee' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 16, fontWeight: 600, marginBottom: 12 }}>
-            <Icon name="message-square" size={17} color="#38cc9c" />Conversas
-          </div>
-          <div style={cv.search}><Icon name="search" size={15} color="#a3a3a3" /><input placeholder="Buscar conversa..." style={cv.searchInput} /></div>
-          <div style={cv.tabs}>
-            {[['all', 'Todos'], ['unread', 'Não lidos'], ['leads', 'Leads'], ['clients', 'Clientes']].map(([k, l]) => (
-              <button key={k} onClick={() => setFilter(k)} style={{ ...cv.tab, ...(filter === k ? cv.tabOn : {}) }}>{l}</button>
-            ))}
-          </div>
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', minHeight: 0 }}>
+      {/* seletor de instância (número) — como no real, no topo da lista */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 12px', borderBottom: '1px solid #e5e5e5', background: 'rgba(245,245,245,.4)' }}>
+        <Icon name="smartphone" size={16} color="#737373" />
+        <K.Select value={chipId} onChange={onChip} options={opts} width={M ? 200 : 190} small />
+        {chipId !== 'all' && <K.Dot color={GT.chip(chipId).health === 'ok' ? '#22c55e' : '#eab308'} size={8} />}
+        <div style={{ marginLeft: 'auto', fontSize: 11.5, color: '#737373', whiteSpace: 'nowrap' }}>{GT.chips.filter((c) => c.status === 'connected').length} conectados</div>
+      </div>
+      <div style={{ padding: '14px 12px 10px', borderBottom: '1px solid #e5e5e5', display: 'flex', flexDirection: 'column', gap: 10 }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 17, fontWeight: 600 }}><Icon name="message-square" size={18} color="#3fc58f" />Conversas</div>
+          <Icon name="tag" size={18} color="#404040" />
         </div>
-        <div style={{ overflowY: 'auto', flex: 1 }}>
-          {list.map((x) => (
-            <button key={x.id} onClick={() => setSel(x.id)} style={{ ...cv.item, ...(sel === x.id ? { background: '#f5f5f5' } : {}) }}>
+        <div style={{ position: 'relative' }}><span style={{ position: 'absolute', left: 10, top: 9 }}><Icon name="search" size={15} color="#737373" /></span><input placeholder="Buscar conversa..." style={{ width: '100%', height: 36, padding: '0 12px 0 32px', borderRadius: 8, border: '1px solid #e5e5e5', fontFamily: K.font, fontSize: 14, outline: 'none', background: '#fff' }} /></div>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 2, background: '#f5f5f5', borderRadius: 8, padding: 3 }}>
+          {[['all', 'Todos'], ['unread', 'Não lidos'], ['leads', 'Leads'], ['clients', 'Clientes']].map(([k, l]) => <button key={k} onClick={() => onFilter(k)} style={{ height: 26, fontSize: 12, fontWeight: 500, borderRadius: 6, border: 'none', background: filter === k ? '#fff' : 'transparent', color: filter === k ? '#171717' : '#737373', boxShadow: filter === k ? '0 1px 2px rgba(0,0,0,.08)' : 'none', cursor: 'pointer', fontFamily: K.font }}>{l}</button>)}
+        </div>
+      </div>
+      <div style={{ flex: 1, overflowY: 'auto', minHeight: 0 }}>
+        {rows.map((c) => {
+          const on = c.id === sel, [bl, bt] = cvBadge(c), r = cvResp[c.id] || ['', ''], n = unread[c.id] || 0;
+          const waiting = r[1] === 'bad';
+          return (
+            <div key={c.id} className={c._pop ? 'gt-pop' : ''} onClick={() => onOpen(c.id)} style={{ display: 'flex', gap: 12, padding: '12px 14px', borderBottom: '1px solid #f0f0f0', cursor: 'pointer', background: on ? 'rgba(63,197,143,.08)' : waiting ? '#fef2f2' : '#fff', borderLeft: on ? '3px solid #3fc58f' : '3px solid transparent' }}>
               <div style={{ position: 'relative', flexShrink: 0 }}>
-                <div style={{ ...cv.avatar, background: x.group ? 'rgba(59,130,246,.1)' : 'rgba(56,204,156,.1)', color: x.group ? '#2563eb' : '#27ae8f' }}>
-                  {x.group ? <Icon name="users" size={20} color="#2563eb" /> : x.initials}
-                </div>
-                {x.temp && <span style={cv.tempDot} title={TEMP[x.temp].t}>{TEMP[x.temp].e}</span>}
+                <K.Avatar initials={c.initials} size={40} channel={c.channel} />
+                {c.temp && <span style={{ position: 'absolute', bottom: -4, right: -6, fontSize: 13 }}>{cvTemp[c.temp]}</span>}
               </div>
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8 }}>
-                  <span style={{ fontWeight: 500, fontSize: 14, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{x.name}</span>
-                  <span style={{ fontSize: 11, color: '#a3a3a3', whiteSpace: 'nowrap' }}>{x.time}</span>
+                  <div style={{ fontSize: 15, fontWeight: 500, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{c.name}{cvClient[c.id] && cvClient[c.id].tier === 'Ouro' ? ' 💙' : ''}</div>
+                  <div style={{ fontSize: 12, color: waiting ? '#dc2626' : '#737373', whiteSpace: 'nowrap' }}>{c.time}</div>
                 </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8, alignItems: 'center', marginTop: 2 }}>
-                  <span style={{ fontSize: 12.5, color: x.unread ? '#171717' : '#737373', fontWeight: x.unread ? 500 : 400, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{x.last}</span>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8, marginTop: 3 }}>
+                  <div style={{ fontSize: 13, color: '#737373', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{c.last}</div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
-                    {x.qual && !x.group && <Badge q={x.qual} />}
-                    {x.unread > 0 && <span style={cv.unread}>{x.unread}</span>}
+                    <K.Badge tone={bt}>{bl}</K.Badge>
+                    {r[0] && <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3, fontSize: 11.5, color: r[1] === 'bad' ? '#dc2626' : r[1] === 'warn' ? '#a16207' : '#737373' }}><Icon name="clock" size={11} />{r[0]}</span>}
+                    {n > 0 && <span style={{ minWidth: 20, height: 20, borderRadius: 999, background: '#3fc58f', color: '#fff', fontSize: 11.5, fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0 6px' }}>{n}</span>}
                   </div>
                 </div>
               </div>
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {/* Column 2: chat */}
-      <div style={{ ...cv.chatCol, ...(M ? { minWidth: 0, minHeight: 340 } : {}) }}>
-        <div style={cv.chatHead}>
-          <div style={{ ...cv.avatar, height: 38, width: 38, background: 'rgba(56,204,156,.1)', color: '#27ae8f' }}>{c.initials}</div>
-          <div style={{ flex: 1 }}>
-            <div style={{ fontWeight: 600, fontSize: 14 }}>{c.name}</div>
-            <div style={{ fontSize: 12, color: '#737373' }}>{c.phone}</div>
-          </div>
-          {c.temp && <span style={{ fontSize: 13, color: '#737373', display: 'flex', alignItems: 'center', gap: 4 }}>{TEMP[c.temp].e} {TEMP[c.temp].t}</span>}
-        </div>
-        <div style={cv.chatBody}>
-          {(msgs[sel] || []).map((m, i) => (
-            <div key={i} style={{ display: 'flex', justifyContent: m.me ? 'flex-end' : 'flex-start' }}>
-              <div style={{ ...cv.bubble, ...(m.me ? cv.bubbleMe : cv.bubbleThem) }}>
-                {m.t}
-                <span style={{ fontSize: 10, opacity: .6, marginLeft: 8, display: 'inline-flex', alignItems: 'center', gap: 2 }}>{m.at}{m.me && <Icon name="check-check" size={12} color="#38cc9c" />}</span>
-              </div>
             </div>
-          ))}
+          );
+        })}
+        {!rows.length && <K.Empty icon="message-square" title="Nenhuma conversa" sub="Nada por aqui com esse filtro." />}
+      </div>
+    </div>
+  );
+}
+
+function CvBubble({ m, channel }) {
+  const me = m.k === 'me';
+  return (
+    <div style={{ display: 'flex', justifyContent: me ? 'flex-end' : 'flex-start', alignItems: 'flex-end', gap: 6 }}>
+      {!me && <Icon name="ellipsis" size={14} color="#a3a3a3" style={{ marginBottom: 12, transform: 'rotate(90deg)' }} />}
+      <div style={{ maxWidth: '78%', padding: '8px 12px', borderRadius: 12, fontSize: 14, lineHeight: 1.45, background: me ? '#3fc58f' : '#f5f5f5', color: me ? '#fff' : '#171717', borderBottomRightRadius: me ? 4 : 12, borderBottomLeftRadius: me ? 12 : 4 }}>
+        {(m.auto || m.template) && <div style={{ fontSize: 10.5, opacity: .85, display: 'flex', alignItems: 'center', gap: 4, marginBottom: 3 }}><Icon name={m.auto ? 'bot' : 'badge-check'} size={11} color={me ? '#fff' : '#3fc58f'} />{m.auto ? 'Automação' : 'Template aprovado'}</div>}
+        <span>{m.t}</span>
+        <span style={{ fontSize: 10.5, opacity: .8, marginLeft: 8, whiteSpace: 'nowrap' }}>{m.time}{me && ' ✓✓'}</span>
+      </div>
+      {me && <Icon name="ellipsis" size={14} color="#a3a3a3" style={{ marginBottom: 12, transform: 'rotate(90deg)' }} />}
+    </div>
+  );
+}
+
+function CvChat({ c, extra, onSend, onBack, onTogglePanel, panelOpen }) {
+  const M = K.M();
+  const [tab, setTab] = React.useState('msg');
+  const [draft, setDraft] = React.useState('');
+  const [bl, bt] = cvBadge(c);
+  const chip = GT.chip(c.chipId);
+  const msgs = [...c.messages, ...(extra || [])];
+  const ref = React.useRef(null);
+  React.useEffect(() => { if (ref.current) ref.current.scrollTop = ref.current.scrollHeight; }, [c.id, msgs.length]);
+  const windowOpen = c.temp !== 'frozen';
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', minHeight: 0, background: '#fff' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '12px 16px', borderBottom: '1px solid #e5e5e5' }}>
+        {M && <button onClick={onBack} style={{ background: 'transparent', border: 'none', cursor: 'pointer', display: 'flex' }}><Icon name="arrow-left" size={20} /></button>}
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ fontSize: 16, fontWeight: 600, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{c.name}{cvClient[c.id] && cvClient[c.id].tier === 'Ouro' ? ' 💙' : ''}</div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12.5, color: '#737373', flexWrap: 'wrap' }}>
+            <span>{c.phone}</span><K.Badge tone={bt}>{bl}</K.Badge>
+            {chip && <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}><K.ChannelChip channel={c.channel} size={12} />{chip.label}{chip.channel === 'whatsapp' ? ' · ' + chip.short : ''}</span>}
+          </div>
         </div>
-        <div style={cv.composer}>
-          <Icon name="paperclip" size={19} color="#a3a3a3" />
-          <input value={draft} onChange={(e) => setDraft(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && send()} placeholder="Digite uma mensagem..." style={cv.composerInput} />
-          <button onClick={send} style={cv.sendBtn}><Icon name="send" size={17} color="#fff" /></button>
+        <button onClick={onTogglePanel} title="Informações do contato" style={{ background: 'transparent', border: 'none', cursor: 'pointer', display: 'flex' }}><Icon name="user" size={18} color="#404040" /></button>
+        <Icon name="more-vertical" size={18} color="#404040" />
+      </div>
+      <div ref={ref} style={{ flex: 1, overflowY: 'auto', minHeight: 0, padding: 16, display: 'flex', flexDirection: 'column', gap: 10, background: '#fafafa' }}>
+        {c.group && <div style={{ alignSelf: 'center', fontSize: 11.5, color: '#737373', background: '#fff', border: '1px solid #e5e5e5', borderRadius: 999, padding: '3px 10px' }}>Grupo interno da equipe</div>}
+        {msgs.map((m, i) => <CvBubble key={i} m={m} channel={c.channel} />)}
+      </div>
+      <div style={{ borderTop: '1px solid #e5e5e5', padding: '10px 12px 12px', display: 'flex', flexDirection: 'column', gap: 10 }}>
+        <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+          {[['msg', 'Mensagem', 'message-square'], ['note', 'Nota interna', 'file-text']].map(([k, l, ic]) => <button key={k} onClick={() => setTab(k)} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, height: 30, padding: '0 12px', borderRadius: 8, border: 'none', background: tab === k ? 'rgba(63,197,143,.15)' : 'transparent', color: tab === k ? '#2fae7c' : '#737373', fontSize: 13, fontWeight: 500, cursor: 'pointer', fontFamily: K.font }}><Icon name={ic} size={14} color={tab === k ? '#2fae7c' : '#737373'} />{l}</button>)}
+          {!c.group && (windowOpen
+            ? <span style={{ marginLeft: 'auto', fontSize: 11.5, color: '#737373', display: 'inline-flex', alignItems: 'center', gap: 4 }}><K.Dot color="#22c55e" size={6} />janela de 24h aberta</span>
+            : <span style={{ marginLeft: 'auto', fontSize: 11.5, color: '#a16207', display: 'inline-flex', alignItems: 'center', gap: 4 }}><Icon name="lock" size={11} color="#a16207" />janela fechada · só template</span>)}
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <Icon name="paperclip" size={18} color="#404040" />
+          <Icon name="file-text" size={18} color="#404040" />
+          <Icon name="smile" size={18} color="#404040" />
+          <input value={draft} onChange={(e) => setDraft(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter' && draft.trim()) { onSend(draft.trim()); setDraft(''); } }} placeholder={tab === 'note' ? 'Nota interna (só a equipe vê)...' : windowOpen ? 'Mensagem...' : 'Escolha um template aprovado'} disabled={!windowOpen && tab === 'msg'} style={{ flex: 1, height: 40, padding: '0 12px', borderRadius: 8, border: '1px solid #e5e5e5', fontFamily: K.font, fontSize: 14, outline: 'none', background: '#fff', minWidth: 0 }} />
+          <button onClick={() => { if (draft.trim()) { onSend(draft.trim()); setDraft(''); } }} style={{ height: 40, width: 40, borderRadius: 8, border: 'none', background: '#3fc58f', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', flexShrink: 0 }}><Icon name={draft ? 'send' : 'mic'} size={18} color="#fff" /></button>
         </div>
       </div>
+    </div>
+  );
+}
 
-      {/* Column 3: contact + AI summary */}
-      <div style={{ ...cv.contactCol, ...(M ? { width: '100%', borderLeft: 'none', borderTop: '1px solid #eee' } : {}) }}>
-        <div style={{ textAlign: 'center', padding: '6px 0 14px' }}>
-          <div style={{ ...cv.avatar, height: 64, width: 64, margin: '0 auto 10px', fontSize: 22, background: 'rgba(56,204,156,.1)', color: '#27ae8f' }}>{c.initials}</div>
-          <div style={{ fontWeight: 600, fontSize: 16 }}>{c.name}</div>
-          <div style={{ fontSize: 12.5, color: '#737373' }}>{c.phone}</div>
-          {c.tier && <span style={{ display: 'inline-block', marginTop: 8, fontSize: 12, fontWeight: 600, color: TIER[c.tier].c, background: TIER[c.tier].c + '22', padding: '3px 12px', borderRadius: 999 }}>● {TIER[c.tier].t}</span>}
+function CvPanel({ c, onClose, onUse }) {
+  const st = cvClient[c.id], [bl, bt] = cvBadge(c), seller = GT.seller(c.sellerId), sum = cvSummary[c.id];
+  const [ai, setAi] = React.useState(true);
+  const [open, setOpen] = React.useState(false);
+  const Sec = ({ title, children }) => <div style={{ paddingTop: 14, marginTop: 14, borderTop: '1px solid #e5e5e5' }}>{title && <div style={{ fontSize: 11, fontWeight: 600, color: '#737373', letterSpacing: '.05em', marginBottom: 8 }}>{title}</div>}{children}</div>;
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', minHeight: 0, background: '#fff' }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 16px', borderBottom: '1px solid #e5e5e5' }}><div style={{ fontSize: 16, fontWeight: 600 }}>Informações do Contato</div><button onClick={onClose} style={{ background: 'transparent', border: 'none', cursor: 'pointer', display: 'flex' }}><Icon name="x" size={18} /></button></div>
+      <div style={{ flex: 1, overflowY: 'auto', padding: 16 }}>
+        <div style={{ textAlign: 'center' }}>
+          <div style={{ fontSize: 16, fontWeight: 600 }}>{c.name}{st && st.tier === 'Ouro' ? ' 💙' : ''}</div>
+          <div style={{ fontSize: 13, color: '#737373', marginTop: 2 }}>{c.phone}</div>
+          <div style={{ marginTop: 8 }}><K.Badge tone={bt}>{bl}</K.Badge></div>
+          {seller && <div style={{ fontSize: 12, color: '#737373', marginTop: 10, display: 'inline-flex', alignItems: 'center', gap: 4 }}><Icon name="user" size={12} />Consultora: {seller.name.split(' ')[0]}</div>}
+          {c.origin && <div style={{ fontSize: 12, color: '#737373', marginTop: 4, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4 }}><Icon name={GT.originIcon[c.origin.type]} size={12} />Origem: {c.origin.label}</div>}
         </div>
-        {c.qual && <div style={{ display: 'flex', gap: 8, marginBottom: 14 }}>
-          <div style={cv.statBox}><div style={cv.statLab}>Total comprado</div><div style={cv.statVal}>{c.total}</div></div>
-          <div style={cv.statBox}><div style={cv.statLab}>Pedidos</div><div style={cv.statVal}>{c.orders}</div></div>
+        {!c.group && <div style={{ marginTop: 14, border: '1px solid #e5e5e5', borderRadius: 10, padding: 12 }}>
+          <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
+            <Icon name="bot" size={18} color="#3fc58f" />
+            <div style={{ flex: 1, minWidth: 0 }}><div style={{ fontSize: 14, fontWeight: 600 }}>Agente de IA</div><div style={{ fontSize: 12, color: '#737373' }}>Ativo nesta conversa (sugere/atende).</div></div>
+            <K.Toggle on={ai} onChange={setAi} />
+          </div>
+          {ai && cvAiReply[c.id] && <div style={{ marginTop: 10, fontSize: 12.5, background: 'rgba(63,197,143,.08)', border: '1px solid rgba(63,197,143,.25)', borderRadius: 8, padding: 10 }}>
+            <div style={{ fontSize: 11, fontWeight: 600, color: '#2fae7c', marginBottom: 4 }}>SUGESTÃO</div><div style={{ color: '#171717', fontStyle: 'italic' }}>"{cvAiReply[c.id]}"</div>
+            <button onClick={() => onUse(cvAiReply[c.id])} style={{ marginTop: 8, height: 30, padding: '0 12px', borderRadius: 8, border: '1px solid #3fc58f', background: '#fff', color: '#2fae7c', fontSize: 12.5, fontWeight: 600, cursor: 'pointer', fontFamily: K.font }}>Usar sugestão</button>
+          </div>}
         </div>}
-        {c.summary && (
-          <div style={cv.aiBox}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 7, marginBottom: 8 }}>
-              <Icon name="sparkles" size={16} color="#38cc9c" />
-              <span style={{ fontSize: 13, fontWeight: 600, color: '#27ae8f' }}>Resumo da conversa por IA</span>
-            </div>
-            <p style={{ fontSize: 12.5, lineHeight: 1.55, color: '#5f5e5a' }}>{c.summary}</p>
-          </div>
-        )}
-        <div style={{ marginTop: 14 }}>
-          <div style={cv.statLab}>Próximo passo sugerido</div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 6, fontSize: 13, fontWeight: 500, color: '#171717', background: '#fff', border: '1px solid #eee', borderRadius: 10, padding: '10px 12px' }}>
-            <Icon name="circle-check" size={16} color="#38cc9c" />Enviar tabela de grades e fechar pedido
-          </div>
-        </div>
+        {st && <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 14 }}>
+          <K.Badge tone="secondary" icon="medal" style={{ background: '#e5e7eb', color: '#374151' }}>{st.tier}</K.Badge>
+          {st.month && <K.Badge tone="qualificado">Cliente do Mês</K.Badge>}
+        </div>}
+        {st && <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14, marginTop: 14 }}>
+          {[['TOTAL', GT.fmt.brl(st.total)], ['TICKET MÉDIO', GT.fmt.brl(st.ticket)], ['PEDIDOS', st.orders], ['ÚLTIMA COMPRA', st.last]].map(([k, v]) => <div key={k}><div style={{ fontSize: 10.5, fontWeight: 600, color: '#737373', letterSpacing: '.04em' }}>{k}</div><div style={{ fontSize: 15, fontWeight: 600, marginTop: 2 }}>{v}</div></div>)}
+        </div>}
+        {!c.group && <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, color: '#404040', marginTop: 14 }}><Icon name="clock" size={14} color="#737373" />Tempo médio de resposta: <b>{c.id === 7 ? '13 min' : c.id === 6 ? '5 min' : '4 min'}</b></div>}
+        {sum && <div style={{ marginTop: 14, border: '1px solid #e5e5e5', borderRadius: 10, padding: 12 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13.5, fontWeight: 600 }}><Icon name="file-text" size={14} />Resumo da conversa</div>
+          <button onClick={() => setOpen(!open)} style={{ marginTop: 10, width: '100%', height: 38, borderRadius: 8, border: '1px solid #e5e5e5', background: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 12px', fontSize: 13.5, cursor: 'pointer', fontFamily: K.font }}><span style={{ display: 'flex', alignItems: 'center', gap: 6 }}><Icon name="file-text" size={14} />Ver resumo</span><Icon name={open ? 'chevron-up' : 'chevron-down'} size={14} /></button>
+          {open && <div style={{ marginTop: 10, fontSize: 12.5, color: '#404040', display: 'flex', flexDirection: 'column', gap: 8 }}>
+            <div><b>Resumo</b><div>{sum[0]}</div></div><div><b>Próximo passo</b><div>{sum[1]}</div></div><div><b>Objeções da IA</b><div>{sum[2]}</div></div>
+          </div>}
+        </div>}
+        <Sec title="TAGS"><button style={{ display: 'inline-flex', alignItems: 'center', gap: 6, height: 34, padding: '0 12px', borderRadius: 8, border: '1px solid #e5e5e5', background: '#fff', fontSize: 13, cursor: 'pointer', fontFamily: K.font }}><Icon name="tag" size={14} />Adicionar tag</button></Sec>
       </div>
     </div>
   );
 }
 
 function Conversas() {
-  const [view, setView] = React.useState('conversas');
-  const M = window.GT_MOBILE;
+  if (window.GT_TAB === 'disparos') return <div style={{ width: '100%', minHeight: 0, overflowY: 'auto' }}><Disparos /></div>;
+  const M = K.M();
+  const [chipId, setChipId] = React.useState('all');
+  const [filter, setFilter] = React.useState('all');
+  const [sel, setSel] = React.useState(1);
+  const [mView, setMView] = React.useState('list');
+  const [panel, setPanel] = React.useState(!M);
+  const [extra, setExtra] = React.useState({});
+  const [unread, setUnread] = React.useState(() => Object.fromEntries(GT.conversations.map((c) => [c.id, c.unread])));
+  const [arrived, setArrived] = React.useState([]);
+  // encenação discreta: a cada ~5s uma conversa recebe uma mensagem nova e sobe (alternando os números/canais)
+  const order = [6, 4, 3, 7, 1, 10, 8, 2];
+  const lines = { 6: 'Fechou as 2 grades? Já separo aqui', 4: 'Consigo pagar no pix?', 3: 'Chegou a saia plissada?', 7: 'Vocês têm catálogo?', 1: 'Pode me mandar o link de pagamento', 10: 'Tem a grade em preto?', 8: 'Quero ver o catálogo 🙏', 2: 'Sou de Guarulhos' };
+  const step = K.useScene(order.length, 5000);
+  React.useEffect(() => {
+    if (step === 0 && !arrived.length) return;
+    const id = order[step];
+    setExtra((e) => ({ ...e, [id]: [...(e[id] || []), { k: 'them', t: lines[id], time: 'agora' }] }));
+    setArrived((a) => [id, ...a.filter((x) => x !== id)]);
+    if (id !== sel) setUnread((u) => ({ ...u, [id]: (u[id] || 0) + 1 }));
+  }, [step]);
+  const base = GT.conversationsFor(chipId);
+  const rows = [...base].sort((a, b) => { const ia = arrived.indexOf(a.id), ib = arrived.indexOf(b.id); return (ia < 0 ? 99 : ia) - (ib < 0 ? 99 : ib); })
+    .map((c) => ({ ...c, _pop: arrived[0] === c.id, last: extra[c.id] ? extra[c.id][extra[c.id].length - 1].t : c.last, time: arrived.includes(c.id) ? (arrived.indexOf(c.id) === 0 ? 'agora' : arrived.indexOf(c.id) + 'min') : c.time }))
+    .filter((c) => filter === 'all' || (filter === 'unread' ? (unread[c.id] || 0) > 0 : filter === 'leads' ? !cvClient[c.id] && !c.group : !!cvClient[c.id]));
+  const open = (id) => { setSel(id); setUnread((u) => ({ ...u, [id]: 0 })); if (M) setMView('chat'); };
+  const changeChip = (v) => { setChipId(v); const l = GT.conversationsFor(v); if (!l.some((x) => x.id === sel) && l[0]) { setSel(l[0].id); setUnread((u) => ({ ...u, [l[0].id]: 0 })); } };
+  const cur = GT.conversations.find((c) => c.id === sel);
+  const send = (t) => { setExtra((e) => ({ ...e, [sel]: [...(e[sel] || []), { k: 'me', t, time: 'agora' }] })); setArrived((a) => [sel, ...a.filter((x) => x !== sel)]); };
+  const [useTxt, setUseTxt] = React.useState('');
+  const chat = <CvChat key={sel + ':' + useTxt} c={cur} extra={extra[sel]} onSend={send} onBack={() => setMView('list')} onTogglePanel={() => setPanel(!panel)} panelOpen={panel} />;
+  const list = <CvList rows={rows} sel={sel} onOpen={open} chipId={chipId} onChip={changeChip} filter={filter} onFilter={setFilter} unread={unread} />;
+  const pan = <CvPanel c={cur} onClose={() => setPanel(false)} onUse={(t) => { send(t); }} />;
+  if (M) return (
+    <div style={{ width: '100%', height: '100%', minHeight: 0, background: '#fff', border: '1px solid #e5e5e5', borderRadius: 12, overflow: 'hidden', margin: '0 12px' }}>
+      {mView === 'list' ? list : panel ? <div style={{ height: '100%', display: 'flex', flexDirection: 'column' }}><button onClick={() => setPanel(false)} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '10px 12px', border: 'none', borderBottom: '1px solid #e5e5e5', background: '#fff', fontSize: 13, cursor: 'pointer', fontFamily: K.font }}><Icon name="arrow-left" size={16} />Voltar à conversa</button><div style={{ flex: 1, minHeight: 0 }}>{pan}</div></div> : chat}
+    </div>
+  );
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', gap: M ? 10 : 14 }}>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12 }}>
-        <div style={{ display: 'flex', gap: 8 }}>
-          <button onClick={() => setView('conversas')} style={{ ...cv.topTab, ...(view === 'conversas' ? cv.topTabOn : {}) }}><Icon name="message-square" size={15} color={view === 'conversas' ? '#fff' : '#737373'} />Conversas</button>
-          <button onClick={() => setView('disparos')} style={{ ...cv.topTab, ...(view === 'disparos' ? cv.topTabOn : {}) }}><Icon name="send" size={15} color={view === 'disparos' ? '#fff' : '#737373'} />{M ? 'Disparos' : 'Disparos Cloud API'}</button>
-        </div>
-        {!M && <div style={cv.instance}>
-          <Icon name="smartphone" size={15} color="#737373" />
-          <span style={{ fontSize: 13, fontWeight: 500 }}>WhatsApp Moda Fashion</span>
-          <span style={{ height: 8, width: 8, borderRadius: 999, background: '#22c55e' }}></span>
-          <span style={{ fontSize: 12, color: '#16a34a', fontWeight: 600 }}>Conectado</span>
-        </div>}
-      </div>
-      <div style={{ flex: 1, minHeight: 0 }}>
-        {view === 'conversas' ? <Inbox /> : <Broadcasts />}
-      </div>
+    <div style={{ display: 'grid', gridTemplateColumns: panel ? '340px minmax(0,1fr) 300px' : '340px minmax(0,1fr)', width: '100%', height: '100%', minHeight: 0, background: '#fff', border: '1px solid #e5e5e5', borderRadius: 12, overflow: 'hidden', boxShadow: '0 1px 2px rgba(0,0,0,.05)' }}>
+      <div style={{ borderRight: '1px solid #e5e5e5', minHeight: 0 }}>{list}</div>
+      <div style={{ minHeight: 0, minWidth: 0 }}>{chat}</div>
+      {panel && <div style={{ borderLeft: '1px solid #e5e5e5', minHeight: 0 }}>{pan}</div>}
     </div>
   );
 }
-
-function Broadcasts() {
-  const campaigns = [
-    { n: 'Lançamento Coleção Verão', status: 'Enviada', sent: 1840, read: 1421, audience: 'Base ativa · CE', when: 'Hoje 09:00' },
-    { n: 'Reativação base parada', status: 'Enviando', sent: 612, read: 318, audience: 'Inativos 30d+', when: 'Agora' },
-    { n: 'Grade nova P ao GG', status: 'Agendada', sent: 0, read: 0, audience: 'Revendedoras', when: 'Amanhã 10:00' },
-  ];
-  const ST = { 'Enviada': { bg: 'rgba(34,197,94,.1)', fg: '#16a34a' }, 'Enviando': { bg: 'rgba(56,204,156,.12)', fg: '#27ae8f' }, 'Agendada': { bg: 'rgba(234,179,8,.12)', fg: '#ca8a04' } };
-  return (
-    <div style={{ display: 'grid', gridTemplateColumns: '1fr 340px', gap: 18, height: '100%' }}>
-      <div style={cv.bcCard}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-          <div style={{ fontSize: 16, fontWeight: 600 }}>Campanhas de Disparo</div>
-          <button style={cv.newBtn}><Icon name="plus" size={15} color="#fff" />Novo disparo</button>
-        </div>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-          {campaigns.map((c, i) => (
-            <div key={i} style={{ border: '1px solid #eee', borderRadius: 12, padding: 16 }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 10 }}>
-                <div><div style={{ fontSize: 14.5, fontWeight: 600 }}>{c.n}</div><div style={{ fontSize: 12.5, color: '#737373', marginTop: 2 }}>{c.audience} · {c.when}</div></div>
-                <span style={{ fontSize: 11.5, fontWeight: 600, padding: '3px 11px', borderRadius: 999, background: ST[c.status].bg, color: ST[c.status].fg }}>{c.status}</span>
-              </div>
-              <div style={{ display: 'flex', gap: 22 }}>
-                <div><div style={{ fontSize: 11, color: '#a3a3a3' }}>Enviadas</div><div style={{ fontSize: 16, fontWeight: 700 }}>{c.sent.toLocaleString('pt-BR')}</div></div>
-                <div><div style={{ fontSize: 11, color: '#a3a3a3' }}>Lidas</div><div style={{ fontSize: 16, fontWeight: 700, color: '#27ae8f' }}>{c.read.toLocaleString('pt-BR')}</div></div>
-                <div style={{ flex: 1 }}><div style={{ fontSize: 11, color: '#a3a3a3' }}>Taxa de leitura</div>
-                  <div style={{ height: 7, borderRadius: 999, background: '#f0f0f0', marginTop: 6, overflow: 'hidden' }}><div style={{ height: '100%', width: (c.sent ? Math.round(c.read / c.sent * 100) : 0) + '%', background: 'var(--gradient-primary)', borderRadius: 999 }}></div></div>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-      <div style={cv.bcCard}>
-        <div style={{ fontSize: 15, fontWeight: 600, marginBottom: 4 }}>Novo disparo</div>
-        <div style={{ fontSize: 12.5, color: '#737373', marginBottom: 16 }}>Template oficial · API Cloud Meta</div>
-        <label style={cv.lbl}>Template</label>
-        <div style={cv.field}>colecao_verao_2026 <Icon name="chevron-down" size={15} color="#a3a3a3" /></div>
-        <label style={cv.lbl}>Público</label>
-        <div style={cv.field}>Base ativa (1.840) <Icon name="chevron-down" size={15} color="#a3a3a3" /></div>
-        <label style={cv.lbl}>Prévia</label>
-        <div style={{ background: '#e9e2d8', borderRadius: 12, padding: 12 }}>
-          <div style={{ ...cv.bubble, ...cv.bubbleThem, maxWidth: '100%', fontSize: 12.5 }}>Oi {'{{nome}}'}! 👋 Chegou a nova coleção verão na GT. Quer ver a grade completa P ao GG? Responda *SIM* 🛍️</div>
-        </div>
-        <button style={{ ...cv.newBtn, width: '100%', justifyContent: 'center', marginTop: 16 }}><Icon name="send" size={15} color="#fff" />Disparar para 1.840</button>
-      </div>
-    </div>
-  );
-}
-
-function Badge({ q }) {
-  const s = QUAL[q];
-  return <span style={{ fontSize: 11, fontWeight: 500, padding: '2px 9px', borderRadius: 999, background: s.bg, color: s.fg, border: `1px solid ${s.bd}`, whiteSpace: 'nowrap' }}>{s.t}</span>;
-}
-
-const cv = {
-  topTab: { display: 'flex', alignItems: 'center', gap: 7, fontSize: 13.5, fontWeight: 600, padding: '9px 16px', borderRadius: 10, border: '1px solid #eee', background: '#fff', color: '#737373', cursor: 'pointer', fontFamily: 'Inter,sans-serif' },
-  topTabOn: { background: '#38cc9c', color: '#fff', border: '1px solid #38cc9c' },
-  instance: { display: 'flex', alignItems: 'center', gap: 8, padding: '8px 14px', borderRadius: 10, border: '1px solid #eee', background: '#fff' },
-  bcCard: { background: '#fff', borderRadius: 14, border: '1px solid #eee', padding: 20, boxShadow: 'var(--shadow-sm)', overflowY: 'auto' },
-  newBtn: { display: 'flex', alignItems: 'center', gap: 7, fontSize: 13, fontWeight: 600, padding: '9px 15px', borderRadius: 10, border: 'none', background: 'var(--gradient-primary)', color: '#fff', cursor: 'pointer', fontFamily: 'Inter,sans-serif' },
-  lbl: { display: 'block', fontSize: 12, fontWeight: 600, color: '#737373', marginBottom: 6, marginTop: 12 },
-  field: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: 13.5, padding: '10px 14px', borderRadius: 10, border: '1px solid #e5e5e5', background: '#fff' },
-  wrap: { display: 'flex', height: '100%', minWidth: 940, background: '#fff', borderRadius: 14, border: '1px solid #eee', overflow: 'hidden', boxShadow: 'var(--shadow-sm)' },
-  listCol: { width: 320, borderRight: '1px solid #eee', display: 'flex', flexDirection: 'column', flexShrink: 0 },
-  search: { display: 'flex', alignItems: 'center', gap: 8, background: '#f5f5f5', borderRadius: 9, padding: '8px 11px' },
-  searchInput: { border: 'none', background: 'transparent', outline: 'none', fontSize: 13, flex: 1, fontFamily: 'Inter,sans-serif' },
-  tabs: { display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 4, marginTop: 10, background: '#f5f5f5', borderRadius: 8, padding: 3 },
-  tab: { fontSize: 11.5, fontWeight: 500, padding: '6px 4px', borderRadius: 6, border: 'none', background: 'transparent', color: '#737373', cursor: 'pointer', fontFamily: 'Inter,sans-serif' },
-  tabOn: { background: '#fff', color: '#171717', boxShadow: 'var(--shadow-sm)' },
-  item: { width: '100%', display: 'flex', gap: 11, padding: '11px 13px', border: 'none', borderBottom: '1px solid #f3f3f3', background: 'transparent', cursor: 'pointer', textAlign: 'left', alignItems: 'center', fontFamily: 'Inter,sans-serif' },
-  avatar: { height: 42, width: 42, borderRadius: 999, display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 600, fontSize: 14 },
-  tempDot: { position: 'absolute', bottom: -2, right: -2, fontSize: 14, lineHeight: 1 },
-  unread: { height: 20, minWidth: 20, padding: '0 6px', borderRadius: 999, background: '#38cc9c', color: '#fff', fontSize: 11, fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'center' },
-  chatCol: { flex: 1, display: 'flex', flexDirection: 'column', minWidth: 340, background: '#f7f8f8' },
-  chatHead: { display: 'flex', alignItems: 'center', gap: 11, padding: '12px 18px', borderBottom: '1px solid #eee', background: '#fff' },
-  chatBody: { flex: 1, overflowY: 'auto', padding: 20, display: 'flex', flexDirection: 'column', gap: 10 },
-  bubble: { maxWidth: '72%', padding: '9px 13px', borderRadius: 14, fontSize: 13.5, lineHeight: 1.45, boxShadow: 'var(--shadow-sm)' },
-  bubbleMe: { background: '#dcf6ec', color: '#0b3a2c', borderBottomRightRadius: 4 },
-  bubbleThem: { background: '#fff', color: '#171717', borderBottomLeftRadius: 4 },
-  composer: { display: 'flex', alignItems: 'center', gap: 11, padding: '12px 16px', borderTop: '1px solid #eee', background: '#fff' },
-  composerInput: { flex: 1, border: '1px solid #e5e5e5', borderRadius: 999, padding: '10px 16px', fontSize: 13.5, outline: 'none', fontFamily: 'Inter,sans-serif' },
-  sendBtn: { height: 40, width: 40, borderRadius: 999, border: 'none', background: 'var(--gradient-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', flexShrink: 0 },
-  contactCol: { width: 290, borderLeft: '1px solid #eee', padding: 18, flexShrink: 0, overflowY: 'auto', background: '#fff' },
-  statBox: { flex: 1, background: '#f7f8f8', borderRadius: 10, padding: '10px 12px' },
-  statLab: { fontSize: 11, color: '#737373', fontWeight: 500 },
-  statVal: { fontSize: 15, fontWeight: 700, marginTop: 2 },
-  aiBox: { background: 'linear-gradient(135deg,rgba(56,204,156,.08),rgba(56,204,156,.02))', border: '1px solid rgba(56,204,156,.2)', borderRadius: 12, padding: 14 },
-};
 window.Conversas = Conversas;

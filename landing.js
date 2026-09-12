@@ -321,23 +321,27 @@
       sysFrame.style.transform = 'scale(' + scale + ')';
       sysVp.style.height = (SYS_H * scale) + 'px';
     }
-    if (device === 'mobile' && sysPhoneFrame && sysPhoneVp) {
+    if (device !== 'desktop' && sysPhoneFrame && sysPhoneVp) {
       var pw = sysPhoneVp.clientWidth, ps = pw / SYSM_W;
       sysPhoneFrame.style.width = SYSM_W + 'px'; sysPhoneFrame.style.height = SYSM_H + 'px';
       sysPhoneFrame.style.transform = 'scale(' + ps + ')';
       sysPhoneVp.style.height = (SYSM_H * ps) + 'px';
     }
   }
+  var PHONE_SRC = { mobile: 'system/index.html?view=mobile', bio: 'system/index.html?view=bio&notch=1', loja: 'system/index.html?view=loja&notch=1' };
+  var HINTS = { desktop: '👆 Navegue por Dashboard, Mensagens, Produtos, Mkt & Ads e Configurações — é clicável', mobile: '📱 Assim a vendedora usa no celular', bio: '🔗 O link da bio como a sua cliente vê — toque no botão e veja o rodízio', loja: '🛍️ O catálogo público — toque numa peça e depois na sacola para ver o pedido por grade' };
   function setDevice(d) {
     device = d;
-    if (d === 'mobile' && sysPhoneFrame && !sysPhoneFrame.src) {
-      sysPhoneFrame.src = sysPhoneFrame.getAttribute('data-src');
+    var phone = d !== 'desktop';
+    if (phone && sysPhoneFrame) {
+      var want = PHONE_SRC[d] || PHONE_SRC.mobile;
+      if (sysPhoneFrame.getAttribute('data-cur') !== want) { sysPhoneFrame.src = want; sysPhoneFrame.setAttribute('data-cur', want); }
     }
-    if (sysDesktop) sysDesktop.hidden = d !== 'desktop';
-    if (sysMobile) sysMobile.hidden = d !== 'mobile';
+    if (sysDesktop) sysDesktop.hidden = phone;
+    if (sysMobile) sysMobile.hidden = !phone;
     if (sysToggle) [].slice.call(sysToggle.children).forEach(function (b) { b.classList.toggle('active', b.getAttribute('data-device') === d); });
-    if (sysHint) sysHint.textContent = d === 'mobile' ? '📱 Assim a vendedora usa no celular' : '👆 Navegue pelo Dashboard, Mensagens e Mkt & Ads';
-    if (sysFullBtn) sysFullBtn.href = d === 'mobile' ? 'system/index.html?view=mobile' : 'system/index.html';
+    if (sysHint) sysHint.textContent = HINTS[d] || HINTS.desktop;
+    if (sysFullBtn) sysFullBtn.href = phone ? (PHONE_SRC[d] || PHONE_SRC.mobile) : 'system/index.html';
     requestAnimationFrame(function () { requestAnimationFrame(fitSys); });
   }
   if (sysToggle) [].slice.call(sysToggle.children).forEach(function (b) {
@@ -354,6 +358,19 @@
     tvFrame.style.transform = 'scale(' + (w / TV_W) + ')';
   }
   if (tvFrame) tvFrame.addEventListener('load', fitTV);
+  /* prévias genéricas no accordion (.acc-shot-frame com data-w/data-h): escala pela largura do container */
+  function fitShots() {
+    var vps = document.querySelectorAll('.acc-shot-vp');
+    for (var i = 0; i < vps.length; i++) {
+      var vp = vps[i], f = vp.querySelector('.acc-shot-frame'); if (!f) continue;
+      var W = parseInt(f.getAttribute('data-w'), 10) || 1280, H = parseInt(f.getAttribute('data-h'), 10) || 800;
+      var w = vp.clientWidth; if (!w) continue;
+      var sc = w / W;
+      f.style.width = W + 'px'; f.style.height = H + 'px'; f.style.transform = 'scale(' + sc + ')';
+      vp.style.height = Math.round(H * sc) + 'px';
+    }
+  }
+  window.fitShots = fitShots;
 
   /* ---------- Map arcs + widget parallax ---------- */
   var mapStage = document.getElementById('mapStage'), mapDone = false;
@@ -451,7 +468,7 @@
     var head = item.querySelector('.acc-head');
     item.classList.toggle('open', open);
     head.setAttribute('aria-expanded', open ? 'true' : 'false');
-    if (open) { var lz = item.querySelector('iframe[data-src]'); if (lz && !lz.src) lz.src = lz.getAttribute('data-src'); requestAnimationFrame(fitTV); }
+    if (open) { var lz = item.querySelector('iframe[data-src]'); if (lz && !lz.src) { var msrc = document.documentElement.clientWidth < 700 && lz.getAttribute('data-msrc'); if (msrc) { lz.setAttribute('data-w', '390'); lz.setAttribute('data-h', '844'); var shotBox = lz.closest('.acc-shot'); if (shotBox) shotBox.classList.add('acc-shot--phone'); } lz.src = msrc || lz.getAttribute('data-src'); lz.addEventListener('load', function () { fitShots(); }); } fitShots(); requestAnimationFrame(function () { fitTV(); fitShots(); }); }
     var target = open ? inner.offsetHeight : 0;
     var startH = body.offsetHeight;
     if (reduce) { body.style.height = open ? 'auto' : '0px'; return; }
@@ -467,7 +484,7 @@
   }
   function tickAll() { onNav(); checkReveal(); checkCounters(); checkMap(); checkPhone(); checkCaos(); if (window.__checkBA) window.__checkBA(); }
   window.addEventListener('scroll', tickAll, { passive: true });
-  window.addEventListener('resize', function () { tickAll(); fitSys(); fitTV(); });
+  window.addEventListener('resize', function () { tickAll(); fitSys(); fitTV(); fitShots(); });
   fitSys();
   if (sysFrame) sysFrame.addEventListener('load', fitSys);
   var ls = now();
