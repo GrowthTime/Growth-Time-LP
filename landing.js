@@ -556,3 +556,125 @@
   });
   calc();
 })();
+
+/* =====================================================================
+   MODO APRESENTAÇÃO (evento · telão touchscreen vertical) — ?kiosk=1 ou #kiosk
+   Rola a página sozinha como um slideshow: desce devagar pelo hero (a conversa é
+   dirigida pelo scroll), para em cada seção o tempo de ler, abre os itens do
+   accordion um a um, chega ao fim e recomeça. Qualquer toque/rolagem PAUSA por
+   60 s (cada novo toque reinicia a contagem). Botão discreto no canto inferior
+   direito dá play/pause manual. Não adiciona animação nenhuma — só dirige o scroll.
+   ===================================================================== */
+(function () {
+  var qs = new URLSearchParams(location.search);
+  if (qs.get('kiosk') !== '1' && location.hash !== '#kiosk') return;
+  var html = document.documentElement;
+  html.classList.add('kiosk');
+  if (qs.get('zoom') === '1') html.classList.add('kiosk-zoom'); // fallback: zoom por CSS. Preferir o zoom do navegador (160%) — métricas ficam consistentes
+  html.style.scrollBehavior = 'auto'; // o glide é nosso (rAF); o smooth do CSS brigaria com ele
+
+  var PAUSE_MS = 60000;      // pausa depois de um toque
+  var SPEED = 260;           // px/s no glide entre seções
+  var HERO_SPEED = 110;      // px/s dentro do trilho do hero (a conversa precisa de tempo pra tocar)
+  var READ = 7000;           // ms parado numa seção
+  var READ_LONG = 11000;     // ms parado em seção densa (sistema, accordion, calculadora)
+
+  function top(el) { return el ? Math.round(el.getBoundingClientRect().top + window.scrollY) : 0; }
+  function el(sel) { return document.querySelector(sel); }
+  var maxY = function () { return Math.max(0, html.scrollHeight - window.innerHeight); };
+
+  // roteiro: cada passo = { y (função, pra recalcular na hora) , dwell, before? }
+  function steps() {
+    var list = [];
+    var hero = el('.hero');
+    var heroEnd = hero ? top(hero) + hero.offsetHeight - window.innerHeight : 0;
+    list.push({ name: 'hero-topo', y: function () { return 0; }, dwell: 4000 });
+    list.push({ name: 'hero-conversa', y: function () { return Math.max(0, heroEnd); }, dwell: 5000, speed: HERO_SPEED });
+    ['#dor', '#dor-rastreio', '#dor-whatsapp', '#dor-cliente', '.pain-foot', '#pilares'].forEach(function (s) {
+      var e = el(s); if (e) list.push({ name: s, y: function () { return top(e) - 64; }, dwell: READ });
+    });
+    var sis = el('#sistema'); if (sis) {
+      list.push({ name: 'sistema-desktop', y: function () { return top(sis) - 40; }, dwell: READ_LONG, before: function () { var b = el('.sys-tg-btn[data-device="desktop"]'); if (b) b.click(); } });
+      list.push({ name: 'sistema-mobile', y: function () { return top(sis) - 40; }, dwell: READ_LONG, before: function () { var b = el('.sys-tg-btn[data-device="mobile"]'); if (b) b.click(); } });
+    }
+    var acc = document.querySelectorAll('#accordion .acc-item');
+    for (var i = 0; i < acc.length; i++) (function (item, i) {
+      list.push({ name: 'accordion-' + i, y: function () { return top(item) - 90; }, dwell: READ_LONG, before: function () {
+        if (!item.classList.contains('open')) item.querySelector('.acc-head').click();
+      } });
+    })(acc[i], i);
+    ['#virada', '#calculadora', '.gps', '#mapa', '.dif', '#cta'].forEach(function (s) {
+      var e = el(s); if (e) list.push({ name: s, y: function () { return Math.min(maxY(), top(e) - 64); }, dwell: s === '#calculadora' ? READ_LONG : READ });
+    });
+    return list;
+  }
+
+  // ---- motor ----
+  var idx = 0, paused = false, manual = false, resumeAt = 0, rafId = null, timer = null, gliding = false;
+  var btn = document.createElement('button');
+  btn.className = 'kiosk-btn'; btn.setAttribute('aria-label', 'Pausar/retomar apresentação'); btn.title = 'Pausar/retomar';
+  document.body.appendChild(btn);
+  function paintBtn() { btn.innerHTML = (paused || manual) ? '&#9654;' : '&#10074;&#10074;'; btn.classList.toggle('is-paused', paused || manual); }
+
+  function glideTo(target, speed, done) {
+    var start = window.scrollY, dist = target - start, dur = Math.max(400, Math.abs(dist) / (speed || SPEED) * 1000), t0 = null;
+    gliding = true;
+    cancelAnimationFrame(rafId);
+    (function frame(t) {
+      if (paused || manual) { gliding = false; return; }
+      if (t0 === null) t0 = t;
+      var p = Math.min(1, (t - t0) / dur);
+      var e = p < .5 ? 2 * p * p : 1 - Math.pow(-2 * p + 2, 2) / 2; // easeInOutQuad
+      window.scrollTo(0, Math.round(start + dist * e));
+      if (p < 1) rafId = requestAnimationFrame(frame); else { gliding = false; done && done(); }
+    })(performance.now());
+  }
+  function run() {
+    if (paused || manual) return;
+    var list = steps();
+    if (idx >= list.length) { idx = 0; // recomeça: fecha o accordion, volta ao topo na hora (sem rolar 20 mil px de volta)
+      document.querySelectorAll('#accordion .acc-item.open .acc-head').forEach(function (h) { h.click(); });
+      var d = el('.sys-tg-btn[data-device="desktop"]'); if (d) d.click();
+      window.scrollTo(0, 0);
+    }
+    var st = list[idx];
+    if (st.before) st.before();
+    setTimeout(function () {
+      if (paused || manual) return;
+      glideTo(st.y(), st.speed, function () {
+        timer = setTimeout(function () { idx++; run(); }, st.dwell);
+      });
+    }, st.before ? 450 : 0);
+  }
+  function stopAll() { cancelAnimationFrame(rafId); clearTimeout(timer); gliding = false; }
+
+  // ---- toque = pausa de 60 s (cada toque reinicia a contagem) ----
+  var resumeTimer = null;
+  function touched() {
+    if (manual) return;
+    stopAll(); paused = true; paintBtn();
+    clearTimeout(resumeTimer);
+    resumeTimer = setTimeout(function () {
+      paused = false; paintBtn();
+      // retoma do passo mais próximo de onde a pessoa deixou a página
+      var list = steps(), y = window.scrollY, best = 0, bd = Infinity;
+      for (var i = 0; i < list.length; i++) { var d = Math.abs(list[i].y() - y); if (d < bd) { bd = d; best = i; } }
+      idx = best; run();
+    }, PAUSE_MS);
+  }
+  ['pointerdown', 'touchstart', 'wheel', 'keydown'].forEach(function (ev) {
+    window.addEventListener(ev, function (e) { if (e.target === btn) return; touched(); }, { passive: true });
+  });
+  // (o arrastar do dedo já dispara touchstart/pointerdown — não usar o evento 'scroll': o próprio accordion abrindo gera scroll e pausaria sozinho)
+
+  btn.addEventListener('click', function (e) {
+    e.stopPropagation();
+    manual = !manual;
+    if (manual) { stopAll(); clearTimeout(resumeTimer); paused = false; }
+    else { run(); }
+    paintBtn();
+  });
+
+  paintBtn();
+  window.addEventListener('load', function () { setTimeout(function () { window.scrollTo(0, 0); run(); }, 1200); });
+})();

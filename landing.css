@@ -674,3 +674,11 @@ footer .brand .dot { color: #15dba8; }
 .acc-tag { display: inline-block; vertical-align: middle; margin-left: 8px; font-family: 'Inter', sans-serif; font-size: 10.5px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; padding: 3px 8px; border-radius: 999px; }
 .acc-tag-soon { background: #eef2ff; color: #4338ca; }
 .acc-tag-beta { background: #fef3c7; color: #b45309; }
+
+/* ===== modo apresentação (?kiosk=1): botão discreto de play/pause ===== */
+.kiosk-btn { position: fixed; right: 14px; bottom: 14px; z-index: 9999; height: 34px; width: 34px; border-radius: 999px; border: 1px solid rgba(255,255,255,.35); background: rgba(18,18,18,.28); color: rgba(255,255,255,.75); font-size: 12px; line-height: 1; display: flex; align-items: center; justify-content: center; cursor: pointer; opacity: .45; backdrop-filter: blur(4px); transition: opacity .2s; }
+.kiosk-btn:hover, .kiosk-btn.is-paused { opacity: .85; }
+html.kiosk { scroll-behavior: auto; }
+/* telão vertical 50" (1080×1920): sem zoom a página fica minúscula; 1.6 ⇒ viewport útil 675×1200 = layout de celular ampliado */
+html.kiosk.kiosk-zoom { zoom: 1.6; }
+html.kiosk .nav-cta, html.kiosk .btn-cta { pointer-events: auto; }
