@@ -570,6 +570,9 @@
   if (qs.get('kiosk') !== '1' && location.hash !== '#kiosk') return;
   var html = document.documentElement;
   html.classList.add('kiosk');
+  // sem botões que levam pra fora (Agendar, WhatsApp, abrir o sistema): no evento o convite é falar com a equipe ali
+  var ctaSec = document.getElementById('cta');
+  if (ctaSec) { var p = ctaSec.querySelector('p'); if (p) p.textContent = 'Quer ver isso rodando na sua confecção? Chama alguém da equipe da GT aqui no estande.'; var note = document.createElement('div'); note.className = 'kiosk-cta-note'; note.textContent = '👋 Fale com a gente aqui no evento'; var w = ctaSec.querySelector('.wrap'); if (w) w.appendChild(note); }
   if (qs.get('zoom') === '1') html.classList.add('kiosk-zoom'); // fallback: zoom por CSS. Preferir o zoom do navegador (160%) — métricas ficam consistentes
   html.style.scrollBehavior = 'auto'; // o glide é nosso (rAF); o smooth do CSS brigaria com ele
 

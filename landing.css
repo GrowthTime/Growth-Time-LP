@@ -682,3 +682,7 @@ html.kiosk { scroll-behavior: auto; }
 /* telão vertical 50" (1080×1920): sem zoom a página fica minúscula; 1.6 ⇒ viewport útil 675×1200 = layout de celular ampliado */
 html.kiosk.kiosk-zoom { zoom: 1.6; }
 html.kiosk .nav-cta, html.kiosk .btn-cta { pointer-events: auto; }
+/* modo apresentação: nada que leve pra fora do telão */
+html.kiosk .nav-cta, html.kiosk .hero .btn-block, html.kiosk .sys-full-btn, html.kiosk #cta .btn-cta, html.kiosk #cta .reinforce { display: none !important; }
+html.kiosk footer a, html.kiosk .hero-trust a { pointer-events: none; text-decoration: none; }
+html.kiosk .kiosk-cta-note { display: inline-block; margin-top: 18px; padding: 12px 22px; border-radius: 999px; background: rgba(21,219,168,.14); color: #15dba8; font-family: 'Inter', sans-serif; font-weight: 700; font-size: 18px; }
