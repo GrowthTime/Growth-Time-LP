@@ -321,14 +321,12 @@ initHero tier 2 — motion.js reconcilia (remove se não bootar tier 2) */
     <div class="sec-head">
       <div class="eyebrow reveal">O sistema por dentro</div>
       <h2 class="reveal d1">Conte com nosso sistema personalizado para acelerar suas vendas. Veja por dentro.</h2>
-      <p class="reveal d2">Dashboard, mensagens de todos os números, produtos, vitrine, link da bio e métricas de tráfego — tudo num lugar só. Explore como ele é no computador, no celular, e veja o link da bio e o catálogo como a sua cliente vê.</p>
+      <p class="reveal d2">Dashboard, mensagens de todos os números, produtos, vitrine, link da bio e métricas de tráfego — tudo num lugar só. Explore como ele é no computador e no celular.</p>
     </div>
 
     <div class="sys-toggle reveal d1" id="sysToggle">
       <button class="sys-tg-btn active" data-device="desktop"><span class="ic">🖥️</span> Desktop</button>
       <button class="sys-tg-btn" data-device="mobile"><span class="ic">📱</span> Mobile</button>
-      <button class="sys-tg-btn" data-device="bio"><span class="ic">🔗</span> Link da bio</button>
-      <button class="sys-tg-btn" data-device="loja"><span class="ic">🛍️</span> Catálogo</button>
     </div>
 
     <div class="sys-frame-outer reveal d1">
@@ -452,7 +450,7 @@ initHero tier 2 — motion.js reconcilia (remove se não bootar tier 2) */
       <div class="acc-item">
         <button class="acc-head" aria-expanded="false">
           <span class="acc-ic">🚀</span>
-          <span class="acc-title">Disparos</span>
+          <span class="acc-title">Disparos <span class="acc-tag acc-tag-beta">Beta</span></span>
           <span class="acc-chev">+</span>
         </button>
         <div class="acc-body">
@@ -474,7 +472,7 @@ initHero tier 2 — motion.js reconcilia (remove se não bootar tier 2) */
       <div class="acc-item">
         <button class="acc-head" aria-expanded="false">
           <span class="acc-ic">📩</span>
-          <span class="acc-title">Comentário → Direct</span>
+          <span class="acc-title">Comentário → Direct <span class="acc-tag acc-tag-soon">Em breve</span></span>
           <span class="acc-chev">+</span>
         </button>
         <div class="acc-body">
@@ -517,19 +515,19 @@ initHero tier 2 — motion.js reconcilia (remove se não bootar tier 2) */
       <div class="acc-item">
         <button class="acc-head" aria-expanded="false">
           <span class="acc-ic">📦</span>
-          <span class="acc-title">Produtos &amp; Vitrine</span>
+          <span class="acc-title">Catálogo</span>
           <span class="acc-chev">+</span>
         </button>
         <div class="acc-body">
           <div class="acc-inner">
             <ul class="acc-list">
-              <li><b>Catálogo sincronizado com o ERP.</b> Grade por cor e tamanho, estoque, preço de grade. Produto esgotado sai da vitrine sozinho; o que você desligou na mão fica desligado.</li>
-              <li><b>Loja pública para atacado.</b> Sacola que respeita a grade fechada (1 linha por cor, + e − andam de grade em grade) e fecha no WhatsApp — com a consultora do rodízio.</li>
-              <li><b>Ranking que fala a verdade.</b> Mais vendidos, recompra, produtos isca e performance por vendedora, sem apagar histórico.</li>
+              <li><b>Todo o seu catálogo num lugar só.</b> Grade por cor e tamanho, estoque, preço unitário e de grade, fotos e vídeo. Produto esgotado sai da vitrine sozinho; o que você desligou fica desligado.</li>
+              <li><b>Organizado do seu jeito.</b> Categorias que você arrasta para ordenar, filtros de trabalho (sem foto, sem estoque, fora da loja) e edição em massa.</li>
+              <li><b>Ranking que fala a verdade.</b> Mais vendidos, recompra, produtos isca, curva de tamanhos e cores — para planejar a próxima grade.</li>
             </ul>
-            <div class="acc-shot acc-shot--phone">
-              <div class="acc-tv-head"><span class="acc-tv-dot"></span> A loja como a lojista vê · sacola por grade fechada</div>
-              <div class="acc-shot-vp"><iframe class="acc-shot-frame" data-w="390" data-h="844" data-src="system/index.html?view=loja&cart=1" title="Produtos &amp; Vitrine — prévia" scrolling="no" loading="lazy"></iframe></div>
+            <div class="acc-shot">
+              <div class="acc-tv-head"><span class="acc-tv-dot"></span> Catálogo · grade, estoque e preços</div>
+              <div class="acc-shot-vp"><iframe class="acc-shot-frame" data-w="1280" data-h="800" data-msrc="system/index.html?view=mobile&screen=produtos&tab=catalogo" data-src="system/index.html?screen=produtos&tab=catalogo" title="Produtos &amp; Vitrine — prévia" scrolling="no" loading="lazy"></iframe></div>
             </div>
           </div>
         </div>
@@ -551,27 +549,6 @@ initHero tier 2 — motion.js reconcilia (remove se não bootar tier 2) */
             <div class="acc-shot">
               <div class="acc-tv-head"><span class="acc-tv-dot"></span> Rastreamento · do clique à venda</div>
               <div class="acc-shot-vp"><iframe class="acc-shot-frame" data-w="1280" data-h="800" data-msrc="system/index.html?view=mobile&screen=trafego&tab=rastreamento" data-src="system/index.html?screen=trafego&tab=rastreamento" title="Mkt &amp; Ads e Rastreamento — prévia" scrolling="no" loading="lazy"></iframe></div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div class="acc-item">
-        <button class="acc-head" aria-expanded="false">
-          <span class="acc-ic">📲</span>
-          <span class="acc-title">Relatórios no seu WhatsApp</span>
-          <span class="acc-chev">+</span>
-        </button>
-        <div class="acc-body">
-          <div class="acc-inner">
-            <ul class="acc-list">
-              <li><b>Sem abrir o sistema.</b> Toda sexta 08:00 chega o resumo da semana: faturamento, pedidos, ticket, quem vendeu mais, o que o anúncio devolveu.</li>
-              <li><b>Relatório do time.</b> Tempo até a primeira resposta (mediana, não média), leads sem resposta, conversas por número — saudações e ausências não contam.</li>
-              <li><b>Relatório das redes.</b> Segunda 08:00: seguidores, alcance, comentários que viraram Direct e os estados onde você mais cresce e vende.</li>
-            </ul>
-            <div class="acc-shot">
-              <div class="acc-tv-head"><span class="acc-tv-dot"></span> Relatórios · prévia da mensagem que chega</div>
-              <div class="acc-shot-vp"><iframe class="acc-shot-frame" data-w="1280" data-h="800" data-msrc="system/index.html?view=mobile&screen=config&tab=marketing" data-src="system/index.html?screen=config&tab=marketing" title="Relatórios no seu WhatsApp — prévia" scrolling="no" loading="lazy"></iframe></div>
             </div>
           </div>
         </div>

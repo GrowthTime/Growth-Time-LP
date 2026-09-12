@@ -142,7 +142,6 @@ function App() {
           {view === 'config' && <Settings />}
           {!flush && <div style={{ marginTop: 32, paddingTop: 16, borderTop: '1px solid #e5e5e5', textAlign: 'center', fontSize: 12, color: '#737373' }}>© 2026 Growth Time · <u>Política de Privacidade</u> · <u>Termos de Uso</u></div>}
         </div>
-        <button className="fab" title="Assistente"><Icon name="sparkles" size={22} color="#fff" /></button>
       </div>
       {MOBILE && <BottomNav active={view} onNavigate={go} />}
       {tv && <TVMode onClose={() => setTv(false)} />}

@@ -264,7 +264,7 @@ GT.referral = { link: 'gt.link/mf-indica', rewardsMode: 'company', reward: 'R$ 5
   top: [{ name: 'Patrícia Modas', refs: 9, converted: 4 }, { name: 'Fernanda Boutique', refs: 7, converted: 3 }, { name: 'Camila Atacado', refs: 5, converted: 2 }] };
 
 // ---------- integrações / API ----------
-GT.integrations = { erp: { name: 'ERP · Alpha Sistemas', status: 'Sincronizado há 4 min', items: ['Clientes', 'Pedidos', 'Produtos', 'Vendedoras'] }, meta: { status: 'Conectado', assets: ['WhatsApp Business (4 números)', 'Instagram @modafashion', 'Página Moda Fashion'] }, api: { key: 'gt_live_••••••••••••7f3a', calls30d: 18420, docs: 'docs-api.growthtime.com.br' } };
+GT.integrations = { importacao: { name: 'Importação de clientes e pedidos', status: 'Atualizado há 4 min', items: ['Clientes', 'Pedidos', 'Produtos', 'Vendedoras'] }, meta: { status: 'Conectado', assets: ['WhatsApp Business (4 números)', 'Instagram @modafashion', 'Página Moda Fashion'] }, api: { key: 'gt_live_••••••••••••7f3a', calls30d: 18420, docs: 'docs-api.growthtime.com.br' } };
 
 // ---------- dashboard / faturamento ----------
 GT.kpis = {

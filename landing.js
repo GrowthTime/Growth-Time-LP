@@ -509,10 +509,10 @@
 
   // faixas de retorno: [R mínimo, rótulo, cor]
   var TIERS = [
-    [3,         'Excelência',    '#2bb673'],
-    [2,         'Bom',           '#27ae8f'],
-    [1.5,       'Pode melhorar', '#f3b315'],
-    [1,         'No limite',     '#bd6b2f'],
+    [5,         'Excelência',    '#2bb673'],
+    [3,         'Bom',           '#27ae8f'],
+    [2,         'No limite',     '#f3b315'],
+    [1,         'Ruim',          '#bd6b2f'],
     [-Infinity, 'Prejuízo',      '#ef4444']
   ];
   function tierFor(R) { for (var i = 0; i < TIERS.length; i++) if (R >= TIERS[i][0]) return TIERS[i]; return TIERS[4]; }
