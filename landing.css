@@ -682,6 +682,11 @@ html.kiosk { scroll-behavior: auto; }
 html.kiosk:not(.kiosk-paused) .scroll-cue { display: none !important; } /* a dica "arraste" só faz sentido com a pessoa no comando */
 /* telão vertical 50" (1080×1920): sem zoom a página fica minúscula; 1.6 ⇒ viewport útil 675×1200 = layout de celular ampliado */
 html.kiosk.kiosk-zoom { zoom: 1.6; }
+/* telão vertical: logo do topo maior (no evento o nav é a marca, não navegação) */
+html.kiosk-tall .nav { padding: 16px 22px; }
+html.kiosk-tall .nav .brand img { height: 46px; }
+html.kiosk-tall .nav .brand span { font-size: 28px; }
+html.kiosk-tall .nav-links a:not(.btn) { font-size: 17px; }
 html.kiosk .nav-cta, html.kiosk .btn-cta { pointer-events: auto; }
 /* modo apresentação: nada que leve pra fora do telão */
 html.kiosk .nav-cta, html.kiosk .hero .btn-block, html.kiosk #cta .btn-cta, html.kiosk #cta .reinforce { display: none !important; }

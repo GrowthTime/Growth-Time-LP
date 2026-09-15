@@ -20,7 +20,7 @@
 <div id="stage"><iframe id="pres" title="Apresentação Growth Time" allow="autoplay"></iframe></div>
 <script>
 (function () {
-  var W = 675; // largura lógica (celular grande): 1080/675 = 1,6× no telão Full HD vertical
+  var W = 640; // largura lógica (celular grande): 1080/640 ≈ 1,69× no telão Full HD vertical (dono pediu tudo maior, 15/09)
   if (window.innerWidth < 900 || window.innerWidth > window.innerHeight) { location.replace('/?kiosk=1'); return; }
   var f = document.getElementById('pres'), lastW = 0;
   function fit(force) {

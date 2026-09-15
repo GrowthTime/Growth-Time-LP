@@ -571,6 +571,9 @@
 (function () {
   var qs = new URLSearchParams(location.search);
   if (qs.get('kiosk') !== '1' && location.hash !== '#kiosk') return;
+  // telão vertical largo (≥ 900 px) aberto DIRETO em /?kiosk=1 (sem a moldura): cairia no layout de desktop
+  // (título ao lado do celular, muito branco) — manda pra /evento/, que ampliará o layout de celular
+  if (window.self === window.top && window.innerWidth >= 900 && window.innerHeight > window.innerWidth) { location.replace('/evento/'); return; }
   var html = document.documentElement;
   html.classList.add('kiosk');
   var TALL = window.innerHeight / window.innerWidth >= 1.5; // telão vertical (ou celular comprido)
@@ -599,7 +602,7 @@
   var READ = 7000;           // ms parado numa seção
   var READ_SHORT = 5000;     // ms numa frase/fechamento
   var READ_LONG = 11000;     // ms parado em seção densa (sistema, accordion, calculadora)
-  var NAV_H = 64;            // altura do nav fixo (folga no topo)
+  var NAV_H = TALL ? 80 : 64; // altura do nav fixo (folga no topo; maior no telão)
 
   function vh() { return window.innerHeight; }
   function top(el) { return el ? Math.round(el.getBoundingClientRect().top + window.scrollY) : 0; }
