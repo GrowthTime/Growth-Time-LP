@@ -687,6 +687,11 @@ html.kiosk-tall .nav { padding: 16px 22px; }
 html.kiosk-tall .nav .brand img { height: 46px; }
 html.kiosk-tall .nav .brand span { font-size: 28px; }
 html.kiosk-tall .nav-links a:not(.btn) { font-size: 17px; }
+/* telão: a aurora atrás do celular vai até as bordas da tela (no palco de 460px ela era cortada nas laterais) */
+html.kiosk-tall.mo-on .hero-aurora { left: calc(50% - 50vw); right: calc(50% - 50vw); top: -18%; bottom: -18%; }
+html.kiosk-tall.mo-on .au-1 { width: 58%; height: 44%; left: -6%; top: 2%; }
+html.kiosk-tall.mo-on .au-2 { width: 54%; height: 48%; right: -8%; top: 28%; }
+html.kiosk-tall.mo-on .au-3 { width: 62%; height: 42%; left: 8%; bottom: -2%; }
 html.kiosk .nav-cta, html.kiosk .btn-cta { pointer-events: auto; }
 /* modo apresentação: nada que leve pra fora do telão */
 html.kiosk .nav-cta, html.kiosk .hero .btn-block, html.kiosk #cta .btn-cta, html.kiosk #cta .reinforce { display: none !important; }
