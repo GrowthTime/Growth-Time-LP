@@ -679,10 +679,12 @@ footer .brand .dot { color: #15dba8; }
 .kiosk-btn { position: fixed; right: 14px; bottom: 14px; z-index: 9999; height: 34px; width: 34px; border-radius: 999px; border: 1px solid rgba(255,255,255,.35); background: rgba(18,18,18,.28); color: rgba(255,255,255,.75); font-size: 12px; line-height: 1; display: flex; align-items: center; justify-content: center; cursor: pointer; opacity: .45; backdrop-filter: blur(4px); transition: opacity .2s; }
 .kiosk-btn:hover, .kiosk-btn.is-paused { opacity: .85; }
 html.kiosk { scroll-behavior: auto; }
+html.kiosk:not(.kiosk-paused) .scroll-cue { display: none !important; } /* a dica "arraste" só faz sentido com a pessoa no comando */
 /* telão vertical 50" (1080×1920): sem zoom a página fica minúscula; 1.6 ⇒ viewport útil 675×1200 = layout de celular ampliado */
 html.kiosk.kiosk-zoom { zoom: 1.6; }
 html.kiosk .nav-cta, html.kiosk .btn-cta { pointer-events: auto; }
 /* modo apresentação: nada que leve pra fora do telão */
-html.kiosk .nav-cta, html.kiosk .hero .btn-block, html.kiosk .sys-full-btn, html.kiosk #cta .btn-cta, html.kiosk #cta .reinforce { display: none !important; }
+html.kiosk .nav-cta, html.kiosk .hero .btn-block, html.kiosk #cta .btn-cta, html.kiosk #cta .reinforce { display: none !important; }
+html.kiosk .sys-full-btn { margin-top: 18px; font-size: 16px; padding: 14px 26px; } /* no evento vira a porta pro /evento/sistema/ */
 html.kiosk footer a, html.kiosk .hero-trust a { pointer-events: none; text-decoration: none; }
 html.kiosk .kiosk-cta-note { display: inline-block; margin-top: 18px; padding: 12px 22px; border-radius: 999px; background: rgba(21,219,168,.14); color: #15dba8; font-family: 'Inter', sans-serif; font-weight: 700; font-size: 18px; }

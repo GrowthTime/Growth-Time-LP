@@ -1,1 +1,40 @@
-<!DOCTYPE html><html lang="pt-BR"><head><meta charset="utf-8"><meta http-equiv="refresh" content="0; url=/?kiosk=1"><title>Growth Time — apresentação</title></head><body><a href="/?kiosk=1">Abrir apresentação</a></body></html>
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Growth Time — apresentação</title>
+<!-- Moldura do telão (evento): a apresentação (/?kiosk=1) roda dentro de um iframe com a
+     largura de um celular (675 px lógicos) e é AMPLIADA pra preencher a tela inteira. Assim o
+     telão vertical (1080×1920) mostra o layout de celular com todas as medidas coerentes
+     (100svh, media queries, sticky) — sem depender de zoom do navegador. Telas pequenas
+     (celular de verdade) vão direto pra /?kiosk=1. -->
+<style>
+  html, body { margin: 0; height: 100%; overflow: hidden; background: #fafafa; }
+  #stage { position: absolute; inset: 0; overflow: hidden; }
+  #stage iframe { border: 0; position: absolute; left: 0; top: 0; transform-origin: 0 0; background: #fafafa; }
+</style>
+</head>
+<body>
+<div id="stage"><iframe id="pres" title="Apresentação Growth Time" allow="autoplay"></iframe></div>
+<script>
+(function () {
+  var W = 675; // largura lógica (celular grande): 1080/675 = 1,6× no telão Full HD vertical
+  if (window.innerWidth < 900 || window.innerWidth > window.innerHeight) { location.replace('/?kiosk=1'); return; }
+  var f = document.getElementById('pres'), lastW = 0;
+  function fit(force) {
+    var w = window.innerWidth, h = window.innerHeight;
+    if (!force && w === lastW) return; // só a altura mudou = teclado na tela subiu/desceu: não re-encaixar (a página cuida do campo em edição)
+    lastW = w;
+    var s = w / W, H = Math.round(h / s);
+    f.style.width = W + 'px'; f.style.height = H + 'px'; f.style.transform = 'scale(' + s + ')';
+  }
+  fit(true);
+  f.src = '/?kiosk=1';
+  window.addEventListener('resize', function () { fit(false); });
+  window.addEventListener('orientationchange', function () { setTimeout(function () { fit(true); }, 300); });
+})();
+</script>
+</body>
+</html>

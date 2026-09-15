@@ -560,64 +560,131 @@
 /* =====================================================================
    MODO APRESENTAÇÃO (evento · telão touchscreen vertical) — ?kiosk=1 ou #kiosk
    Rola a página sozinha como um slideshow: desce devagar pelo hero (a conversa é
-   dirigida pelo scroll), para em cada seção o tempo de ler, abre os itens do
-   accordion um a um, chega ao fim e recomeça. Qualquer toque/rolagem PAUSA por
-   60 s (cada novo toque reinicia a contagem). Botão discreto no canto inferior
-   direito dá play/pause manual. Não adiciona animação nenhuma — só dirige o scroll.
+   dirigida pelo scroll), atravessa devagar cada cena dirigida por scroll (as 3 dores
+   e a virada) e para no FINAL delas, centraliza cada bloco curto na tela, abre os
+   itens do accordion um a um, chega ao fim e recomeça. Qualquer toque/rolagem
+   PAUSA por 60 s (cada novo toque reinicia a contagem; com um campo em edição,
+   nunca retoma por cima da pessoa). Botão discreto no canto inferior direito dá
+   play/pause manual. Não adiciona animação nenhuma — só dirige o scroll.
+   Telão 1080×1920: abrir por /evento/ (moldura que escala a página como celular).
    ===================================================================== */
 (function () {
   var qs = new URLSearchParams(location.search);
   if (qs.get('kiosk') !== '1' && location.hash !== '#kiosk') return;
   var html = document.documentElement;
   html.classList.add('kiosk');
-  // sem botões que levam pra fora (Agendar, WhatsApp, abrir o sistema): no evento o convite é falar com a equipe ali
+  var TALL = window.innerHeight / window.innerWidth >= 1.5; // telão vertical (ou celular comprido)
+  if (TALL) html.classList.add('kiosk-tall');
+  // sem botões que levam pra fora (Agendar, WhatsApp): no evento o convite é falar com a equipe ali
   var ctaSec = document.getElementById('cta');
   if (ctaSec) { var p = ctaSec.querySelector('p'); if (p) p.textContent = 'Quer ver isso rodando na sua confecção? Chama alguém da equipe da GT aqui no estande.'; var note = document.createElement('div'); note.className = 'kiosk-cta-note'; note.textContent = '👋 Fale com a gente aqui no evento'; var w = ctaSec.querySelector('.wrap'); if (w) w.appendChild(note); }
-  if (qs.get('zoom') === '1') html.classList.add('kiosk-zoom'); // fallback: zoom por CSS. Preferir o zoom do navegador (160%) — métricas ficam consistentes
+  if (qs.get('zoom') === '1') html.classList.add('kiosk-zoom'); // fallback antigo (zoom por CSS). Preferir /evento/ (moldura) — métricas ficam consistentes
   html.style.scrollBehavior = 'auto'; // o glide é nosso (rAF); o smooth do CSS brigaria com ele
+
+  // "Ver o sistema completo por dentro" vira a porta pro /evento/sistema/ (tela cheia, com botão de voltar)
+  var fullBtn = document.querySelector('.sys-full-btn');
+  if (fullBtn) {
+    fullBtn.textContent = 'Explorar o sistema por dentro →';
+    fullBtn.addEventListener('click', function (e) {
+      e.preventDefault();
+      var dev = (document.querySelector('.sys-tg-btn.active') || {}).getAttribute ? document.querySelector('.sys-tg-btn.active').getAttribute('data-device') : 'desktop';
+      window.top.location.href = '/evento/sistema/?view=' + (dev === 'desktop' ? 'desktop' : 'mobile');
+    });
+  }
 
   var PAUSE_MS = 60000;      // pausa depois de um toque
   var SPEED = 260;           // px/s no glide entre seções
   var HERO_SPEED = 110;      // px/s dentro do trilho do hero (a conversa precisa de tempo pra tocar)
+  var SCENE_SPEED = 165;     // px/s atravessando uma cena dirigida por scroll (dores, virada)
   var READ = 7000;           // ms parado numa seção
+  var READ_SHORT = 5000;     // ms numa frase/fechamento
   var READ_LONG = 11000;     // ms parado em seção densa (sistema, accordion, calculadora)
+  var NAV_H = 64;            // altura do nav fixo (folga no topo)
 
+  function vh() { return window.innerHeight; }
   function top(el) { return el ? Math.round(el.getBoundingClientRect().top + window.scrollY) : 0; }
   function el(sel) { return document.querySelector(sel); }
-  var maxY = function () { return Math.max(0, html.scrollHeight - window.innerHeight); };
+  var maxY = function () { return Math.max(0, html.scrollHeight - vh()); };
+  // y que deixa o elemento CENTRALIZADO na tela; se não couber, alinha o topo com folga
+  function centerY(e, pad) {
+    pad = pad == null ? NAV_H : pad;
+    var h = e.offsetHeight, free = vh() - h;
+    return Math.min(maxY(), Math.max(0, free > pad * 2 ? top(e) - free / 2 : top(e) - pad));
+  }
+  // cenas sticky (trilho): início = topo da seção; fim = quando o trilho acaba (cena completa)
+  function sceneEnd(e) { return Math.min(maxY(), top(e) + e.offsetHeight - vh()); }
 
-  // roteiro: cada passo = { y (função, pra recalcular na hora) , dwell, before? }
+  // roteiro: cada passo = { name, y (função, recalcula na hora), dwell, speed?, before? }
   function steps() {
     var list = [];
     var hero = el('.hero');
-    var heroEnd = hero ? top(hero) + hero.offsetHeight - window.innerHeight : 0;
+    var heroEnd = hero ? top(hero) + hero.offsetHeight - vh() : 0;
     list.push({ name: 'hero-topo', y: function () { return 0; }, dwell: 4000 });
     list.push({ name: 'hero-conversa', y: function () { return Math.max(0, heroEnd); }, dwell: 5000, speed: HERO_SPEED });
-    ['#dor', '#dor-rastreio', '#dor-whatsapp', '#dor-cliente', '.pain-foot', '#pilares'].forEach(function (s) {
-      var e = el(s); if (e) list.push({ name: s, y: function () { return top(e) - 64; }, dwell: READ });
+    var dor = el('#dor'); if (dor) list.push({ name: '#dor', y: function () { return centerY(dor); }, dwell: READ_SHORT });
+    // as 3 dores são dirigidas por scroll: mostra o estado inicial, atravessa devagar, para no final
+    ['#dor-rastreio', '#dor-whatsapp', '#dor-cliente'].forEach(function (s) {
+      var e = el(s); if (!e) return;
+      list.push({ name: s + ' início', y: function () { return top(e) - 8; }, dwell: 1200 });
+      list.push({ name: s + ' cena', y: function () { return sceneEnd(e); }, dwell: 4500, speed: SCENE_SPEED });
     });
-    var sis = el('#sistema'); if (sis) {
-      list.push({ name: 'sistema-desktop', y: function () { return top(sis) - 40; }, dwell: READ_LONG, before: function () { var b = el('.sys-tg-btn[data-device="desktop"]'); if (b) b.click(); } });
-      list.push({ name: 'sistema-mobile', y: function () { return top(sis) - 40; }, dwell: READ_LONG, before: function () { var b = el('.sys-tg-btn[data-device="mobile"]'); if (b) b.click(); } });
+    var pf = el('.pain-foot'); if (pf) list.push({ name: '.pain-foot', y: function () { return centerY(pf); }, dwell: READ_SHORT });
+    // pilares: um a um (o primeiro traz o título da seção junto)
+    var pils = document.querySelectorAll('#pilares .pillar'), pilHead = el('#pilares .sec-head');
+    for (var pi = 0; pi < pils.length; pi++) (function (pl, i) {
+      list.push({ name: 'pilar-' + (i + 1), y: function () {
+        if (i === 0 && pilHead) { var h = pl.offsetHeight + (top(pl) - top(pilHead)); if (h + NAV_H * 2 <= vh()) return Math.max(0, top(pilHead) - (vh() - h) / 2); }
+        return centerY(pl);
+      }, dwell: READ });
+    })(pils[pi], pi);
+    var sis = el('#sistema'), sisOuter = el('.sys-frame-outer');
+    if (sis) {
+      // a janela "levanta da mesa" até o topo dela passar de 40% da tela: parar com ela mais alta que isso
+      var sisY = function () { var y = centerY(sis); if (sisOuter) y = Math.max(y, top(sisOuter) - vh() * 0.34); return Math.min(maxY(), y); };
+      list.push({ name: 'sistema-desktop', y: sisY, dwell: READ_LONG, before: function () { var b = el('.sys-tg-btn[data-device="desktop"]'); if (b) b.click(); } });
+      list.push({ name: 'sistema-mobile', y: function () { return centerY(sis); }, dwell: READ_LONG, before: function () { var b = el('.sys-tg-btn[data-device="mobile"]'); if (b) b.click(); } });
     }
     var acc = document.querySelectorAll('#accordion .acc-item');
     for (var i = 0; i < acc.length; i++) (function (item, i) {
-      list.push({ name: 'accordion-' + i, y: function () { return top(item) - 90; }, dwell: READ_LONG, before: function () {
+      list.push({ name: 'accordion-' + i, y: function () { return centerY(item, 90); }, dwell: READ_LONG, before: function () {
         if (!item.classList.contains('open')) item.querySelector('.acc-head').click();
       } });
     })(acc[i], i);
-    ['#virada', '#calculadora', '.gps', '#mapa', '.dif', '#cta'].forEach(function (s) {
-      var e = el(s); if (e) list.push({ name: s, y: function () { return Math.min(maxY(), top(e) - 64); }, dwell: s === '#calculadora' ? READ_LONG : READ });
+    // virada (12 meses dirigidos por scroll): atravessa devagar e para no mês 12
+    var vir = el('#virada'); if (vir) {
+      list.push({ name: '#virada início', y: function () { return top(vir) - 8; }, dwell: 1500 });
+      list.push({ name: '#virada cena', y: function () { return sceneEnd(vir); }, dwell: READ_SHORT, speed: SCENE_SPEED });
+    }
+    // calculadora: campos, depois resultado
+    var calc = el('#calculadora'), calcRes = el('#calculadora .calc-result');
+    if (calc) {
+      list.push({ name: '#calculadora', y: function () { return centerY(calc); }, dwell: 8000 });
+      if (calcRes && calc.offsetHeight + NAV_H * 2 > vh()) list.push({ name: '#calculadora resultado', y: function () { return centerY(calcRes, 120); }, dwell: 8000 });
+    }
+    ['.gps', '#mapa', '.dif', '#cta'].forEach(function (s) {
+      var e = el(s); if (e) list.push({ name: s, y: function () { return centerY(e); }, dwell: READ });
     });
     return list;
   }
 
+  // ---- telão vertical: as fases "presas" (sticky) ficam no MEIO da tela, não coladas no topo ----
+  function centerSticky() {
+    if (!TALL) return;
+    var sels = ['.mo-hero-v3 .hero-stage', '#dor-rastreio .scn-stage', '#dor-whatsapp .scn-stage', '#dor-cliente .scn-stage', '.mo-virada #virada > .wrap'];
+    sels.forEach(function (s) {
+      var e = el(s); if (!e) return;
+      if (getComputedStyle(e).position !== 'sticky') { e.style.top = ''; return; }
+      var t = Math.max(NAV_H + 8, Math.round((vh() - e.offsetHeight) / 2));
+      e.style.top = t + 'px';
+    });
+  }
+
   // ---- motor ----
-  var idx = 0, paused = false, manual = false, resumeAt = 0, rafId = null, timer = null, gliding = false;
+  var idx = 0, paused = false, manual = false, rafId = null, timer = null, gliding = false;
   var btn = document.createElement('button');
   btn.className = 'kiosk-btn'; btn.setAttribute('aria-label', 'Pausar/retomar apresentação'); btn.title = 'Pausar/retomar';
   document.body.appendChild(btn);
-  function paintBtn() { btn.innerHTML = (paused || manual) ? '&#9654;' : '&#10074;&#10074;'; btn.classList.toggle('is-paused', paused || manual); }
+  function paintBtn() { btn.innerHTML = (paused || manual) ? '&#9654;' : '&#10074;&#10074;'; btn.classList.toggle('is-paused', paused || manual); html.classList.toggle('kiosk-paused', paused || manual); }
 
   function glideTo(target, speed, done) {
     var start = window.scrollY, dist = target - start, dur = Math.max(400, Math.abs(dist) / (speed || SPEED) * 1000), t0 = null;
@@ -632,14 +699,15 @@
       if (p < 1) rafId = requestAnimationFrame(frame); else { gliding = false; done && done(); }
     })(performance.now());
   }
+  function resetPage() { // recomeça: fecha o accordion, volta ao topo na hora (sem rolar 20 mil px de volta)
+    document.querySelectorAll('#accordion .acc-item.open .acc-head').forEach(function (h) { h.click(); });
+    var d = el('.sys-tg-btn[data-device="desktop"]'); if (d) d.click();
+    window.scrollTo(0, 0);
+  }
   function run() {
     if (paused || manual) return;
     var list = steps();
-    if (idx >= list.length) { idx = 0; // recomeça: fecha o accordion, volta ao topo na hora (sem rolar 20 mil px de volta)
-      document.querySelectorAll('#accordion .acc-item.open .acc-head').forEach(function (h) { h.click(); });
-      var d = el('.sys-tg-btn[data-device="desktop"]'); if (d) d.click();
-      window.scrollTo(0, 0);
-    }
+    if (idx >= list.length) { idx = 0; resetPage(); }
     var st = list[idx];
     if (st.before) st.before();
     setTimeout(function () {
@@ -653,11 +721,11 @@
 
   // ---- toque = pausa de 60 s (cada toque reinicia a contagem) ----
   var resumeTimer = null;
-  function touched() {
-    if (manual) return;
-    stopAll(); paused = true; paintBtn();
+  function editing() { var a = document.activeElement; return !!(a && (a.tagName === 'INPUT' || a.tagName === 'TEXTAREA' || a.tagName === 'SELECT')); }
+  function armResume() {
     clearTimeout(resumeTimer);
     resumeTimer = setTimeout(function () {
+      if (editing()) { armResume(); return; } // alguém preenchendo a calculadora: nunca rolar por cima
       paused = false; paintBtn();
       // retoma do passo mais próximo de onde a pessoa deixou a página
       var list = steps(), y = window.scrollY, best = 0, bd = Infinity;
@@ -665,10 +733,24 @@
       idx = best; run();
     }, PAUSE_MS);
   }
+  function touched() {
+    if (manual) return;
+    stopAll(); paused = true; paintBtn();
+    armResume();
+  }
   ['pointerdown', 'touchstart', 'wheel', 'keydown'].forEach(function (ev) {
     window.addEventListener(ev, function (e) { if (e.target === btn) return; touched(); }, { passive: true });
   });
   // (o arrastar do dedo já dispara touchstart/pointerdown — não usar o evento 'scroll': o próprio accordion abrindo gera scroll e pausaria sozinho)
+
+  // teclado na tela (Windows/touch): sobe pelo rodapé e cobre ~40% da tela — o campo em edição vai pro terço de cima
+  document.addEventListener('focusin', function (e) {
+    var t = e.target; if (!t || t.tagName !== 'INPUT' || t.type === 'range') return;
+    touched();
+    var y = Math.min(maxY(), Math.max(0, top(t) - Math.round(vh() * 0.22)));
+    setTimeout(function () { window.scrollTo(0, y); }, 60);
+  });
+  document.addEventListener('focusout', function () { if (paused && !manual) armResume(); });
 
   btn.addEventListener('click', function (e) {
     e.stopPropagation();
@@ -679,5 +761,20 @@
   });
 
   paintBtn();
-  window.addEventListener('load', function () { setTimeout(function () { window.scrollTo(0, 0); run(); }, 1200); });
+  window.addEventListener('resize', function () { setTimeout(centerSticky, 120); });
+  window.addEventListener('load', function () { centerSticky(); setTimeout(function () { centerSticky(); window.scrollTo(0, 0); run(); }, 1200); });
+
+  // ganchos de QA (puppeteer): lista de passos e ir direto pra um deles
+  window.__kiosk = {
+    steps: function () { return steps().map(function (s) { return { name: s.name, y: Math.round(s.y()), dwell: s.dwell, speed: s.speed || SPEED }; }); },
+    goto: function (i, cb) {
+      manual = true; stopAll(); clearTimeout(resumeTimer); paintBtn();
+      var st = steps()[i]; if (!st) return;
+      idx = i; // play() continua daqui
+      if (st.before) st.before();
+      setTimeout(function () { window.scrollTo(0, st.y()); cb && cb(st); }, st.before ? 450 : 0);
+    },
+    play: function () { manual = false; paused = false; paintBtn(); run(); },
+    centerSticky: centerSticky
+  };
 })();

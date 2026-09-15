@@ -266,6 +266,8 @@
       else if (w2 < 1080) stickTop = 88;
       else stickTop = clampN(40, (h2 - (h2 < 900 ? 690 : 760)) / 2, 120);
       stickEl = stageEl;
+      // modo apresentação no telão vertical centraliza o palco (top inline) — medir o que vale de fato
+      if (stageEl.style.top) { var it = parseFloat(stageEl.style.top); if (it === it) stickTop = it; }
     } else {
       stickTop = lvw() < 1080
         ? Math.min(140, Math.max(64, (vh() - 640) / 2))
@@ -731,8 +733,12 @@
         trigger: outer, start: 'top 92%', end: 'top 40%', scrub: 0.5,
         onEnter: function () { win.classList.add('go'); if (sec) sec.classList.add('go'); },
         onLeave: function () {
-          gsap.set(win, { clearProps: 'transform,opacity' });
+          // ordem importa: matar o scrub e o tween ANTES de limpar — senão o scrub (0,5 s atrasado)
+          // ainda escreve um frame inclinado/opaco depois do clearProps e a janela fica "travada"
+          // no meio do levantar (visto no telão do evento e em qualquer salto rápido de scroll)
           if (sysST) { sysST.kill(); sysST = null; }
+          tween.kill();
+          gsap.set(win, { clearProps: 'transform,opacity' });
         },
       },
     });

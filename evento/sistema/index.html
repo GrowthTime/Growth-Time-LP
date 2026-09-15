@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Growth Time — o sistema por dentro</title>
+<!-- Evento: o sistema (prévia "Moda Fashion") em tela cheia no telão, com botão de voltar pra
+     apresentação e seletor Desktop / Celular / Link da bio / Loja. Sem toque por 4 min → volta sozinho. -->
+<style>
+  html, body { margin: 0; height: 100%; overflow: hidden; background: #0f1f1c; font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif; }
+  #bar { position: absolute; left: 0; right: 0; top: 0; height: 96px; display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 0 28px; background: #0f1f1c; color: #fff; z-index: 5; }
+  #back { display: inline-flex; align-items: center; gap: 10px; height: 60px; padding: 0 26px; white-space: nowrap; border-radius: 999px; border: 2px solid rgba(255,255,255,.28); background: rgba(255,255,255,.08); color: #fff; font: 700 22px 'Inter', system-ui, sans-serif; cursor: pointer; }
+  #back:active { background: rgba(255,255,255,.18); }
+  #tabs { display: flex; gap: 8px; }
+  #tabs button { height: 60px; padding: 0 22px; border-radius: 999px; border: 2px solid transparent; background: transparent; color: rgba(255,255,255,.7); font: 700 20px 'Inter', system-ui, sans-serif; cursor: pointer; white-space: nowrap; }
+  #tabs button.on { background: #15dba8; color: #0b2b29; }
+  #stage { position: absolute; left: 0; right: 0; top: 96px; bottom: 0; overflow: hidden; background: #fafafa; }
+  #stage { background: #0f1f1c; }
+  #frame { border: 0; position: absolute; transform-origin: 0 0; background: #fafafa; border-radius: 12px; box-shadow: 0 0 0 10px #1a1a1a, 0 30px 80px rgba(0,0,0,.5); } /* desktop = moldura de monitor */
+  #stage.phone #frame { border-radius: 44px; box-shadow: 0 0 0 10px #1a1a1a, 0 30px 80px rgba(0,0,0,.45); }
+  #hint { position: absolute; left: 50%; top: 112px; transform: translateX(-50%); z-index: 6; padding: 12px 22px; border-radius: 999px; background: rgba(15,31,28,.86); color: #fff; font: 700 18px 'Inter', system-ui, sans-serif; white-space: nowrap; pointer-events: none; opacity: 0; transition: opacity .3s; }
+  #hint.show { opacity: 1; }
+</style>
+</head>
+<body>
+<div id="bar">
+  <button id="back" type="button">← Voltar</button>
+  <div id="tabs">
+    <button type="button" data-v="desktop">🖥️ Desktop</button>
+    <button type="button" data-v="mobile">📱 Celular</button>
+    <button type="button" data-v="bio">🔗 Link da bio</button>
+    <button type="button" data-v="loja">🛍️ Loja</button>
+  </div>
+</div>
+<div id="stage"><iframe id="frame" title="Sistema GT — prévia"></iframe></div>
+<div id="hint"></div>
+<script>
+(function () {
+  var IDLE_MS = 4 * 60 * 1000; // sem toque → volta pra apresentação
+  var SRC = { desktop: '/system/index.html', mobile: '/system/index.html?view=mobile', bio: '/system/index.html?view=bio', loja: '/system/index.html?view=loja' };
+  var HINT = { desktop: '🖥️ Assim fica num monitor comum — é clicável: Dashboard, Mensagens, Produtos, Mkt & Ads', mobile: '📱 Assim a vendedora usa no celular', bio: '🔗 O link da bio como a cliente vê — toque no botão e veja o rodízio', loja: '🛍️ Toque numa peça e depois na sacola para ver o pedido por grade' };
+  var stage = document.getElementById('stage'), frame = document.getElementById('frame'), hint = document.getElementById('hint');
+  var tabs = [].slice.call(document.querySelectorAll('#tabs button'));
+  var view = new URLSearchParams(location.search).get('view');
+  if (!SRC[view]) view = 'desktop';
+
+  function fit() {
+    var W = stage.clientWidth, H = stage.clientHeight;
+    if (view === 'desktop') {
+      // desktop: TRAVADO no formato de monitor comum (16:9, 1280×720 lógicos), centralizado —
+      // de propósito não se adapta à tela alta: o cliente vê como fica num computador de verdade
+      var pad = 24, s = Math.min((W - pad * 2) / 1280, (H - pad * 2) / 720);
+      frame.style.width = '1280px'; frame.style.height = '720px';
+      frame.style.transform = 'scale(' + s + ')';
+      frame.style.left = Math.round((W - 1280 * s) / 2) + 'px'; frame.style.top = Math.round((H - 720 * s) / 2) + 'px';
+    } else {
+      // celular: 414×820 lógicos, ampliado até caber na altura, centralizado como um aparelho
+      var pad = 36, s2 = Math.min((W - pad * 2) / 414, (H - pad * 2) / 820);
+      frame.style.width = '414px'; frame.style.height = '820px';
+      frame.style.transform = 'scale(' + s2 + ')';
+      frame.style.left = Math.round((W - 414 * s2) / 2) + 'px'; frame.style.top = Math.round((H - 820 * s2) / 2) + 'px';
+    }
+  }
+  function setView(v) {
+    view = v;
+    stage.classList.toggle('phone', v !== 'desktop');
+    tabs.forEach(function (b) { b.classList.toggle('on', b.getAttribute('data-v') === v); });
+    fit();
+    frame.src = SRC[v];
+    hint.textContent = HINT[v]; hint.classList.add('show');
+    clearTimeout(hint._t); hint._t = setTimeout(function () { hint.classList.remove('show'); }, 6000);
+    try { history.replaceState(null, '', '?view=' + v); } catch (e) {}
+  }
+  tabs.forEach(function (b) { b.addEventListener('click', function () { if (b.getAttribute('data-v') !== view) setView(b.getAttribute('data-v')); }); });
+  document.getElementById('back').addEventListener('click', function () { location.href = '/evento/'; });
+  window.addEventListener('resize', fit);
+
+  // sem ninguém mexendo por 4 min, volta pra apresentação (toques dentro do iframe também contam)
+  var idle = null;
+  function poke() { clearTimeout(idle); idle = setTimeout(function () { location.href = '/evento/'; }, IDLE_MS); }
+  ['pointerdown', 'touchstart', 'keydown', 'wheel'].forEach(function (ev) { window.addEventListener(ev, poke, { passive: true }); });
+  frame.addEventListener('load', function () {
+    poke();
+    try { var d = frame.contentDocument; ['pointerdown', 'touchstart', 'keydown', 'wheel'].forEach(function (ev) { d.addEventListener(ev, poke, { passive: true }); }); } catch (e) {}
+  });
+  poke();
+  setView(view);
+})();
+</script>
+</body>
+</html>
