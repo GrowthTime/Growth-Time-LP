@@ -634,10 +634,25 @@ def main():
     print(f'soundtrack: {dur:.2f}s · {len(cues)} cues · bpm {music.get("bpm", "?")}')
     n = int((dur + 4) * SR)
     mix = np.zeros((n, 2))
+    # gates: [{start, end, fade, sfx}] — true silence windows (reverb tails included)
+    def gate_env(include_sfx):
+        g = np.ones(n)
+        for gt in music.get('gates', []):
+            if include_sfx and not gt.get('sfx', False):
+                continue
+            f = int(gt.get('fade', 0.04) * SR)
+            a, b = int(gt['start'] * SR), int(gt['end'] * SR)
+            g[a:b] = 0
+            if f > 0:
+                a0 = max(0, a - f)
+                g[a0:a] = np.minimum(g[a0:a], np.linspace(1, 0, a - a0))
+                b1 = min(n, b + f)
+                g[b:b1] = np.minimum(g[b:b1], np.linspace(0, 1, b1 - b))
+        return g
     if not no_music and music:
-        mix += render_music(music, dur) * db(music.get('gainDb', 0))
+        mix += render_music(music, dur) * db(music.get('gainDb', 0)) * gate_env(False)[:, None]
     if not no_sfx:
-        mix += render_sfx(cues, dur) * 0.9
+        mix += render_sfx(cues, dur) * 0.9 * gate_env(True)[:, None]
     out = master(mix, dur)
     os.makedirs(os.path.join(ROOT, 'audio'), exist_ok=True)
     wav = os.path.join(ROOT, 'audio/gtr-soundtrack.wav')

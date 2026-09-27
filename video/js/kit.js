@@ -729,4 +729,48 @@
     set(0);
     return { el: box, logo: L, set };
   };
+
+  // Diagnostic chip — the film's through-line (ERRO 0n → 0n · OK).
+  // KIT.diagChip(parent, {n:'01', err:'SEM RESPOSTA', ok:'RESPONDIDO', x:120, y:96})
+  // → {el, set(t, stamp, flip)}  t = time (blink), stamp/flip = raw progress 0..1
+  //   stamp: scale 1.6→1 + fade-in (expo.out) with a white border flash at the start
+  //   flip:  error face rotates away (rotateX 0→-90), OK face rotates in (90→0), then a 1.08 pop
+  KIT.diagChip = (parent, opts = {}) => {
+    const o = Object.assign({ n: '01', err: 'SEM RESPOSTA', ok: 'RESPONDIDO', x: 120, y: 96, size: 17 }, opts);
+    const el = h('div', { class: 'kit-diag', style: { position: 'absolute', left: `${o.x}px`, top: `${o.y}px`, height: '46px', perspective: '600px', transformOrigin: '0% 50%', zIndex: 30 } }, parent);
+    const face = (kind) => {
+      const f = h('div', { style: {
+        position: kind === 'err' ? 'relative' : 'absolute', left: '0', top: '0', height: '46px', display: 'inline-flex', alignItems: 'center', gap: '10px',
+        padding: '0 20px', borderRadius: '999px', whiteSpace: 'nowrap', fontFamily: 'var(--font-ui)', fontWeight: 700, fontSize: `${o.size}px`,
+        letterSpacing: '0.14em', textTransform: 'uppercase', backfaceVisibility: 'hidden', transformOrigin: '50% 50%',
+        background: kind === 'err' ? 'rgba(239,68,68,0.12)' : 'rgba(21,219,168,0.14)',
+        border: `1px solid ${kind === 'err' ? 'rgba(239,68,68,0.5)' : 'rgba(21,219,168,0.5)'}`,
+        color: kind === 'err' ? '#fca5a5' : C.vibrant,
+        boxShadow: kind === 'err' ? '0 0 24px rgba(239,68,68,0.18)' : '0 0 28px rgba(21,219,168,0.28)',
+      } }, el);
+      return f;
+    };
+    const fe = face('err');
+    const dot = h('span', { style: { width: '10px', height: '10px', borderRadius: '50%', background: '#ef4444', boxShadow: '0 0 10px #ef4444', flex: 'none' } }, fe);
+    h('span', {}, fe).textContent = `ERRO ${o.n} · ${o.err}`;
+    const fo = face('ok');
+    fo.innerHTML = GTR.iconSVG('circle-check', { size: 18, sw: 2.4 }) + `<span>${o.n} · ${o.ok}</span>`;
+    const set = (t, stamp = 1, flip = 0) => {
+      const sp = p(stamp, 0, 1, 'expo.out');
+      el.style.opacity = clamp(stamp * 4);
+      el.style.display = stamp <= 0 ? 'none' : 'block';
+      const pop = flip > 0.75 ? 1 + 0.08 * Math.sin(Math.PI * clamp((flip - 0.75) / 0.25)) : 1;
+      el.style.transform = `scale(${lerp(1.6, 1, sp) * pop})`;
+      const flash = stamp > 0 && stamp < 0.12;
+      fe.style.borderColor = flash ? '#fff' : 'rgba(239,68,68,0.5)';
+      dot.style.opacity = GTR.fract(t * 2) < 0.5 ? 1 : 0.15;
+      const a = p(flip, 0, 0.5, 'power2.in'), b = p(flip, 0.5, 1, 'power2.out');
+      fe.style.transform = `rotateX(${-90 * a}deg)`;
+      fe.style.visibility = flip >= 0.5 ? 'hidden' : 'visible';
+      fo.style.transform = `rotateX(${90 * (1 - b)}deg)`;
+      fo.style.visibility = flip > 0.5 ? 'visible' : 'hidden';
+    };
+    set(0, 0, 0);
+    return { el, errFace: fe, okFace: fo, set };
+  };
 })();
