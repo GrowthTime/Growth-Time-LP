@@ -29,9 +29,14 @@ GTR.scene({
     const FLY0 = 0.40, FLY_SPAN = 0.40, FLY_DUR = 0.60;          // last node lands at 1.40
     const TS = [0.5, 2.0, 3.5, 5.0];                              // stat slot-rolls
     const STAT4_OUT = 6.40;
+    const STAT4_LBL_OUT = [6.24, 6.40];                           // stat-4 label clears before the recap draws
+    const MORPH = [6.34, 6.58];                                   // hero "129" FLIPs into recap cell 4
+    const ROLL0 = 2.04, ROLL_END = 2.52;                          // "124" roll-call ↔ last odometer digit lands
     const CAPTION = 2.20, CHIP1 = 2.50, CHIP2 = 4.00;
     const RECAP = 6.40, FADE = 7.40;
+    const BLOOM = [6.48, 6.54, 6.60];                             // recap cells 1–3 unfold from the progress segments
     const COLL0 = 7.40, TRAVEL = [7.60, 7.95];
+    const HOLD = [7.60, 7.85];                                    // collapsed point throbs while charging
 
     /* ---------- geometry ---------- */
     const SPH = { x: 1360, y: 520 };
@@ -83,7 +88,7 @@ GTR.scene({
       nodes.push({
         i, p: [Math.cos(phi) * rad * R, -yy * R, Math.sin(phi) * rad * R], s0, t0,
         land: t0 + 0.42, cd: rr() * 0.07, tw: rr() * 6.283,
-        roll: 2.05 + (i / (N - 1)) * 0.55, // "124" roll-call: nodes light up one by one
+        roll: ROLL0 + (i / (N - 1)) * (ROLL_END - ROLL0), // "124" roll-call: nodes light one by one; node 124 lights as the "4" lands
       });
     }
     // edges to the 3 nearest neighbours (deduped) + adjacency for packets
@@ -116,6 +121,12 @@ GTR.scene({
       }
       return { path, speed: 1.7 + pr() * 1.6, ph: pr() * 3, t0: 1.25 + pr() * 0.5 };
     });
+    // 11 charge sparks: drawn in from the old sphere radius into the collapsed core during the hold
+    const sr = rng('sob-o-capo:sparks');
+    const sparks = Array.from({ length: 11 }, (_, i) => ({
+      a: ((i + sr() * 0.7) / 11) * Math.PI * 2, rf: 0.8 + sr() * 0.4,
+      t0: HOLD[0] - 0.04 + (i / 10) * 0.16 + sr() * 0.05, dur: 0.16 + sr() * 0.1, w: 1.2 + sr() * 1.2,
+    }));
 
     /* ---------- projection ---------- */
     const COS_T = Math.cos(TILT), SIN_T = Math.sin(TILT);
@@ -151,7 +162,8 @@ GTR.scene({
       { num: '361', label: 'evoluções do banco em 10 meses' },
       { num: '129', label: 'tabelas com isolamento por empresa' },
     ];
-    const NUM_FS = 170, LH = 220, NUM_CY = 560, LABEL_CY = 690;
+    const NUM_FS = 170, LH = 220, NUM_CY = 560, LABEL_CY = 690, NUM_X = 114;
+    const RC = { x0: 120, x1: 530, y0: 470, y1: 632, fs: 64, lh: 76 };   // recap grid (cell top-left corners)
     const mc = document.createElement('canvas').getContext('2d');
     const BASE_GRAD = 'linear-gradient(172deg, #15dba8 0%, #1ccfa2 48%, #27ae8f 100%)';
     const SHEEN_W = 420;
@@ -171,7 +183,8 @@ GTR.scene({
         x += w;
       }
       const totalW = x;
-      const wrap = h('div', { style: { position: 'absolute', left: '114px', top: `${NUM_CY - LH / 2}px`, width: `${totalW + 40}px`, height: `${LH}px`, display: 'none' } }, statsWrap);
+      const wrap = h('div', { style: { position: 'absolute', left: `${NUM_X}px`, top: `${NUM_CY - LH / 2}px`, width: `${totalW + 40}px`, height: `${LH}px`, display: 'none',
+        transformOrigin: `0px ${LH / 2}px` } }, statsWrap);
       const row = h('div', { style: { position: 'absolute', left: '0', top: '0', height: `${LH}px`, width: `${totalW}px` } }, wrap);
       const glyphs = [];
       const gspan = (parent, ch, x0, w) => {
@@ -203,7 +216,9 @@ GTR.scene({
         const off = (q.w - digitW) / 2;
         const strip = h('div', { style: { position: 'absolute', left: `${PADX + off}px`, top: '0', width: `${digitW}px` } }, box);
         for (let s2 = 0; s2 <= n; s2++) gspan(strip, String((fin - n + s2 + 100) % 10), q.x + off, digitW);
-        const land = TS[k] + 0.22 + (digits.length > 1 ? (0.13 * j) / (digits.length - 1) : 0.13);
+        // stat 2 ("124") counts with the node roll-call: its last digit lands on the frame node 124 lights
+        const land = k === 1 ? [ROLL0 + 0.2, ROLL0 + 0.34, ROLL_END][j]
+          : TS[k] + 0.22 + (digits.length > 1 ? (0.13 * j) / (digits.length - 1) : 0.13);
         cols.push({ strip, n, land });
       }
       const label = h('div', { class: 'body', style: {
@@ -214,24 +229,40 @@ GTR.scene({
       const lt = h('span', {}, label);
       lt.textContent = def.label;
       const T = TS[k];
-      const out = k < 3 ? [TS[k + 1] - 0.1, TS[k + 1] + 0.08] : [STAT4_OUT - 0.05, STAT4_OUT + 0.12];
-      return { wrap, row, label, bar, lt, cols, glyphs, totalW, T, out };
+      // exits finish one frame before the next beat → clean slot change, no shared frames
+      const out = k < 3 ? [TS[k + 1] - 0.14, TS[k + 1] - 0.01] : STAT4_LBL_OUT;
+      const lastLand = Math.max(...cols.map((c) => c.land));
+      const morph = k === 3;                                  // stat 4's number never exits: it FLIPs into recap cell 4
+      const numEnd = morph ? MORPH[1] + 0.06 : out[1];
+      return { wrap, row, label, bar, lt, cols, glyphs, totalW, T, out, lastLand, morph, numEnd };
     };
     const stats = STATS.map(makeStat);
+    // FLIP target for the hero "129": recap cell 4 (same font, same tracking → exact scale match)
+    const FLIP = { s: RC.fs / NUM_FS, dx: RC.x1 - NUM_X, dy: RC.y1 + RC.lh / 2 - NUM_CY };
 
     const setStat = (S, t) => {
-      const vis = t >= S.T && t <= S.out[1];
-      st(S.wrap, 'display', vis ? 'block' : 'none');
-      st(S.label, 'display', vis ? 'flex' : 'none');
-      if (!vis) return;
+      const visN = t >= S.T && t <= S.numEnd;
+      const visL = t >= S.T && t <= S.out[1];
+      st(S.wrap, 'display', visN ? 'block' : 'none');
+      st(S.label, 'display', visL ? 'flex' : 'none');
+      if (!visN) return;
       const ein = p(t, S.T, S.T + 0.2, 'power3.out');
       const eout = p(t, S.out[0], S.out[1], 'power2.in');
-      const y = 60 * (1 - ein) - 60 * eout;
-      const bl = 8 * (1 - ein) + 8 * eout;
-      const op = inv(t, S.T, S.T + 0.12) * (1 - eout);
-      st(S.wrap, 'transform', `translateY(${y.toFixed(2)}px)`);
-      st(S.wrap, 'opacity', op.toFixed(3));
-      st(S.wrap, 'filter', `blur(${bl.toFixed(2)}px) drop-shadow(0 0 26px rgba(21,219,168,${(0.34 + 0.25 * Math.exp(-Math.max(0, t - S.T - 0.35) * 4)).toFixed(3)}))`);
+      if (S.morph) {
+        const m = p(t, MORPH[0], MORPH[1], 'power3.inOut');
+        const sc = lerp(1, FLIP.s, m);
+        const bl = 8 * (1 - ein) + 1.4 * Math.sin(Math.PI * m);
+        st(S.wrap, 'transform', `translate(${(FLIP.dx * m).toFixed(2)}px, ${(60 * (1 - ein) + FLIP.dy * m).toFixed(2)}px) scale(${sc.toFixed(4)})`);
+        st(S.wrap, 'opacity', (inv(t, S.T, S.T + 0.12) * (1 - inv(t, MORPH[1], MORPH[1] + 0.06))).toFixed(3));
+        st(S.wrap, 'filter', `blur(${bl.toFixed(2)}px) drop-shadow(0 0 26px rgba(21,219,168,${(0.34 + 0.25 * Math.exp(-Math.max(0, t - S.T - 0.35) * 4)).toFixed(3)}))`);
+      } else {
+        const y = 60 * (1 - ein) - 60 * eout;
+        const bl = 8 * (1 - ein) + 8 * eout;
+        const op = inv(t, S.T, S.T + 0.12) * (1 - eout);
+        st(S.wrap, 'transform', `translateY(${y.toFixed(2)}px)`);
+        st(S.wrap, 'opacity', op.toFixed(3));
+        st(S.wrap, 'filter', `blur(${bl.toFixed(2)}px) drop-shadow(0 0 26px rgba(21,219,168,${(0.34 + 0.25 * Math.exp(-Math.max(0, t - S.T - 0.35) * 4)).toFixed(3)}))`);
+      }
       // odometer columns
       for (const c of S.cols) {
         const q = p(t, S.T, c.land, 'expo.out');
@@ -241,7 +272,8 @@ GTR.scene({
         st(c.strip, 'filter', speed > 2 ? `blur(${Math.min(7, speed * 0.18).toFixed(2)}px)` : 'none');
       }
       // sheen sweep after landing
-      const sh = p(t, S.T + 0.32, S.T + 1.0, 'power2.inOut');
+      const sh0 = Math.max(S.T + 0.32, S.lastLand - 0.02);
+      const sh = p(t, sh0, sh0 + 0.68, 'power2.inOut');
       const sx = lerp(-SHEEN_W, S.totalW + 40, sh);
       for (const gl of S.glyphs) st(gl.sp, 'backgroundPosition', `${(sx - gl.x0).toFixed(1)}px 0, ${-gl.x0}px 0`);
       // label
@@ -259,7 +291,7 @@ GTR.scene({
     const segs = TS.map(() => {
       const tr = h('div', { style: { position: 'relative', width: `${SEG.w}px`, height: '3px', borderRadius: '2px', background: 'rgba(255,255,255,.16)', overflow: 'hidden' } }, segWrap);
       const fi = h('div', { style: { position: 'absolute', left: '0', top: '0', bottom: '0', width: '100%', background: '#15dba8', transformOrigin: '0% 50%', transform: 'scaleX(0)', boxShadow: '0 0 8px rgba(21,219,168,.8)' } }, tr);
-      return fi;
+      return { tr, fi };
     });
 
     /* =====================================================================
@@ -285,40 +317,72 @@ GTR.scene({
     chipPop(chipB, CHIP2);
 
     const cap = h('div', { class: 'ui', style: { position: 'absolute', left: `${SPH.x}px`, top: '940px', transform: 'translate(-50%,-50%)', whiteSpace: 'nowrap' } }, hud);
-    const capIn = h('div', { style: { display: 'flex', alignItems: 'center', gap: '12px', fontSize: '18px', fontWeight: 500, color: '#9ca3af', letterSpacing: '0.01em' } }, cap);
-    const capDot = h('span', { style: { width: '8px', height: '8px', borderRadius: '50%', background: '#15dba8', boxShadow: '0 0 10px #15dba8', flex: 'none' } }, capIn);
+    // scrim pill: keeps the caption clear of the space grid floor line at y ≈ 938
+    const capIn = h('div', { style: { display: 'flex', alignItems: 'center', gap: '11px', padding: '6px 16px 6px 14px', borderRadius: '999px',
+      background: 'rgba(0,21,22,.78)', border: '1px solid rgba(21,219,168,.18)', boxShadow: '0 8px 22px rgba(0,0,0,.3)',
+      fontSize: '19px', lineHeight: '24px', fontWeight: 500, color: '#b8c0c8', letterSpacing: '0.01em' } }, cap);
+    const capDot = h('span', { style: { width: '7px', height: '7px', borderRadius: '50%', background: '#15dba8', boxShadow: '0 0 8px #15dba8', flex: 'none' } }, capIn);
     h('span', {}, capIn).textContent = 'Cada ponto: uma função rodando na nuvem.';
     tl.fromTo(capIn, { opacity: 0, y: 14, filter: 'blur(6px)' }, { opacity: 1, y: 0, filter: 'blur(0px)', duration: 0.6, ease: 'power3.out' }, CAPTION);
 
     /* =====================================================================
        HUD · recap 2×2 (6.40–7.40)
        ===================================================================== */
-    const RC = { x0: 120, x1: 530, y0: 470, y1: 632 };
     const recap = h('div', { style: { position: 'absolute', left: '0', top: '0', width: '1920px', height: '1080px' } }, hud);
     const hair = (style) => h('div', { style: Object.assign({ position: 'absolute', background: 'linear-gradient(90deg, rgba(21,219,168,.5), rgba(255,255,255,.12))' }, style) }, recap);
     const hLine = hair({ left: `${RC.x0}px`, top: '614px', width: '780px', height: '1px', transformOrigin: '0% 50%' });
     const vLine = hair({ left: '500px', top: '478px', width: '1px', height: '276px', transformOrigin: '50% 0%', background: 'linear-gradient(180deg, rgba(21,219,168,.5), rgba(255,255,255,.1))' });
+    // cells: 1–3 unfold out of their progress segments (y 446); cell 4 is where the hero "129" lands (FLIP)
     const cells = STATS.map((d, k) => {
       const x = k % 2 ? RC.x1 : RC.x0, y = k < 2 ? RC.y0 : RC.y1;
-      const c = h('div', { style: { position: 'absolute', left: `${x}px`, top: `${y}px`, transformOrigin: '0% 50%' } }, recap);
+      const el = h('div', { style: { position: 'absolute', left: `${x}px`, top: `${y}px`, transformOrigin: '0 0', opacity: 0 } }, recap);
       const n = h('div', { class: 'display', style: {
-        fontSize: '64px', lineHeight: '76px', letterSpacing: '-0.01em', whiteSpace: 'nowrap', color: 'transparent',
+        fontSize: `${RC.fs}px`, lineHeight: `${RC.lh}px`, letterSpacing: '-0.01em', whiteSpace: 'nowrap', color: 'transparent',
         backgroundImage: BASE_GRAD, webkitBackgroundClip: 'text', backgroundClip: 'text', filter: 'drop-shadow(0 0 16px rgba(21,219,168,.3))',
-      } }, c);
+      } }, el);
       n.textContent = d.num;
-      const l = h('div', { class: 'ui', style: { marginTop: '6px', fontSize: '18px', fontWeight: 600, color: 'rgba(255,255,255,.72)', whiteSpace: 'nowrap' } }, c);
+      const l = h('div', { class: 'ui', style: { marginTop: '6px', fontSize: '18px', fontWeight: 600, color: 'rgba(255,255,255,.84)', whiteSpace: 'nowrap' } }, el);
       l.textContent = d.label;
-      return c;
+      return { el, n, l, x, y, w: el.offsetWidth || 360, h: el.offsetHeight || 104 };
     });
-    tl.fromTo(hLine, { scaleX: 0, opacity: 0 }, { scaleX: 1, opacity: 1, duration: 0.5, ease: 'expo.out' }, RECAP + 0.02);
-    tl.fromTo(vLine, { scaleY: 0, opacity: 0 }, { scaleY: 1, opacity: 1, duration: 0.5, ease: 'expo.out' }, RECAP + 0.08);
-    tl.fromTo(cells, { opacity: 0, scale: 0.86, y: 22 }, { opacity: 1, scale: 1, y: 0, duration: 0.45, stagger: 0.06, ease: 'back.out(1.6)' }, RECAP + 0.06);
-    tl.fromTo(cells, { filter: 'blur(6px)' }, { filter: 'blur(0px)', duration: 0.3, stagger: 0.06, ease: 'power2.out' }, RECAP + 0.06);
+    // hairlines draw only once the hero label is gone (clears 6.40) and the hero "129" is on its way
+    tl.fromTo(hLine, { scaleX: 0, opacity: 0 }, { scaleX: 1, opacity: 1, duration: 0.5, ease: 'expo.out' }, RECAP + 0.06);
+    tl.fromTo(vLine, { scaleY: 0, opacity: 0 }, { scaleY: 1, opacity: 1, duration: 0.5, ease: 'expo.out' }, RECAP + 0.12);
+    const setCells = (t) => {
+      cells.forEach((c, k) => {
+        const fo = p(t, FADE + 0.03 * k, FADE + 0.03 * k + 0.2, 'power2.in');   // 7.40–7.70 fade, stagger .03
+        if (k < 3) {
+          const b0 = BLOOM[k];
+          const on = t >= b0;
+          st(c.el, 'display', on ? 'block' : 'none');
+          if (!on) return;
+          const b = p(t, b0, b0 + 0.5, 'expo.out');
+          const s0 = SEG.w / c.w;                                    // starts exactly as wide as its segment
+          const sx = SEG.x + k * (SEG.w + SEG.gap), sy = SEG.y + 1.5 - (c.h * s0) / 2;
+          const sc = lerp(s0, 1, b);
+          const tx = lerp(sx - c.x, 0, b), ty = lerp(sy - c.y, 0, b) - 16 * fo;
+          st(c.el, 'transform', `translate(${tx.toFixed(2)}px, ${ty.toFixed(2)}px) scale(${sc.toFixed(4)})`);
+          st(c.el, 'opacity', (inv(t, b0, b0 + 0.14) * (1 - fo)).toFixed(3));
+          st(c.el, 'filter', `blur(${(5 * (1 - p(t, b0, b0 + 0.3, 'power2.out')) + 6 * fo).toFixed(2)}px)`);
+        } else {
+          const on = t >= MORPH[1];
+          st(c.el, 'display', on ? 'block' : 'none');
+          if (!on) return;
+          const li = p(t, MORPH[1] - 0.02, MORPH[1] + 0.22, 'power3.out');
+          st(c.el, 'opacity', (1 - fo).toFixed(3));
+          st(c.el, 'transform', `translateY(${(-16 * fo).toFixed(2)}px)`);
+          st(c.el, 'filter', fo > 0 ? `blur(${(6 * fo).toFixed(2)}px)` : 'none');
+          st(c.n, 'opacity', inv(t, MORPH[1], MORPH[1] + 0.06).toFixed(3));
+          st(c.l, 'opacity', li.toFixed(3));
+          st(c.l, 'transform', `translateY(${(10 * (1 - li)).toFixed(2)}px)`);
+          st(c.l, 'filter', `blur(${(4 * (1 - li)).toFixed(2)}px)`);
+        }
+      });
+    };
 
     /* ---------- 7.40–7.70: every text fades (stagger .03) ---------- */
     const fadeOut = (els, at) => tl.to(els, { opacity: 0, y: -16, filter: 'blur(6px)', duration: 0.2, stagger: 0.03, ease: 'power2.in' }, at);
     tl.to([hLine, vLine], { opacity: 0, duration: 0.2, ease: 'power2.in' }, FADE);
-    fadeOut(cells, FADE);
     fadeOut([chipA, chipB], FADE + 0.06);
     fadeOut([capIn], FADE + 0.12);
 
@@ -326,7 +390,7 @@ GTR.scene({
        SCAN (0–0.40): teal line sweeps down, the veil below it is the unrevealed stage
        ===================================================================== */
     const veil = h('div', { style: { position: 'absolute', left: '0', top: '0', width: '1920px', height: '1180px',
-      background: 'linear-gradient(180deg, rgba(0,12,13,0) 0px, rgba(0,12,13,.82) 70px, rgba(0,12,13,.82) 100%)' } }, scanL);
+      background: 'linear-gradient(180deg, rgba(0,12,13,0) 0px, rgba(0,12,13,.6) 70px, rgba(0,12,13,.6) 100%)' } }, scanL);
     const band = h('div', { style: { position: 'absolute', left: '0', top: '0', width: '1920px', height: '240px',
       background: 'linear-gradient(0deg, rgba(21,219,168,.26), rgba(21,219,168,.06) 45%, rgba(21,219,168,0))' } }, scanL);
     const bandDots = h('div', { style: { position: 'absolute', inset: '0',
@@ -359,6 +423,8 @@ GTR.scene({
     const pulseAt = (t, skipRoll = false) => {
       let v = 0;
       for (const T of TS) if (t >= T && !(skipRoll && T === 2.0)) v = Math.max(v, Math.exp(-(t - T) * 4.2));
+      // roll-call complete: every node answers as the last "124" digit lands
+      if (skipRoll && t >= ROLL_END) v = Math.max(v, 0.7 * Math.exp(-(t - ROLL_END) * 5));
       return v;
     };
     const pointPos = (t) => {
@@ -386,12 +452,12 @@ GTR.scene({
         const q = p(t, n.t0, n.t0 + FLY_DUR, 'power3.out');
         let v = [lerp(n.s0[0], tgt[0], q), lerp(n.s0[1], tgt[1], q), lerp(n.s0[2], tgt[2], q)];
         if (t >= COLL0) {
-          const cq = p(t, COLL0 + n.cd, COLL0 + n.cd + 0.15, 'power3.in');
+          const cq = p(t, COLL0 + n.cd, COLL0 + n.cd + 0.2, 'power2.in');   // inward motion visible from ≈7.42
           v = [v[0] * (1 - cq), v[1] * (1 - cq), v[2] * (1 - cq)];
         }
         const pp = proj(v, c);
         o[0] = pp[0]; o[1] = pp[1]; o[2] = pp[2]; o[3] = pp[3];
-        o[4] = inv(t, n.t0, n.t0 + 0.12) * (1 - inv(t, COLL0 + 0.1, COLL0 + 0.24));
+        o[4] = inv(t, n.t0, n.t0 + 0.12) * (1 - inv(t, COLL0 + n.cd + 0.12, COLL0 + n.cd + 0.21));
       }
 
       // ---- volume: faint glass disc + silhouette ----
@@ -498,13 +564,37 @@ GTR.scene({
       }
 
       // ---- collapse core → travelling point → (960, 540) ----
-      if (t >= COLL0 + 0.02) {
+      if (t >= COLL0 + 0.10) {
         g.globalCompositeOperation = 'lighter';
-        const core = p(t, COLL0 + 0.02, COLL0 + 0.22, 'power2.out');
+        const core = p(t, COLL0 + 0.10, COLL0 + 0.24, 'power2.out');   // born with the implosion, not before it
         const [px, py] = t < TRAVEL[0] ? [c.x, c.y] : pointPos(t);
-        // trail while travelling (expo.in → a streak just before arrival)
-        if (t > TRAVEL[0]) {
-          const [qx, qy] = pointPos(Math.max(TRAVEL[0], t - 0.03));
+        // hold: slow throb (r ×1 → 1.25 → 1) + charge sparks drawn in from the old sphere radius
+        const hu = inv(t, HOLD[0], HOLD[1]);
+        const thr = 1 + 0.25 * (0.5 - 0.5 * Math.cos(hu * Math.PI * 2));
+        for (const sp of sparks) {
+          if (t < sp.t0 || t > sp.t0 + sp.dur) continue;
+          const q = p(t, sp.t0, sp.t0 + sp.dur, 'power2.in');
+          const q2 = p(t - 0.045, sp.t0, sp.t0 + sp.dur, 'power2.in');
+          const ca2 = Math.cos(sp.a), sa2 = Math.sin(sp.a) * 0.92;
+          const r1 = RS * c.z * sp.rf * (1 - q), r2 = RS * c.z * sp.rf * (1 - q2);
+          const hx2 = px + ca2 * r1, hy2 = py + sa2 * r1, tx2 = px + ca2 * r2, ty2 = py + sa2 * r2;
+          const a = 0.55 * inv(t, sp.t0, sp.t0 + 0.05) * (1 - inv(q, 0.82, 1));
+          if (a <= 0.003) continue;
+          const gr = g.createLinearGradient(tx2, ty2, hx2, hy2);
+          gr.addColorStop(0, 'rgba(21,219,168,0)');
+          gr.addColorStop(1, `rgba(170,255,228,${a.toFixed(3)})`);
+          g.globalAlpha = 1;
+          g.strokeStyle = gr;
+          g.lineCap = 'round';
+          g.lineWidth = sp.w;
+          g.beginPath(); g.moveTo(tx2, ty2); g.lineTo(hx2, hy2); g.stroke();
+          blob(hx2, hy2, 16, a * 0.8);
+        }
+        // trail while travelling (expo.in → a streak just before arrival); the tail snaps into the
+        // point over the last frames so the arrival frame (7.95) shows only the point and its glow
+        if (t > TRAVEL[0] && t < TRAVEL[1]) {
+          const tail = Math.max(TRAVEL[0], t - 0.03 * (1 - inv(t, TRAVEL[1] - 0.03, TRAVEL[1] - 0.005)));
+          const [qx, qy] = pointPos(tail);
           const d = Math.hypot(px - qx, py - qy);
           if (d > 1) {
             const gr = g.createLinearGradient(qx, qy, px, py);
@@ -519,17 +609,17 @@ GTR.scene({
             g.stroke();
           }
         }
-        // implosion flare, settling to a calm glow
+        // implosion flare, settling to a calm glow that breathes with the throb
         const flare = Math.exp(-Math.max(0, t - (COLL0 + 0.2)) * 7) * core;
         const arrive = t >= TRAVEL[1] ? Math.exp(-(t - TRAVEL[1]) * 18) : 0;
-        blob(px, py, 90 + 200 * flare + 120 * arrive, (0.75 + 0.25 * flare) * core);
-        blob(px, py, 34, core);
+        blob(px, py, (90 + 200 * flare + 120 * arrive) * (1 + (thr - 1) * 0.8), (0.75 + 0.25 * flare) * core);
+        blob(px, py, 34 * thr, core);
         g.globalCompositeOperation = 'source-over';
         g.globalAlpha = 1;
         g.fillStyle = '#5ff5cf';
-        g.beginPath(); g.arc(px, py, 6 * core, 0, Math.PI * 2); g.fill();
+        g.beginPath(); g.arc(px, py, 6 * core * thr, 0, Math.PI * 2); g.fill();
         g.fillStyle = 'rgba(240,255,250,.9)';
-        g.beginPath(); g.arc(px, py, 3 * core, 0, Math.PI * 2); g.fill();
+        g.beginPath(); g.arc(px, py, 3 * core * thr, 0, Math.PI * 2); g.fill();
       }
       g.globalAlpha = 1;
       g.globalCompositeOperation = 'source-over';
@@ -569,12 +659,16 @@ GTR.scene({
         // stats
         for (const S of stats) setStat(S, t);
         // progress segments
-        const segA = inv(t, TS[0], TS[0] + 0.3) * (1 - inv(t, STAT4_OUT - 0.05, STAT4_OUT + 0.15));
-        st(segWrap, 'opacity', segA.toFixed(3));
-        segs.forEach((el, k) => {
-          const endK = k < 3 ? TS[k + 1] : STAT4_OUT;
-          st(el, 'transform', `scaleX(${inv(t, TS[k], endK).toFixed(4)})`);
+        st(segWrap, 'opacity', inv(t, TS[0], TS[0] + 0.3).toFixed(3));
+        segs.forEach(({ tr, fi }, k) => {
+          const endK = k < 3 ? TS[k + 1] : MORPH[0];
+          st(fi, 'transform', `scaleX(${inv(t, TS[k], endK).toFixed(4)})`);
+          // segments 1–3 hand over to the recap cells that unfold out of them; segment 4 leaves with the hero FLIP
+          const g0 = k < 3 ? BLOOM[k] + 0.02 : MORPH[0];
+          st(tr, 'opacity', (1 - inv(t, g0, g0 + 0.12)).toFixed(3));
         });
+        // recap grid
+        setCells(t);
         // one sheen pass across each chip right after it pops
         [[chipA, CHIP1], [chipB, CHIP2]].forEach(([pl, at]) => {
           const q = p(t, at + 0.25, at + 0.9, 'power2.inOut');

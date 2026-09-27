@@ -376,7 +376,7 @@ GTR.scene({
         /* ---- plate morph: full frame → phone screen (rect done by 0.42), framed by the bezel ~0.35–0.48,
                 then it dissolves into the chat 0.48–0.6 ---- */
         if (t < 0.6) {
-          const m = p(t, 0, 0.42, 'expo.inOut');
+          const m = p(t, 0, 0.42, 'power3.inOut');
           const L = lerp(PLATE0.x, SCR.x, m), T = lerp(PLATE0.y, SCR.y, m);
           plate.style.display = 'block';
           plate.style.left = px(L);

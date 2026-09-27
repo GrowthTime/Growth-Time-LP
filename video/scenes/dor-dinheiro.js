@@ -16,10 +16,15 @@
         ad card · sale card · token canvas · WA node · eyebrows · counter
      streaks canvas · HUD (bottom band, headline, subline) · overlay · chips
    Layout note: world coords are the storyboard's (S3 ↔ S8 contract); the
-   camera frames them at scale 0.95 with the pipeline at screen y 520 so
-   the ANÚNCIO eyebrow clears chip 03 (y 212–258) in the Act I log, and the
-   "Investido" counter rides under segment 1 (the money leaving the ad)
-   instead of under the card, where it crowded the bottom headline.
+   camera frames them at scale 0.95 with the pipeline at screen y 544 so
+   the ANÚNCIO eyebrow sits ≥ 50 px under chip 03 (y 212–258) in the Act I
+   log and the ad card still ends ~60 px above the headline cap line; the
+   "Investido" counter rides under segment 1 (the money leaving the ad).
+   Beats: 0.75 break (red overexposure + 6 px kick) · 0.875 the one token
+   that got through freezes the sale on "1.167" (white flash) · 0.95 it
+   scrambles again, the pill flips "Não rastreado", the red ring arms ·
+   tokens keep pouring into the hole until 3.4 · 3.3–4.0 dive: scale
+   power3.in, gap panned to frame centre, blur/opacity late (3.65/3.75).
    Tl = DOM reveals (pill swap, headline, subline); update() = camera,
    whip, shake, zoom-through, tokens, sparks, path, counter, scramble, chips.
    ============================================================ */
@@ -37,9 +42,13 @@ GTR.scene({
     const SALE = { x: 1480, y: 370, w: 300, h: 180 };
     const S1 = [520, 905], S2 = [1015, 1480];
     const GAP_L = 1201, GAP_R = 1294, GAP_C = (GAP_L + GAP_R) / 2;   // 40–60 % of segment 2
-    const K0 = 0.95, CY = 520;                        // camera framing (see header)
+    const K0 = 0.95, CY = 544;                        // camera framing (see header)
     const TX0 = 960 - K0 * 960, TY0 = CY - K0 * PY;
     const BREAK = 0.75;
+    const FREEZE = 0.875, FREEZE_END = 0.95;          // the one token that got through lands in the sale
+    const PILL = FREEZE_END;                          // … and the sale is flagged "Não rastreado"
+    const EMIT_END = 3.4;                             // money keeps pouring into the hole during the dive
+    const FADE_Y = (780 - TY0) / K0;                  // falling tokens fully gone by screen y ≈ 780
 
     /* ---------------- token schedule ---------------- */
     const V = 1600;                                   // px/s → seg 1 ≈ .24 s, seg 2 ≈ .29 s
@@ -48,7 +57,7 @@ GTR.scene({
     const TOKENS = [];
     {
       const r = rng('dd-tokens');
-      for (let k = 0; k * 0.125 + 0.25 <= 2.76; k++) {
+      for (let k = 0; k * 0.125 + 0.25 <= EMIT_END + 1e-6; k++) {
         const t0 = 0.25 + k * 0.125;
         const tg = t0 + (GAP_L - X0) / V;             // reaches the left gap edge
         TOKENS.push({ t0, tg, falls: tg >= BREAK, tw: t0 + (WA.cx - X0) / V,
@@ -62,24 +71,46 @@ GTR.scene({
     const world = h('div', { style: { position: 'absolute', left: '0', top: '0', width: '1920px', height: '1080px', transformOrigin: '0 0' } }, whipWrap);
     const layer = () => h('div', { style: { position: 'absolute', left: '0', top: '0', width: '1920px', height: '1080px' } }, world);
 
-    /* ---- far bokeh: faint lost "R$" tokens drifting in the dark (parallax .5) ---- */
-    const miniToken = (parent, { x, y, sc, blur, a, col }) => {
+    /* ---- far layer: small, clearly distant lost "R$" chips drifting down (parallax .5) ----
+       Placed in the empty pockets of the frame; a 70 px exclusion zone around every node,
+       eyebrow, the counter, the chip log and the pipeline fades any chip that drifts close. */
+    const miniToken = (parent, { x, y, blur }) => {
       const el = h('div', { style: { position: 'absolute', left: `${x - 27}px`, top: `${y - 15}px`, width: '54px', height: '30px', borderRadius: '9px',
-        background: col, color: 'rgba(255,255,255,.8)', fontFamily: FONT_UI, fontWeight: 800, fontSize: '16px', display: 'grid', placeItems: 'center',
-        opacity: a, filter: `blur(${blur}px)`, transformOrigin: '50% 50%' } }, parent);
+        background: 'linear-gradient(180deg, rgba(255,255,255,.22), rgba(255,255,255,0) 55%), #27ae8f', color: '#fff', fontFamily: FONT_UI, fontWeight: 800,
+        fontSize: '16px', display: 'grid', placeItems: 'center', opacity: 0, filter: `blur(${blur}px)`, transformOrigin: '50% 50%' } }, parent);
       el.textContent = 'R$';
-      return { el, sc };
+      return el;
     };
     const bokehBack = layer();
     const BACK = [];
     {
-      const r = rng('dd-far');
-      [[650, 150], [1090, 215], [1380, 120], [1720, 230], [1900, 620], [700, 770], [1540, 800], [1180, 690], [2000, 90], [880, 330]].forEach(([x, y], i) => {
-        const sc = 0.62 + r() * 0.55;
-        const tk = miniToken(bokehBack, { x, y, sc, blur: 2.6 + r() * 2.6, a: 0.13 + r() * 0.13, col: i % 3 === 1 ? '#5b6664' : '#1f7f69' });
-        BACK.push(Object.assign(tk, { vy: 22 + r() * 50, vr: (r() - 0.5) * 50, r0: (r() - 0.5) * 70, ph: r() * 10 }));
+      const r = rng('dd-far2');
+      // [x, y, fall px/s] — world coords at local 0
+      [[640, 110, 26], [770, 290, 18], [1160, 170, 30], [1345, 95, 22], [1275, 300, 16], [1560, 110, 24],
+        [1915, 170, 34], [1915, 540, 20], [985, 640, 14], [1620, 655, 13], [1030, 40, 26], [560, 690, 12]].forEach(([x, y, vy]) => {
+        const sc = 0.5 + r() * 0.2;
+        const el = miniToken(bokehBack, { x, y, blur: 2 + r() });
+        BACK.push({ el, x, y, vy, sc, a: 0.12 + r() * 0.06, vr: (r() - 0.5) * 36, r0: (r() - 0.5) * 50, ph: r() * 10 });
       });
     }
+    // exclusion rects (world): nodes, eyebrows, counter, chip log, pipeline band, headline zone
+    const EXCL = [
+      [180, 250, 520, 670], [287, 211, 413, 233],        // ad card + ANÚNCIO
+      [905, 405, 1015, 515], [890, 366, 1030, 388],      // WhatsApp node + eyebrow
+      [1472, 362, 1788, 558], [1590, 331, 1670, 353],    // sale card (+ ring) + VENDA
+      [558, 500, 800, 580],                              // "Investido" counter
+      [60, -40, 470, 175],                               // chip log (screen 120–470 × 96–258)
+      [520, 440, 1480, 480],                             // the pipeline
+      [0, 735, 1920, 1200],                              // headline / subline zone
+    ];
+    const exclFade = (x, y) => {
+      let d = 1e9;
+      for (const [x0, y0, x1, y1] of EXCL) {
+        const dx = Math.max(x0 - x, 0, x - x1), dy = Math.max(y0 - y, 0, y - y1);
+        d = Math.min(d, Math.hypot(dx, dy));
+      }
+      return GTR.smooth(clamp((d - 70) / 40));
+    };
 
     /* ---- glows (behind the pipeline) ---- */
     const glowLayer = layer();
