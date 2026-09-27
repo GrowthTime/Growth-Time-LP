@@ -113,5 +113,6 @@ Cues de som disponíveis (`ctx.cue(nome, t, opts)`): `whoosh {dur, up}`, `swoosh
 ## Arquivos exportados
 
 - `export/gtr-ponto-final-web-1080p30.mp4`: versão leve para web/WhatsApp (1080p30, ~14 MB).
-- O master 1080p60 (~58 MB) é gerado em `out/` pelo comando acima; não fica no Git por causa do tamanho.
+- `export/gtr-ponto-final-1080p60.mp4`: versão Full HD 60 fps (~28 MB) para apresentar em telão/TV.
+- O master sem compressão extra (1080p60, ~58 MB) é gerado em `out/` pelo comando acima.
 - `export/poster.jpg`: quadro do logo para capa/thumbnail.
