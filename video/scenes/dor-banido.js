@@ -212,7 +212,10 @@ GTR.scene({
     const TEAR_COLS = ['#000c0d', 'rgba(239,68,68,.5)', 'rgba(21,219,168,.35)'];
 
     /* ============================================================ TIMELINE (DOM reveals) */
-    const tl = ctx.tl();
+    // force3D:false + will-change:auto → no GPU layers with a frozen raster scale, so text/UI stay crisp and
+    // every frame rasterises identically whatever order the render workers seek in.
+    const tl = ctx.tl({ defaults: { ease: 'power3.out', force3D: false } });
+    [...title.units, ...sub1, ...sub2].forEach((u) => { u.style.willChange = 'auto'; });
     tl.fromTo(PHONES.map((q) => q.modal), { scale: 1.035 }, { scale: 1, duration: 0.45, ease: 'power3.out' }, 0);
     // rows die bottom-up on 16ths (0.375 … 1.0): red flush, then collapse
     for (let i = 0; i < ROWS.length; i++) {

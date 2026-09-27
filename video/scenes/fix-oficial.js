@@ -376,6 +376,7 @@ GTR.scene({
         strip.style.transform = `perspective(1500px) translate3d(${dxC}px, ${40 * (1 - se) + noise(t * 0.33, 21) * 5 * calm + dyC}px, 0) rotateY(-12deg)`;
         strip.style.filter = exitFilter;
         if (t > 2.8) drawECG(t);
+        else { eg.setTransform(1, 0, 0, 1, 0, 0); eg.clearRect(0, 0, ecgCv.width, ecgCv.height); }
         const bk = t >= 3.0 ? Math.exp(-fract(t * 2) * 7) : 0.5;
         okDot.style.opacity = 0.35 + 0.65 * bk;
         okDot.style.transform = `scale(${1 + 0.4 * bk})`;

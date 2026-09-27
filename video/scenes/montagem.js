@@ -344,13 +344,13 @@ GTR.scene({
         if (wire) {
           // placeholders step aside while the live node/label pops over them; back for the scan
           const back = t >= SCAN[0];
-          for (const n of nodes) n.el.style.opacity = back ? 1 : 1 - inv(t, n.at, n.at + 0.1);
-          for (const ed of edges) if (ed.label) ed.label.style.opacity = back ? 1 : 1 - inv(t, ed.t0 + 0.12, ed.t0 + 0.2);
+          for (const n of nodes) n.el.style.opacity = back ? 1 : 1 - inv(t, n.at - 0.06, n.at);
+          for (const ed of edges) if (ed.label) ed.label.style.opacity = back ? 1 : 1 - inv(t, ed.t0 + 0.06, ed.t0 + 0.12);
           return;
         }
         for (const n of nodes) {
           const k = p(t, n.at, n.at + 0.42, 'back.out(1.7)');
-          n.el.style.opacity = clamp(inv(t, n.at, n.at + 0.14));
+          n.el.style.opacity = clamp(inv(t, n.at, n.at + 0.08));
           n.el.style.transform = `translateY(${(1 - k) * 18}px) scale(${0.84 + 0.16 * k})`;
           const flash = t >= n.at ? 1 - inv(t, n.at, n.at + 0.6) : 0;
           const ok = n.id === 'end' ? p(t, FIM_OK, FIM_OK + 0.3, 'power2.out') : 0;
