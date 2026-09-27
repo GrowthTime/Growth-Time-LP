@@ -184,11 +184,11 @@ GTR.scene({
           const t0 = ci.td + ((ci.x + ci.w - lx) / Math.max(1, ci.w)) * 0.06 + R() * 0.04;
           dust.push({
             x0: TX_X + lx + (R() - 0.5) * 2, y0: TX_BASE - PADY + y + (R() - 0.5) * 2, t0,
-            v: linger ? 150 + R() * 70 : 240 + R() * 110,
-            acc: linger ? 30 : 140 + R() * 260,
+            v: linger ? 150 + R() * 70 : 200 + R() * 240,
+            acc: linger ? 30 : 200 + R() * 320,
             ang: -Math.PI / 4 + (R() - 0.5) * (40 * Math.PI / 180),
             // everything is gone by local 3.4 [19.4], before the wordmark rises
-            life: Math.min(linger ? 0.95 + R() * 0.25 : 0.55 + R() * 0.4, DUST_END - t0),
+            life: Math.min(linger ? 0.95 + R() * 0.25 : 0.65 + R() * 0.35, DUST_END - t0),
             size: linger ? 1.2 + R() * 1.6 : 1.5 + R() * 1.5,
             seed: R() * 100, z: 0.7 + R() * 1.1, linger,
           });
@@ -566,7 +566,8 @@ GTR.scene({
         const dustOut = 1 - p(t, DUST_END - 0.3, DUST_END, 'power1.in');
         if (t >= T_DIS && t < DUST_END) {
           for (let pass = 0; pass < 2; pass++) {
-            dc.fillStyle = pass === 0 ? '#2ee6b4' : '#ffffff';
+            dc.fillStyle = dc.strokeStyle = pass === 0 ? '#2ee6b4' : '#ffffff';
+            dc.lineCap = 'round';
             for (const q of dust) {
               const age = t - q.t0;
               if (age <= 0 || age >= q.life) continue;
@@ -585,7 +586,14 @@ GTR.scene({
               if (X < -10 || X > 1930 || Y < -10 || Y > 1090) continue;
               dc.globalAlpha = clamp(al);
               const r = q.size * (1 + 2.5 * e);
-              dc.fillRect(X - r / 2, Y - r / 2, r, r);
+              // motion-blurred along the 45° lift: streak length ∝ current speed
+              const len = q.linger ? 0 : clamp((q.v + q.acc * age) * 0.03, 0, 24) * (0.6 + 0.4 * q.z);
+              if (len < 2) { dc.fillRect(X - r / 2, Y - r / 2, r, r); continue; }
+              dc.lineWidth = r * 0.85;
+              dc.beginPath();
+              dc.moveTo(X, Y);
+              dc.lineTo(X - Math.cos(q.ang) * len, Y - Math.sin(q.ang) * len);
+              dc.stroke();
             }
           }
         }
