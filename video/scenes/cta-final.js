@@ -69,6 +69,11 @@ GTR.scene({
     // soft pool behind the lower text block: the backdrop's stray particles sink back (fix: '• .' doubles)
     const lowScrim = div(card, { position: 'absolute', left: `${960 - 700}px`, top: `${845 - 175}px`, width: '1400px', height: '350px',
       background: 'radial-gradient(closest-side, rgba(0,21,22,.62), rgba(0,21,22,.5) 45%, rgba(0,21,22,.2) 78%, rgba(0,21,22,0) 100%)', opacity: 0 });
+    // tighter text-protection capsules right behind each row (kills the '• .' particle doubles)
+    const mkCap = (cy, w, hh) => div(card, { position: 'absolute', left: `${960 - w / 2}px`, top: `${cy - hh / 2}px`, width: `${w}px`, height: `${hh}px`,
+      background: 'radial-gradient(closest-side, rgba(0,21,22,.8), rgba(0,21,22,.74) 62%, rgba(0,21,22,0) 100%)', opacity: 0 });
+    const capR = mkCap(790, 940, 100);
+    const capC = mkCap(888, 960, 124);
     const gHead = GTR.glow(back, { x: 960, y: 540, r: 860, color: '21,219,168', a: 0.12 });
     const gLogo = GTR.glow(back, { x: 960, y: 292, r: 470, color: '21,219,168', a: 0.2 });
     gHead.style.opacity = 0;
@@ -219,8 +224,8 @@ GTR.scene({
     const mkSpark = (len, w, rot, a) => div(card, { position: 'absolute', left: `${DOTX - w / 2}px`, top: `${DOTY - len / 2}px`, width: `${w}px`, height: `${len}px`,
       borderRadius: `${w}px`, background: `linear-gradient(180deg, rgba(234,255,248,0), rgba(234,255,248,${a}) 50%, rgba(234,255,248,0))`,
       boxShadow: '0 0 14px rgba(21,219,168,.85)', transformOrigin: '50% 50%', transform: `rotate(${rot}deg)`, display: 'none' });
-    const spark = mkSpark(190, 4, 45, 1);
-    const sparkX = mkSpark(70, 3, -45, 0.7);
+    const spark = mkSpark(230, 4, 45, 1);
+    const sparkX = mkSpark(84, 3, -45, 0.75);
     const fly = div(card, { position: 'absolute', left: '0', top: '0', width: `${DOT}px`, height: `${DOT}px`, borderRadius: '50%', background: MARK,
       transformOrigin: '50% 50%', display: 'none' });
 
@@ -515,6 +520,8 @@ GTR.scene({
         st(blob, 'opacity', (p(t, LOCK2, LOCK2 + 0.6, 'power2.out')).toFixed(3));
         st(blob, 'transform', `scale(${(lerp(0.5, 0.72, p(t, LOCK2, LOCK2 + 0.6, 'power3.out')) + 0.53 * breath).toFixed(4)})`);
         st(lowScrim, 'opacity', p(t, REINF - 0.2, REINF + 0.6, 'power2.out').toFixed(3));
+        st(capR, 'opacity', p(t, REINF - 0.1, REINF + 0.5, 'power2.out').toFixed(3));
+        st(capC, 'opacity', p(t, C1 - 0.1, C1 + 0.5, 'power2.out').toFixed(3));
         const bs = inv(t, BSHEEN[0], BSHEEN[1]);
         const bsOn = bs > 0 && bs < 1;
         st(bSheen, 'display', bsOn ? 'block' : 'none');

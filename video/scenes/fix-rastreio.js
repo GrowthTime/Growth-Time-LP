@@ -54,7 +54,7 @@ GTR.scene({
     const TOP3 = { x: 510, y: 405, w: 900, h: 320 };
     // the Top 3 card only pops once the world is within ~3% of its final framing
     // (ad card bottom ≤ y 370), then its rows cascade.
-    const T3_IN = 5.97;
+    const T3_IN = 5.96;
     const ROW_AT = [6.05, 6.25, 6.45];
     const PULSE = { t0: 6.08, t1: 6.4 };                 // ad "5,6x" → row #1 "5,6x"
     const SWEEP = { t0: 3.5, t1: 3.8 };                  // chip flip: teal sweep ad → sale
@@ -856,7 +856,7 @@ GTR.scene({
 
         // Top 3 Criativos: hidden (and out of the frame's layout) until the pull-back has landed
         const tk = pop(t, T3_IN, 0.45, 'back.out(1.7)');
-        vis(top3, p(t, T3_IN, T3_IN + 0.07, 'power2.out'));   // ~4 frames: a pop, never a gray slab
+        vis(top3, p(t, T3_IN, T3_IN + 0.05, 'power2.out'));   // 3 frames: a pop, never a gray slab
         top3.style.transform = `translateY(${14 * (1 - tk)}px) scale(${lerp(0.94, 1, tk)})`;
         const land = decay(t, PULSE.t1, 3.2);
         rows.forEach((r) => {
@@ -892,8 +892,8 @@ GTR.scene({
           const ue = (tt) => GTR.E('power2.inOut')(clamp(inv(tt, PULSE.t0, PULSE.t1)));
           if (t < PULSE.t1 + 0.1) {
             const fade = 1 - inv(t, PULSE.t1, PULSE.t1 + 0.1);
-            const N = 16;
-            pg.lineCap = 'round';
+            const N = 24;
+            pg.lineCap = 'butt';                            // butt caps: no beading where segments overlap
             for (let k = 0; k < N; k++) {
               const [xa, ya] = at(ue(t - (k * 0.12) / N)), [xb, yb] = at(ue(t - ((k + 1) * 0.12) / N));
               const a = (1 - k / N) * fade;

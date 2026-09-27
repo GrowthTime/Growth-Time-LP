@@ -82,11 +82,15 @@ GTR.scene({
     const vbSum = (c) => (c - BOX.x - BOX.y) / K + VB.x + VB.y;   // stage x+y → viewBox x+y
 
     const KEYS = ['g1', 'g2', 't', 'arrow', 'stem'];
-    // motion smear: N copies spaced evenly in distance between now and 0.075 s ago
-    const TRAIL_N = 12, TRAIL_LAG = 0.075;
-    const TRAILS = Array.from({ length: TRAIL_N }, (_, j) => j);
+    // motion smear: up to TRAIL_MAX copies spaced ≤ TRAIL_STEP px apart between now and 0.075 s
+    // ago, then Gaussian-blurred as a group so it reads as blur, never as stacked echoes
+    const TRAIL_MAX = 56, TRAIL_LAG = 0.075, TRAIL_STEP = 4;
+    const TRAILS = Array.from({ length: TRAIL_MAX }, (_, j) => j);
     const fillOf = (k) => (k === 'arrow' || k === 'stem' ? 'url(#pf-green)' : 'url(#pf-gray)');
-    const trailG = s('g', {}, svg);
+    const tBlur = s('filter', { id: 'pf-tblur', filterUnits: 'userSpaceOnUse', x: -900, y: -800, width: 2600, height: 2000,
+      'color-interpolation-filters': 'sRGB' }, defs);
+    s('feGaussianBlur', { stdDeviation: 4.5 }, tBlur);
+    const trailG = s('g', { filter: 'url(#pf-tblur)' }, svg);
     const partG = s('g', {}, svg);
     const flashG = s('g', {}, svg);
     const sheenG = s('g', {}, svg);
@@ -140,18 +144,21 @@ GTR.scene({
     const TX_X = PX - 19 - Wt;
     tx.style.left = `${TX_X}px`;
     tx.style.top = `${TX_BASE - txProbe.offsetTop}px`;
-    const CPS = 38, T_TYPE = 0.625, T_DIS = 2.4, DIS_STAG = 0.012;
+    // dissolve runs RIGHT → LEFT from the dot (the dot swallows the sentence): 's' goes first
+    const CPS = 38, T_TYPE = 0.625, T_DIS = 2.4, DIS_STAG = 0.012, DIS_DUR = 0.2, DIS_FADE = 0.11;
     let nonSpace = 0;
     const charInfo = chars.map((sp, i) => {
       const space = TXT[i] === ' ';
       const info = { sp, space, ti: T_TYPE + i / CPS, x: sp.offsetLeft, w: sp.offsetWidth, di: space ? -1 : nonSpace };
       if (!space) nonSpace++;
-      info.td = T_DIS + Math.max(0, info.di) * DIS_STAG;
       return info;
     });
+    const N_GLYPH = nonSpace;
+    charInfo.forEach((c) => { c.td = T_DIS + (c.space ? 0 : (N_GLYPH - 1 - c.di) * DIS_STAG); });
 
     /* ---------- dust: glyph-sampled particles + ambient specks ---------- */
     const R = GTR.rng('pf-dust');
+    const DUST_END = 3.4;
     const dust = [];
     {
       const PADX = 24, PADY = 110;
@@ -171,14 +178,17 @@ GTR.scene({
           const lx = x - PADX;
           const ci = charInfo.find((c) => !c.space && lx >= c.x - 1 && lx < c.x + c.w + 1);
           if (!ci) continue;
-          const linger = R() < 0.13;
+          // lift along the brand's 45° diagonal (+1,−1): ≥ 220 px in 0.8 s, ±20° jitter;
+          // within a glyph the right edge lets go first (same right → left sweep as the letters)
+          const linger = R() < 0.1;
+          const t0 = ci.td + ((ci.x + ci.w - lx) / Math.max(1, ci.w)) * 0.06 + R() * 0.04;
           dust.push({
-            x0: TX_X + lx + (R() - 0.5) * 2, y0: TX_BASE - PADY + y + (R() - 0.5) * 2,
-            t0: ci.td + ((lx - ci.x) / Math.max(1, ci.w)) * 0.07 + R() * 0.05,
-            v: linger ? 20 + R() * 40 : 110 + R() * 260,
-            acc: linger ? 0 : 380 + R() * 620,
-            ang: -Math.PI / 4 + (R() - 0.5) * 0.9,
-            life: linger ? 2.6 + R() * 1.4 : 0.5 + R() * 0.7,
+            x0: TX_X + lx + (R() - 0.5) * 2, y0: TX_BASE - PADY + y + (R() - 0.5) * 2, t0,
+            v: linger ? 150 + R() * 70 : 240 + R() * 110,
+            acc: linger ? 30 : 140 + R() * 260,
+            ang: -Math.PI / 4 + (R() - 0.5) * (40 * Math.PI / 180),
+            // everything is gone by local 3.4 [19.4], before the wordmark rises
+            life: Math.min(linger ? 0.95 + R() * 0.25 : 0.55 + R() * 0.4, DUST_END - t0),
             size: linger ? 1.2 + R() * 1.6 : 1.5 + R() * 1.5,
             seed: R() * 100, z: 0.7 + R() * 1.1, linger,
           });
@@ -285,7 +295,8 @@ GTR.scene({
     };
     const dotAt = (t) => {
       const m = p(t, 0.625, 1.125, 'power3.inOut');
-      const r = lerp(DOT_R0, DOT_R, p(t, 2.4, 2.65, 'expo.out'));
+      // grows only once the neighbouring 's' has let go (never covers a live glyph)
+      const r = lerp(DOT_R0, DOT_R, p(t, 2.48, 2.76, 'expo.out'));
       return { x: lerp(960, PX, m), y: lerp(540, PY, m), r, sc: t < 0.5 ? 0 : p(t, 0.5, 0.8, 'back.out(3)') };
     };
     const sheenC = (t) => lerp(MX0 + 285 - 180, MX1 + WM_Y + 40 + 200, p(t, T_LOCK, T_LOCK + 0.5, 'power2.inOut'));
@@ -337,8 +348,8 @@ GTR.scene({
             c.sp.style.transform = `translateY(${y.toFixed(2)}px)`;
             c.sp.style.filter = '';
           } else {
-            const q = p(t, c.td, c.td + 0.28, 'power2.in');
-            vis(c.sp, 1 - p(t, c.td, c.td + 0.18, 'power1.in'));
+            const q = p(t, c.td, c.td + DIS_DUR, 'power2.in');
+            vis(c.sp, 1 - p(t, c.td, c.td + DIS_FADE, 'power1.out'));
             c.sp.style.transform = `translate(${(18 * q).toFixed(2)}px, ${(-30 * q).toFixed(2)}px)`;
             c.sp.style.filter = `blur(${(8 * q).toFixed(2)}px)`;
           }
@@ -380,15 +391,20 @@ GTR.scene({
             const op = partOp(k, t);
             tr(P.el, o);
             P.el.style.opacity = op;
+            // copies evenly spaced in distance (≤ TRAIL_STEP px) along the (straight) flight line
             const past = offAt(k, t - TRAIL_LAG);
             const dist = Math.hypot(past[0] - o[0], past[1] - o[1]);
+            const n = Math.round(clamp(Math.ceil(dist / TRAIL_STEP), 6, TRAIL_MAX));
+            const aEach = (2.1 / n) * clamp(dist / 40);
             TRAILS.forEach((j) => {
-              const f = (j + 1) / TRAIL_N;
+              const el = P.trails[j];
+              if (j >= n || aEach < 0.002) { el.style.display = 'none'; return; }
+              const f = (j + 1) / n;
               const ot = [lerp(o[0], past[0], f), lerp(o[1], past[1], f)];
-              const ta = 0.17 * Math.pow(1 - f, 1.3) * partOp(k, t - TRAIL_LAG * f) * clamp(dist / 30);
-              tr(P.trails[j], ot);
-              P.trails[j].style.opacity = ta;
-              P.trails[j].style.display = ta > 0.003 ? '' : 'none';
+              const ta = aEach * Math.pow(1 - f, 1.2) * partOp(k, t - TRAIL_LAG * f);
+              tr(el, ot);
+              el.style.opacity = ta;
+              el.style.display = ta > 0.002 ? '' : 'none';
             });
             const land = q.t0 + (q.over ? 0.2 : 0.17);
             const fa = t >= land ? 0.38 * (1 - p(t, land, land + 0.4, 'power2.out')) : 0;
@@ -547,22 +563,23 @@ GTR.scene({
           }
         }
         // glyph dust
-        if (t >= T_DIS) {
+        const dustOut = 1 - p(t, DUST_END - 0.3, DUST_END, 'power1.in');
+        if (t >= T_DIS && t < DUST_END) {
           for (let pass = 0; pass < 2; pass++) {
             dc.fillStyle = pass === 0 ? '#2ee6b4' : '#ffffff';
             for (const q of dust) {
               const age = t - q.t0;
               if (age <= 0 || age >= q.life) continue;
               const dd = q.v * age + 0.5 * q.acc * age * age;
-              const sw = 16 * age;
+              const sw = 7 * age;
               const x = q.x0 + Math.cos(q.ang) * dd + noise(q.seed, age * 1.2) * sw;
               const y = q.y0 + Math.sin(q.ang) * dd + noise(q.seed + 50, age * 1.2) * sw;
               let al;
-              if (q.linger) al = Math.min(1, age / 0.25) * (1 - inv(age, q.life - 0.9, q.life)) * 0.5 * (0.65 + 0.35 * Math.sin(t * 3 + q.seed));
+              if (q.linger) al = Math.min(1, age / 0.2) * (1 - inv(age, q.life * 0.45, q.life)) * 0.55 * (0.65 + 0.35 * Math.sin(t * 3 + q.seed));
               else al = Math.pow(1 - age / q.life, 1.4);
               const white = 1 - clamp(age / 0.3);
               al *= pass === 0 ? 1 - white * 0.6 : white;
-              al *= fadeDive;
+              al *= fadeDive * dustOut;
               if (al <= 0.004) continue;
               const [X, Y] = place(x, y, q.z);
               if (X < -10 || X > 1930 || Y < -10 || Y > 1090) continue;
