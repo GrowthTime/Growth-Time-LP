@@ -326,7 +326,9 @@ GTR.scene({
       return {
         x: lerp(960 + sh.sx, dx, e),
         y: lerp(540 + sh.sy, dy, e),
-        s: lerp(1, 0.05, e) * (1 + kickAt(t) + punchAt(t)) * (1 + 0.035 * p(t, 0, 0.9, 'sine.out')),
+        // scale 1 → 0.05 on power3.in, interpolated geometrically so the shrink reads as a
+        // steady, accelerating fly-away instead of collapsing in the last two frames
+        s: Math.pow(0.05, e) * (1 + kickAt(t) + punchAt(t)) * (1 + 0.035 * p(t, 0, 0.9, 'sine.out')),
       };
     };
 
@@ -358,11 +360,11 @@ GTR.scene({
         rim.style.opacity = 0.35 + 0.65 * grow;
 
         // "99+" pill (the badge lands in it at 1.50) + tick pulses
-        const pp = p(t, 1.46, 1.68, 'back.out(2.4)');
+        const pp = p(t, 1.48, 1.68, 'back.out(2.4)');
         let pulse = 0;
         for (const tb of [2.5, 3.0, 3.5]) if (t >= tb) pulse += 0.14 * Math.pow(1 - inv(t, tb, tb + 0.2), 2);
         const land = t >= DOCK1 ? Math.pow(1 - inv(t, DOCK1, DOCK1 + 0.2), 2) : 0;
-        pill99.style.opacity = clamp(inv(t, 1.46, 1.5));
+        pill99.style.opacity = t >= DOCK1 ? 1 : 0;
         pill99.style.transform = `scale(${(0.4 + 0.6 * pp) * (1 + pulse)})`;
         pill99.style.boxShadow = `0 6px 16px rgba(239,68,68,.45), 0 0 0 3px #fff, 0 0 ${(28 * land).toFixed(1)}px rgba(239,68,68,${(0.9 * land).toFixed(3)})`;
         pillRings.forEach((rg, i) => {
@@ -467,16 +469,17 @@ GTR.scene({
           badgeWrap.style.transform = st > 0.01
             ? `translate(${b.x - 960}px, ${b.y - 540}px) rotate(${th}deg) scale(${b.s * (1 + st)}, ${b.s / (1 + 0.25 * st)}) rotate(${-th}deg)`
             : `translate(${b.x - 960}px, ${b.y - 540}px) scale(${b.s})`;
-          badgeWrap.style.opacity = 1 - inv(t, 1.46, DOCK1);
-          const sm = inv(t, 1.38, 1.44);
+          badgeWrap.style.opacity = 1;
+          // sub-frame samples along the path → a short comet trail in the fastest frames
+          const sm = inv(t, 1.41, 1.45);
           ghosts.forEach((g, k) => {
             if (sm <= 0) { g.style.opacity = 0; return; }
-            const q = badgeAt(t - (k + 1) * FR);
-            g.style.opacity = sm * (k ? 0.14 : 0.3);
+            const q = badgeAt(t - (k + 1) * 0.5 * FR);
+            g.style.opacity = sm * (k ? 0.16 : 0.32);
             g.style.transform = `translate(${q.x - 960}px, ${q.y - 540}px) scale(${q.s})`;
           });
           // hit flash
-          const fl = t < HIT ? 0 : t < HOLD ? 0.6 : 0.6 * Math.pow(1 - inv(t, HOLD, 1.2), 2);
+          const fl = t < HIT ? 0 : t < HOLD ? 0.45 : 0.45 * Math.pow(1 - inv(t, HOLD, 1.2), 2);
           flash.style.opacity = fl;
           const txt = t < HIT ? String(Math.round(map(t, 0, HIT, 1, 99, 'power2.in'))) : '99+';
           if (txt !== numState) {

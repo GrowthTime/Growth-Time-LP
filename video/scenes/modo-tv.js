@@ -74,8 +74,9 @@ GTR.scene({
       boxShadow: '0 30px 80px rgba(0,0,0,.5), 0 60px 160px rgba(0,0,0,.35), 0 0 0 1px rgba(255,255,255,.07), inset 0 1px 0 rgba(255,255,255,.10)',
     } }, W);
     const led = h('div', { style: { position: 'absolute', left: '807px', bottom: '3px', width: '5px', height: '4px', borderRadius: '2px', background: '#15dba8', boxShadow: '0 0 6px #15dba8, 0 0 14px rgba(21,219,168,.8)' } }, bezel);
-    // tilt-out accent: a teal glint racing along the top bezel edge (7.5–7.9)
-    const glint = h('div', { style: { position: 'absolute', left: '0', top: '-1px', width: '1620px', height: '3px', borderRadius: '2px', opacity: 0, pointerEvents: 'none',
+    // tilt-out accent: a teal glint racing right→left along the bezel's lower edge (the top edge is above frame
+    // in the pulled-back framing), chasing lower third B out of frame (7.55–7.9)
+    const glint = h('div', { style: { position: 'absolute', left: '0', bottom: '-1px', width: '1620px', height: '4px', borderRadius: '2px', opacity: 0, pointerEvents: 'none',
       background: 'linear-gradient(90deg, rgba(21,219,168,0) 0%, rgba(21,219,168,.9) 42%, #eafff8 50%, rgba(21,219,168,.9) 58%, rgba(21,219,168,0) 100%)',
       backgroundSize: '34% 100%', backgroundRepeat: 'no-repeat', filter: 'drop-shadow(0 0 6px rgba(21,219,168,.95)) drop-shadow(0 0 16px rgba(21,219,168,.6))' } }, bezel);
     const plate = h('div', { style: { position: 'absolute', left: '-900px', top: '-700px', width: '3720px', height: '2480px', background: '#000' } }, W);
@@ -363,7 +364,14 @@ GTR.scene({
     /* =====================================================================
        HUD — Ana's hero toast (zoomed shot, bottom-right, ~1.3× the TV toast)
        ===================================================================== */
-    const HT = { w: 560, h: 96, x: 1800 - 560, y: 975 - 96 };
+    const HT = { w: 560, h: 96, x: 1800 - 560, y: 980 - 96 };
+    // frosted halo behind it: defocuses + whitens the busy UI fragments around the toast (white UI → reads as glow)
+    const heroFrost = h('div', { style: {
+      position: 'absolute', left: `${HT.x - 130}px`, top: `${HT.y - 80}px`, width: `${HT.w + 460}px`, height: `${HT.h + 170}px`, pointerEvents: 'none', display: 'none', zIndex: 2,
+      background: 'radial-gradient(closest-side, rgba(250,251,251,.94) 62%, rgba(250,251,251,.6) 82%, rgba(250,251,251,0) 100%)',
+      backdropFilter: 'blur(7px)', webkitBackdropFilter: 'blur(7px)',
+      webkitMaskImage: 'radial-gradient(closest-side, #000 70%, transparent 100%)', maskImage: 'radial-gradient(closest-side, #000 70%, transparent 100%)',
+    } }, root);
     const heroToast = h('div', { style: {
       position: 'absolute', left: `${HT.x}px`, top: `${HT.y}px`, width: `${HT.w}px`, height: `${HT.h}px`, borderRadius: '20px',
       background: 'linear-gradient(#e9fbf4,#c3f1db)', border: '1.5px solid rgba(21,219,168,.9)',
@@ -531,9 +539,9 @@ GTR.scene({
       st(tvGlow, 'opacity', f2(clamp(0.8 + 0.9 * flare + 0.35 * hit, 0, 2)));
       st(tvGlow, 'transform', `scale(${f2(1 + 0.12 * flare + 0.03 * hit)})`);
       st(glass, 'backgroundPosition', `${f2(88 - t * 5 - c.ry * 6)}% 0`);
-      const gk = inv(t, 7.5, 7.88);
-      st(glint, 'opacity', gk > 0 && gk < 1 ? f2(Math.sin(Math.PI * Math.min(1, gk * 1.25)) ) : '0');
-      st(glint, 'backgroundPosition', `${f2(lerp(-30, 130, E('power2.inOut')(gk)))}% 0`);
+      const gk = inv(t, 7.55, 7.9);
+      st(glint, 'opacity', gk > 0 && gk < 1 ? f2(Math.sin(Math.PI * gk)) : '0');
+      st(glint, 'backgroundPosition', `${f2(lerp(130, -30, E('power2.inOut')(gk)))}% 0`);
 
       /* ---- header ---- */
       tx(clock, `15:42:${String(7 + Math.floor(t)).padStart(2, '0')}`);
@@ -704,7 +712,10 @@ GTR.scene({
         const ex = p(t, 3.93, 4.06, 'power2.in');
         const vis = a >= 0 && ex < 1;
         st(heroToast, 'display', vis ? 'flex' : 'none');
+        st(heroFrost, 'display', vis ? 'block' : 'none');
         if (vis) {
+          st(heroFrost, 'opacity', f2(p(a, 0.04, 0.4, 'power2.out') * (1 - ex)));
+          st(heroFrost, 'transform', `translateX(${f2(120 * (1 - E('power3.out')(inv(a, 0, 0.5))) + 80 * ex)}px)`);
           const kin = E('power3.out')(inv(a, 0, 0.5));
           const sc = a < 0.28 ? lerp(0.86, 1.03, E('power2.out')(a / 0.28)) : lerp(1.03, 1, E('power2.inOut')(inv(a, 0.28, 0.5)));
           const fy = Math.sin(a * 2.6) * 3 * p(a, 0.4, 0.8, 'sine.inOut');

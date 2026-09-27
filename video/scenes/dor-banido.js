@@ -161,7 +161,9 @@ GTR.scene({
         pill.innerHTML = GTR.iconSVG('clock', { size: 15, sw: 2.4 }) + `<span>${TIMERS[ti]}</span>`;
       }
       const f = (P - zd) / P;
-      return { wrap, zd, rot, ph, gray: ti >= 0 ? 0.4 : 0, x: 960 + (sx - 960) * f, y: 540 + (sy - 540) * f, sx };
+      // fade window: gone before the fall reaches y ≈ 1000 (keeps the disclaimer band clean)
+      const fadeEnd = clamp(Math.sqrt((2 * Math.max(0, 1000 - sy)) / 2600), 0.2, 0.5);
+      return { wrap, zd, rot, ph, gray: ti >= 0 ? 0.4 : 0, x: 960 + (sx - 960) * f, y: 540 + (sy - 540) * f, sx, fadeEnd };
     });
     // drop order: right → left, so the headline column is clear before the title lands (0.5)
     ghosts.slice().sort((a, b) => b.sx - a.sx).forEach((q, k) => { q.t0 = 0.03 + k * 0.035; q.spin = k % 2 ? 1 : -1; });
@@ -201,7 +203,7 @@ GTR.scene({
       hd.units.forEach((u, i) => {
         u.style.willChange = 'auto';
         const line = base + (tops[i] - minTop > 20 ? 1 : 0);          // 0 Cliente · 1 chamando. · 2 Ninguém · 3 responde.
-        carryUnits.push({ u, t0: 0.08 + (3 - line) * 0.03 + RC() * 0.04, vx: (RC() - 0.5) * 160, spin: (RC() - 0.5) * 140, red: base === 2 && line === 2 });
+        carryUnits.push({ u, t0: 0.1 + (3 - line) * 0.025 + RC() * 0.03, vx: (RC() - 0.5) * 70, spin: (RC() - 0.5) * 120 });
       });
     });
     const hudText = h('div', { style: { position: 'absolute', inset: '0' } }, hud);
@@ -272,6 +274,30 @@ GTR.scene({
 
     /* ============================================================ UPDATE */
     const burst = (t, t0, k) => (t >= t0 ? Math.exp(-(t - t0) / k) : 0);
+    // hot heads on every third KIT.streaks line: replays KIT.streaks' rng stream (seed 21, dir −1) so each head
+    // sits exactly on the tip of an existing streak — S3 continues the very same lines after the cut
+    const streakHeads = (c2, tt, a) => {
+      const r = rng(21);
+      c2.lineCap = 'round';
+      for (let i = 0; i < 54; i++) {
+        const y = r() * 1080, sp = 2600 * (0.5 + r()), L = 460 * (0.4 + r()), off = r() * 3000;
+        const xx = 1920 - (((off + tt * sp) % 2600) - 340);
+        const aa = a * (0.3 + r() * 0.7), lw = 1 + r() * 2;
+        if (i % 3) continue;
+        const core = c2.createLinearGradient(xx + L * 0.5, y, xx, y);
+        core.addColorStop(0, 'rgba(255,190,180,0)');
+        core.addColorStop(1, `rgba(255,232,226,${aa.toFixed(3)})`);
+        c2.strokeStyle = core;
+        c2.lineWidth = lw + 1.6;
+        c2.beginPath(); c2.moveTo(xx + L * 0.5, y); c2.lineTo(xx, y); c2.stroke();
+        const hg = c2.createRadialGradient(xx, y, 0, xx, y, 14);
+        hg.addColorStop(0, `rgba(255,240,236,${(0.9 * aa).toFixed(3)})`);
+        hg.addColorStop(0.35, `rgba(255,120,110,${(0.35 * aa).toFixed(3)})`);
+        hg.addColorStop(1, 'rgba(239,68,68,0)');
+        c2.fillStyle = hg;
+        c2.fillRect(xx - 14, y - 14, 28, 28);
+      }
+    };
     const SCR_H = 872;
 
     return {
@@ -323,16 +349,58 @@ GTR.scene({
         const wx = 130 * truck + 22 * p(t, 3.3, 3.5, 'sine.out') - 922 * wp;
         const push = 1 + 0.05 * p(t, 0, 3.5, 'sine.inOut') + 0.02 * wp;
         cam.set({ x: shx + wx, y: shy + 12 * truck, rz: shr, s: push });
-        const blur = 24 * wp;
-        whipWrap.style.filter = blur > 0.05 ? `blur(${blur.toFixed(2)}px)` : 'none';
+        // motion blur: horizontal smear tracks the whip velocity; the vertical term only catches up at the very
+        // end so the last frame meets S3's isotropic blur 24 (u = 1 → 24 × 24)
+        const u = inv(t, 3.5, 4.0);
+        if (u > 0.002) {
+          const bx = 24 * u + 10 * Math.sin(Math.PI * u), by = 24 * Math.pow(u, 5);
+          wBlur.setAttribute('stdDeviation', `${bx.toFixed(2)} ${by.toFixed(2)}`);
+          whipWrap.style.filter = 'url(#db-whip)';
+        } else whipWrap.style.filter = 'none';
 
-        /* ---- rim light breathes (S1 continuity) and swells on the lock slam ---- */
+        /* ---- rim light breathes (S1 continuity), swells on the lock slam, then drains to gray with the scan ---- */
+        const drain = p(t, 2.5, 2.9, 'power1.inOut');
         rim.style.transform = `scale(${(1 + 0.06 * Math.sin(g * 6)) * (1 + 0.28 * burst(t, 2.5, 0.3))})`;
+        rim.style.filter = drain > 0.001 ? `grayscale(${(0.9 * drain).toFixed(3)})` : '';
+        rim.style.opacity = 1 - 0.3 * drain;
+
+        /* ---- chat rows die bottom-up on 16ths: red flush + badge pops red → 0, then the row slides left and collapses ---- */
+        for (let i = 0; i < ROWS.length; i++) {
+          const at = 0.375 + (ROWS.length - 1 - i) * 0.125;
+          const fl = p(t, at, at + 0.06, 'power1.out');
+          const c = p(t, at + 0.05, at + 0.35, 'power2.in');
+          const bs = t < at ? 1 : Math.max(0, lerp(1, 1.5, p(t, at, at + 0.07, 'power2.out')) * (1 - p(t, at + 0.07, at + 0.24, 'power2.in')));
+          const bg = `rgb(${Math.round(lerp(255, 245, fl))},${Math.round(lerp(255, 143, fl))},${Math.round(lerp(255, 143, fl))})`;
+          for (const q of PHONES) {
+            const { row, badge } = q.rows[i];
+            row.style.backgroundColor = bg;
+            row.style.height = `${(88 * (1 - c)).toFixed(2)}px`;
+            row.style.opacity = 1 - c;
+            row.style.transform = c > 0 ? `translateX(${(-34 * c).toFixed(2)}px)` : '';
+            badge.style.background = t >= at ? RED : '#25d366';
+            badge.style.boxShadow = t >= at ? '0 0 14px rgba(239,68,68,.9)' : 'none';
+            badge.style.transform = `scale(${bs.toFixed(3)})`;
+          }
+        }
+
+        /* ---- S1's headline, carried torn across the cut, drops dead char by char (bottom line first) ---- */
+        carry.style.display = t < 0.7 ? 'block' : 'none';
+        if (t < 0.7) {
+          for (const c of carryUnits) {
+            const tau = t - c.t0;
+            if (tau <= 0) { c.u.style.transform = ''; c.u.style.opacity = 1; c.u.style.filter = ''; continue; }
+            const fall = 520 * tau + 0.5 * 4200 * tau * tau;                // decisive drop: gone by 0.45 (title lands 0.5)
+            c.u.style.transform = `translate(${(c.vx * tau).toFixed(2)}px, ${fall.toFixed(2)}px) rotate(${(c.spin * tau).toFixed(2)}deg)`;
+            c.u.style.opacity = 1 - p(tau, 0.02, 0.24, 'power1.in');
+            const gr = p(tau, 0, 0.08);
+            c.u.style.filter = `grayscale(${gr.toFixed(3)}) brightness(${(1 - 0.35 * gr).toFixed(3)}) blur(${(7 * p(tau, 0, 0.24, 'power1.in')).toFixed(2)}px)`;
+          }
+        }
 
         /* ---- ghosts: continue S1's drift, then fall, tilt, gray out, blur, fade ---- */
         for (const q of ghosts) {
           const tau = t - q.t0;
-          const a = 1 - p(tau, 0.06, 0.5, 'power1.in');
+          const a = 1 - p(tau, 0.06, q.fadeEnd, 'power1.in');
           if (a <= 0.002) { q.wrap.style.display = 'none'; continue; }
           q.wrap.style.display = 'block';
           const z = q.zd + 80 * (g - 2.5);
@@ -350,7 +418,7 @@ GTR.scene({
         }
         {
           const tau = t - HERO.t0;
-          const a = 0.6 * (1 - p(tau, 0.06, 0.5, 'power1.in'));
+          const a = 1 - p(tau, 0.06, 0.5, 'power1.in');
           heroWrap.style.display = a > 0.002 ? 'block' : 'none';
           if (a > 0.002) {
             const z = HERO_Z + 18 * (g - 3.35);
@@ -361,7 +429,7 @@ GTR.scene({
             heroWrap.style.transform = `translate(${X}px, ${Y}px) translate(-50%, -50%) rotate(${-2.5 + (tau > 0 ? -tau * 50 : 0)}deg) scale(${k})`;
             heroWrap.style.opacity = a;
             const bl = tau > 0 ? 6 * p(tau, 0, 0.45) : 0;
-            heroWrap.style.filter = `saturate(.7) grayscale(1)${bl > 0.05 ? ` blur(${bl.toFixed(2)}px)` : ''}`;
+            heroWrap.style.filter = `saturate(.7) grayscale(1) brightness(0.6)${bl > 0.05 ? ` blur(${bl.toFixed(2)}px)` : ''}`;
           }
         }
 
@@ -405,7 +473,10 @@ GTR.scene({
         sc.clearRect(0, 0, 1920, 1080);
         const sa = 0.6 * p(t, 3.5, 4.0, 'power1.in');
         stCanvas.style.display = sa > 0.004 ? 'block' : 'none';
-        if (sa > 0.004) KIT.streaks(sc, g, { dir: -1, alpha: sa, n: 54, seed: 21, speed: 2600, len: 460, color: '255,176,166' });
+        if (sa > 0.004) {
+          KIT.streaks(sc, g, { dir: -1, alpha: sa, n: 54, seed: 21, speed: 2600, len: 460, color: '255,176,166' });
+          streakHeads(sc, g, Math.min(1, sa * 1.5));
+        }
       },
     };
   },

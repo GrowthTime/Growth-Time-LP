@@ -280,9 +280,11 @@ GTR.scene({
     // measure once (layout sizes are transform-independent)
     const hIn1 = itIn1.offsetHeight, hSys = itSys.offsetHeight, hTyp = itTyp.offsetHeight, hAi = itAi.offsetHeight, hIn2 = itIn2.offsetHeight;
     const aiW = aiB.offsetWidth, aiH = aiB.offsetHeight;
-    // portal point: middle of the empty wallpaper between the toolbar and the top of the final stack
+    // portal point: empty wallpaper between the toolbar and the top of the final stack…
     const stackTop = WIN.y + WIN.h - (PAD + hIn2 + GAP + hAi + GAP + hSys + GAP + hIn1);
-    PORTAL.y = Math.round((THY + stackTop) / 2);
+    // …biased toward the stack (≈95 px above the first bubble) so the bubble's top edge keeps sliding
+    // out of frame until ≈7.9 and the last beat reads as a dive, not a flat hold
+    PORTAL.y = Math.round(Math.max((THY + stackTop) / 2, stackTop - 95));
     // AI bubble centre in world coords while it sits at the bottom (4.3–5.75)
     const AIC = { x: CHX + CHAT - 20 - aiW / 2, y: WIN.y + WIN.h - PAD - aiH / 2 };
     // wallpaper wipe origin = Coexistência pill centre, in thread-local coords
@@ -291,7 +293,6 @@ GTR.scene({
     const WIPE_R1 = Math.hypot(CHAT - COEX_T.x, THH - COEX_T.y) + 80;
     // list-column centre: the S5 gate dive's vanishing point (960,540) lands on it during pre-roll
     const LISTC = { x: LX + LIST / 2, y: CY + (WIN.h - BAR) / 2 };
-    console.warn('FIXIA-DBG', JSON.stringify({ hIn1, hSys, hTyp, hAi, hIn2, aiW, stackTop, PORTAL, topBox: topBox.offsetHeight, e2e: e2e.offsetWidth, label: rows[0].label.offsetWidth, COEX_T, WIPE_R0, WIPE_R1 }));
 
     /* ---------- flying channel badges (world layer, above the window) ---------- */
     const fly = h('div', { style: { position: 'absolute', left: '0', top: '0', width: '1920px', height: '1080px', pointerEvents: 'none' } }, world);
