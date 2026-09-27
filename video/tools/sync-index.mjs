@@ -6,7 +6,7 @@ import { readFileSync, writeFileSync, existsSync } from 'node:fs';
 import path from 'node:path';
 const ROOT = path.resolve(path.dirname(new URL(import.meta.url).pathname), '..');
 const tl = readFileSync(path.join(ROOT, 'js/timeline.js'), 'utf8');
-const ids = [...new Set([...tl.matchAll(/id:\s*'([^']+)'/g)].map((m) => m[1]))];
+const ids = [...new Set([...tl.matchAll(/["']?id["']?:\s*["']([^"']+)["']/g)].map((m) => m[1]))];
 const tags = ids.map((id) => {
   const f = `scenes/${id}.js`;
   if (!existsSync(path.join(ROOT, f))) console.warn('missing', f);
