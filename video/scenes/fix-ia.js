@@ -3,8 +3,11 @@
    Fix 01: one inbox for WhatsApp / Instagram / Messenger, API Oficial +
    Coexistência seeded, and an AI that answers at 23:47 in seconds and
    closes the order. Plants the "Vendas 1 · 4321" chip (paid off in S8).
-   First visible frame (21.5): window small + dim behind the S5 gate dive.
-   Last frame (30.0): full-frame #efeae2 dotted WhatsApp plate (→ S7).
+   First visible frame (21.5): window small + dim behind the S5 gate dive, its
+   list column held on the dive's vanishing point (960,540) until the drop.
+   Last frame (30.0): full-frame #efeae2 dotted WhatsApp plate (→ S7). The
+   in-world wallpaper dots fade out (7.55–7.75) before the plate fades in
+   (7.72–7.96), so the dive lands on flat #efeae2 — no double exposure.
    Everything that moves is a pure function of `local` (update); the tl
    only drives the HUD headline / pill / subline reveals.
    ============================================================ */

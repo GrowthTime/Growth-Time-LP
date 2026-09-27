@@ -123,7 +123,8 @@ GTR.scene({
       background: 'radial-gradient(circle, rgba(239,68,68,0.42) 0%, rgba(239,68,68,0.14) 38%, rgba(239,68,68,0) 68%)' } }, lockWrap);
     const lockDisc = h('div', { style: { position: 'absolute', inset: '0', borderRadius: '50%', display: 'grid', placeItems: 'center',
       background: 'radial-gradient(circle at 50% 35%, #2a0c0e 0%, #110506 72%)', border: '2px solid rgba(239,68,68,0.8)',
-      boxShadow: '0 0 0 8px rgba(239,68,68,0.10), 0 0 70px rgba(239,68,68,0.55), 0 30px 60px rgba(0,0,0,0.55), inset 0 0 40px rgba(239,68,68,0.18)' } }, lockWrap);
+      // dark 7 px seat ring + tight contact shadow: the disc reads as deliberately seated over the modal's top edge
+      boxShadow: '0 0 0 7px rgba(12,4,5,0.55), 0 0 0 8.5px rgba(239,68,68,0.22), 0 10px 18px rgba(0,0,0,0.45), 0 0 70px rgba(239,68,68,0.55), 0 30px 60px rgba(0,0,0,0.55), inset 0 0 40px rgba(239,68,68,0.18)' } }, lockWrap);
     lockDisc.innerHTML = GTR.iconSVG('lock', { size: 116, color: RED, sw: 2.1 });
     lockDisc.firstChild.style.filter = 'drop-shadow(0 0 14px rgba(239,68,68,0.75))';
 
@@ -176,6 +177,21 @@ GTR.scene({
     hero.style.boxShadow = '0 30px 70px rgba(0,0,0,.55), 0 0 0 2px rgba(239,68,68,0), 0 0 40px rgba(239,68,68,0)';
     const HERO_Z = 150, heroF = (P - HERO_Z) / P;
     const HERO = { x: 960 + (380 - 960) * heroF, y: 540 + (820 - 540) * heroF, t0: 0.46 };
+
+    /* ---- debris: three dead gray bubbles sunk deep in the world — they keep the depth after the drop
+       (left third + lower right, clear of the chips and of the disclaimer band x < 380, y > 1020) ---- */
+    const DEBRIS = [
+      // text, time, screen x, y, z, rot, alpha
+      ['Alguém aí?', '19:03', 250, 640, -760, -6, 0.42],
+      ['Oi??', '18:47', 345, 872, -430, 5, 0.34],
+      ['Tem no preto?', '21:40', 1590, 905, -860, -4, 0.5],
+    ].map(([text, time, sx, sy, z, rot, alpha], i) => {
+      const wrap = h('div', { style: { position: 'absolute', left: '0', top: '0', width: 'max-content', transformOrigin: '50% 50%', display: 'none' } }, ghostsBack);
+      const el = KIT.bubble(wrap, { side: 'in', text, time, size: 20, maxW: 'none' });
+      el.style.whiteSpace = 'nowrap';
+      el.style.boxShadow = '0 14px 34px rgba(0,0,0,.38)';
+      return { wrap, sx, sy, k: P / (P - z), rot, alpha, ph: 20 + i * 7.3 };
+    });
 
     /* ============================================================ STREAKS (whip) */
     const { canvas: stCanvas, ctx: sc } = GTR.canvas(root, { z: 2 });
@@ -433,6 +449,18 @@ GTR.scene({
           }
         }
 
+        /* ---- debris: fades in once the swarm has dropped, sinks slowly, parallax against the truck ---- */
+        for (const d of DEBRIS) {
+          const a = d.alpha * p(t, 1.0, 1.9, 'sine.inOut') * (1 - 0.25 * drain);
+          d.wrap.style.display = a > 0.003 ? 'block' : 'none';
+          if (a <= 0.003) continue;
+          const X = d.sx - 130 * truck * (1 - d.k) + noise(d.ph, g * 0.3) * 8;
+          const Y = d.sy + 9 * (t - 1.0) + noise(d.ph + 5, g * 0.35) * 6;
+          d.wrap.style.transform = `translate(${X.toFixed(2)}px, ${Y.toFixed(2)}px) translate(-50%, -50%) rotate(${(d.rot + noise(d.ph + 9, g * 0.4) * 2).toFixed(2)}deg) scale(${d.k.toFixed(3)})`;
+          d.wrap.style.opacity = a;
+          d.wrap.style.filter = `grayscale(1) brightness(0.55) blur(${(3 + 5 * (1 - d.k)).toFixed(2)}px)`;
+        }
+
         /* ---- ban icon heartbeat ring on beats until the lock ---- */
         const bq = fract(g * 2);
         for (const q of PHONES) {
@@ -475,7 +503,7 @@ GTR.scene({
         stCanvas.style.display = sa > 0.004 ? 'block' : 'none';
         if (sa > 0.004) {
           KIT.streaks(sc, g, { dir: -1, alpha: sa, n: 54, seed: 21, speed: 2600, len: 460, color: '255,176,166' });
-          streakHeads(sc, g, Math.min(1, sa * 1.5));
+          streakHeads(sc, g, Math.min(1, sa * 1.5) * (1 - 0.6 * p(t, 3.86, 4.0, 'sine.in')));   // eases toward S3's plain streaks
         }
       },
     };
