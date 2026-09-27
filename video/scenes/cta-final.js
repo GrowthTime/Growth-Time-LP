@@ -43,6 +43,7 @@ GTR.scene({
     const REINF = 3.6, C1 = 4.0, C2 = 4.25;
     const SPIRAL = [4.5, 6.5];
     const RING_A = 5.0, RING_B = 7.0, FIN = 7.5;
+    const BREATH0 = 4.5;                     // button idle glow starts after the contacts land
 
     /* ---------------- layers ---------------- */
     // soft scrim behind the headline while S14 is still fading out below
@@ -161,7 +162,7 @@ GTR.scene({
     const glint = div(hl, { position: 'absolute', left: `${XS - 3}px`, top: '460px', width: '6px', height: '160px', borderRadius: '3px',
       background: 'linear-gradient(180deg, rgba(234,255,248,0), #eafff8 50%, rgba(234,255,248,0))', boxShadow: '0 0 26px rgba(21,219,168,.9)',
       transformOrigin: '50% 50%', opacity: 0 });
-    const FLARE_Y = Math.round(TOP + BASE + 20);      // just under the baseline (≈ 598)
+    const FLARE_Y = Math.round(TOP + BASE + 17);      // just under the baseline (= 598)
     const flare = div(hl, { position: 'absolute', left: `${XS - 760}px`, top: `${FLARE_Y}px`, width: '1520px', height: '2px', borderRadius: '1px',
       background: 'linear-gradient(90deg, rgba(21,219,168,0), rgba(21,219,168,.75) 38%, #f0fffa 50%, rgba(21,219,168,.75) 62%, rgba(21,219,168,0))',
       boxShadow: '0 0 18px rgba(21,219,168,.8)', transformOrigin: `760px 50%`, opacity: 0 });
@@ -209,18 +210,27 @@ GTR.scene({
     const pA = KIT.pulse(card, { x: DOTX, y: DOTY, r: 110, color: 'rgba(21,219,168,.85)', sw: 2 });
     const pB = KIT.pulse(card, { x: DOTX, y: DOTY, r: 110, color: 'rgba(21,219,168,.85)', sw: 2 });
     const pFin = KIT.pulse(card, { x: DOTX, y: DOTY, r: 300, color: TEAL, sw: 3 });
+    // rings travel BEHIND the mark, the wordmark and the headline (only the dot itself sits on top)
+    for (const pu of [pLock, pA, pB, pFin]) card.insertBefore(pu.el, logo.el);
     const { ctx: trc } = GTR.canvas(card, { z: 'auto' });
-    const landGlow = GTR.glow(card, { x: DOTX, y: DOTY, r: 130, color: '150,255,222', a: 0.75 });
+    const landGlow = GTR.glow(card, { x: DOTX, y: DOTY, r: 70, color: '170,255,230', a: 0.85 });
     landGlow.style.opacity = 0;
+    // landing spark: a quick 45° glint along the growth diagonal (echo of the S5 lock) + a faint cross
+    const mkSpark = (len, w, rot, a) => div(card, { position: 'absolute', left: `${DOTX - w / 2}px`, top: `${DOTY - len / 2}px`, width: `${w}px`, height: `${len}px`,
+      borderRadius: `${w}px`, background: `linear-gradient(180deg, rgba(234,255,248,0), rgba(234,255,248,${a}) 50%, rgba(234,255,248,0))`,
+      boxShadow: '0 0 14px rgba(21,219,168,.85)', transformOrigin: '50% 50%', transform: `rotate(${rot}deg)`, display: 'none' });
+    const spark = mkSpark(190, 4, 45, 1);
+    const sparkX = mkSpark(70, 3, -45, 0.7);
     const fly = div(card, { position: 'absolute', left: '0', top: '0', width: `${DOT}px`, height: `${DOT}px`, borderRadius: '50%', background: MARK,
       transformOrigin: '50% 50%', display: 'none' });
 
-    // flight path (card space). P0 = the period's centre at launch (hl scale 1.02, no shift)
+    // flight path (card space). P0 = the period's centre at launch (hl scale 1.02, no shift).
+    // Tight hook: springs steeply up off "escalar", arcs over and drops into the slot.
     const S_LAUNCH = 1.02;
     const P0 = [960 + (DX - 960) * S_LAUNCH, 540 + (DY - 540) * S_LAUNCH];
     const P3 = [DOTX, DOTY];
-    const P1 = [P0[0] + 150, P0[1] - 150];            // leaves on the 45° growth diagonal
-    const P2 = [P3[0] + 60, P3[1] - 290];             // drops into the slot from above
+    const P1 = [P0[0] + 40, P0[1] - 170];             // steep rise off the headline
+    const P2 = [1175, 120];                           // hooks down into the slot from above
     const bez = (u) => {
       const a = (1 - u) ** 3, b = 3 * u * (1 - u) ** 2, c = 3 * u * u * (1 - u), d = u ** 3;
       return [a * P0[0] + b * P1[0] + c * P2[0] + d * P3[0], a * P0[1] + b * P1[1] + c * P2[1] + d * P3[1]];
@@ -230,7 +240,8 @@ GTR.scene({
       return [a * (P1[0] - P0[0]) + b * (P2[0] - P1[0]) + c * (P3[0] - P2[0]), a * (P1[1] - P0[1]) + b * (P2[1] - P1[1]) + c * (P3[1] - P2[1])];
     };
     const FLY_DUR = LAND - LAUNCH;
-    const uAt = (t) => p(t, LAUNCH, LAND, 'sine.in');
+    // half linear, half sine.in: springs off at once, still accelerates into the slot (reaches it while the mark builds)
+    const uAt = (t) => { const xi = inv(t, LAUNCH, LAND); return 0.5 * xi + 0.5 * (1 - Math.cos(xi * Math.PI / 2)); };
     const posAt = (t) => (t >= LAND ? P3 : bez(uAt(t)));
     const S_REST = (DOT_R * 2) / DOT;                 // DOM dot → logo dot size
 
@@ -239,16 +250,21 @@ GTR.scene({
     const hlX = (t) => SHIFT * hlS(t) * p(t, SHRINK[0], SHRINK[1], 'power3.inOut');
     const D_OFF = 1150;
     const slideK = (t) => (t >= 0 ? 1 : p(t, IN0, 0, 'power3.out'));
-    const placeHalf = (el, k, dir, extraBlur = 0) => {
+    // whip: horizontal smear ∝ speed (power3.out → v ∝ q^(2/3)), slight stretch along the motion
+    const placeHalf = (el, k, dir, fb, extraBlur = 0) => {
       const q = 1 - k;
-      st(el, 'transform', q < 1e-4 ? 'none' : `translate(${(dir * D_OFF * q).toFixed(2)}px,0) rotate(${(dir * 2 * q).toFixed(3)}deg)`);
-      const bl = 8 * q + extraBlur;
-      st(el, 'filter', bl < 0.02 ? 'none' : `blur(${bl.toFixed(2)}px)`);
+      const v = q > 0 ? q ** (2 / 3) : 0;
+      st(el, 'transform', q < 1e-4 ? 'none' : `translate(${(dir * D_OFF * q).toFixed(2)}px,0) rotate(${(dir * 2 * q).toFixed(3)}deg) scaleX(${(1 + 0.14 * v).toFixed(4)})`);
+      const bx = 22 * v + extraBlur, by = 1.4 * v + extraBlur * 0.15;
+      if (bx < 0.05) { st(el, 'filter', 'none'); return; }
+      const sd = `${bx.toFixed(2)} ${by.toFixed(2)}`;
+      if (fb.last !== sd) { fb.g.setAttribute('stdDeviation', sd); fb.last = sd; }
+      st(el, 'filter', fb.url);
     };
 
     /* ---------------- phyllotaxis dust (from the logo dot) ---------------- */
     const GA = Math.PI * (3 - Math.sqrt(5));
-    const SP_N = 1700, SP_R = 1420;
+    const SP_N = 620, SP_R = 1420;                   // sparse enough to stay texture; the spiral reads in the wave front
     const spr = GTR.rng('cta-final-spiral');
     const SPC_K = SP_R / Math.sqrt(SP_N);
     const dust = Array.from({ length: SP_N }, (_, i) => ({
@@ -274,11 +290,13 @@ GTR.scene({
         const x = DOTX + rr * Math.cos(d.th + rot), y = DOTY + rr * Math.sin(d.th + rot);
         if (x < -10 || x > 1930 || y < -10 || y > 1090) continue;
         const ex = (x - 960) / 700, ey = (y - 540) / 380;
-        const m = GTR.smooth(clamp((Math.sqrt(ex * ex + ey * ey) - 1.0) / 0.38));
+        const m1 = GTR.smooth(clamp((Math.sqrt(ex * ex + ey * ey) - 1.0) / 0.38));
+        const lx = (x - 960) / 540, ly = (y - 290) / 250;  // second clean zone: the logo and the air above it
+        const m = m1 * GTR.smooth(clamp((Math.sqrt(lx * lx + ly * ly) - 1.0) / 0.45));
         if (m <= 0.001) continue;
         const front = q < 1 ? 4 * q * (1 - q) : 0;     // brighter while being born (the wave front)
         const tw = 0.72 + 0.28 * Math.sin(t * d.tw * 2 + d.ph);
-        const al = clamp((d.a * tw + 0.35 * front) * m * qe);
+        const al = clamp((d.a * tw + 0.55 * front) * m * qe);
         if (al < 0.004) continue;
         spc.fillStyle = `rgba(21,219,168,${al.toFixed(3)})`;
         spc.beginPath();
@@ -359,7 +377,7 @@ GTR.scene({
       tl,
       update(t) {
         /* --- stage layers: scrim, parallax push/drift --- */
-        const scr = t < 0 ? p(t, IN0, -0.22, 'power2.out') : 1 - p(t, 0.3, 1.8, 'sine.inOut');
+        const scr = t < 0 ? p(t, IN0, -0.36, 'power2.out') : 1 - p(t, 0.3, 1.8, 'sine.inOut');
         st(scrim, 'opacity', scr.toFixed(3));
         st(scrim, 'display', scr > 0.002 ? 'block' : 'none');
         const cS = 1 + 0.018 * p(t, 2.6, 8.0, 'sine.inOut');
@@ -372,8 +390,13 @@ GTR.scene({
 
         /* --- headline halves (pre-roll whip) --- */
         const k = slideK(t);
-        placeHalf(halfA, k, -1);
-        placeHalf(halfB, k, 1);
+        placeHalf(halfA, k, -1, fA);
+        placeHalf(halfB, k, 1, fB);
+        // dark halo keeps the white type legible over S14's plates during the pre-roll only
+        const halo = 0.8 * (1 - p(t, -0.18, 0.02, 'power1.in'));
+        const tsh = halo > 0.004 ? `0 14px 44px rgba(0,0,0,.38), 0 0 40px rgba(0,21,22,${halo.toFixed(3)}), 0 0 14px rgba(0,21,22,${(halo * 0.7).toFixed(3)})` : '0 14px 44px rgba(0,0,0,.38)';
+        st(halfA, 'textShadow', tsh);
+        st(halfB, 'textShadow', tsh);
         for (const g of ghosts) {
           const kg = slideK(t - 0.032 * g.k);
           const al = t < 0 ? g.alpha * clamp((1 - k) * 5) : 0;
@@ -381,8 +404,8 @@ GTR.scene({
           st(g.a, 'display', on ? 'block' : 'none');
           st(g.b, 'display', on ? 'block' : 'none');
           if (!on) continue;
-          placeHalf(g.a, kg, -1, 4 * g.k);
-          placeHalf(g.b, kg, 1, 4 * g.k);
+          placeHalf(g.a, kg, -1, g.fa, 5 * g.k);
+          placeHalf(g.b, kg, 1, g.fb, 5 * g.k);
           st(g.a, 'opacity', al.toFixed(3));
           st(g.b, 'opacity', al.toFixed(3));
           st(g.esc, 'backgroundPosition', `${(fract(t / 3) * GW).toFixed(1)}px 0px`);
@@ -411,7 +434,7 @@ GTR.scene({
           const fade = (1 - gk) ** 2;
           st(glint, 'opacity', fade.toFixed(3));
           st(glint, 'transform', `rotate(45deg) scaleY(${lerp(0.3, 1.25, E('expo.out')(gk)).toFixed(3)})`);
-          st(flare, 'opacity', (0.85 * fade).toFixed(3));
+          st(flare, 'opacity', (0.55 * fade).toFixed(3));
           st(flare, 'transform', `scaleX(${lerp(0.15, 1.1, E('expo.out')(gk)).toFixed(3)})`);
         }
 
@@ -431,10 +454,10 @@ GTR.scene({
           if (t < LAND) {
             // stretch along the velocity
             const u = uAt(t), xi = inv(t, LAUNCH, LAND);
-            const du = (Math.PI / 2) * Math.sin(xi * Math.PI / 2) / FLY_DUR;
+            const du = (0.5 + 0.5 * (Math.PI / 2) * Math.sin(xi * Math.PI / 2)) / FLY_DUR;
             const [vx, vy] = dbez(u);
             const spd = Math.hypot(vx, vy) * du;
-            const str = clamp(spd / 5200) * 0.45;
+            const str = clamp(spd / 3200) * 0.45;
             ang = Math.atan2(vy, vx);
             sx = 1 + str;
             sy = 1 - str * 0.45;
@@ -452,11 +475,23 @@ GTR.scene({
           st(fly, 'boxShadow', `0 0 ${(28 + 14 * glowK).toFixed(1)}px rgba(21,219,168,${(0.35 + 0.5 * glowK).toFixed(3)})`);
         }
         drawTrail(t);
-        const lg = t >= LAND ? Math.exp(-(t - LAND) * 5) : 0;
+        const lg = t >= LAND ? Math.exp(-(t - LAND) * 7) : 0;
         st(landGlow, 'display', lg > 0.004 ? 'block' : 'none');
         if (lg > 0.004) {
           st(landGlow, 'opacity', lg.toFixed(3));
-          st(landGlow, 'transform', `scale(${(0.5 + 0.9 * (1 - lg)).toFixed(3)})`);
+          st(landGlow, 'transform', `scale(${(0.6 + 0.7 * (1 - lg)).toFixed(3)})`);
+        }
+        // 45° landing spark (0.28 s): shoots out along the diagonal, thins and fades
+        const sk = inv(t, LAND, LAND + 0.28);
+        const skOn = t >= LAND && sk < 1;
+        st(spark, 'display', skOn ? 'block' : 'none');
+        st(sparkX, 'display', skOn ? 'block' : 'none');
+        if (skOn) {
+          const grow = E('expo.out')(sk), fa = (1 - sk) ** 1.6;
+          st(spark, 'opacity', fa.toFixed(3));
+          st(spark, 'transform', `rotate(45deg) scale(${(1 - 0.5 * sk).toFixed(3)},${lerp(0.15, 1.15, grow).toFixed(3)})`);
+          st(sparkX, 'opacity', (0.8 * fa).toFixed(3));
+          st(sparkX, 'transform', `rotate(-45deg) scale(${(1 - 0.5 * sk).toFixed(3)},${lerp(0.2, 1, grow).toFixed(3)})`);
         }
 
         /* --- logo assembly around the slot --- */
@@ -472,13 +507,14 @@ GTR.scene({
 
         /* --- button life --- */
         const bOn = t >= LOCK2;
-        const breath = t < 4.2 ? 0 : 0.5 - 0.5 * Math.cos((2 * Math.PI * (t - 4.2)) / 4.2);
+        // idle breathing waits for the contacts to land (from 4.5 [90.5]) so the lower half settles in sequence
+        const breath = t < BREATH0 ? 0 : 0.5 - 0.5 * Math.cos((2 * Math.PI * (t - BREATH0)) / 4.2);
         const burst = bOn ? Math.exp(-(t - LOCK2) * 3.2) : 0;
         const g = clamp(0.35 + 0.65 * breath + 0.6 * burst);
         st(btn, 'boxShadow', `0 10px 26px rgba(43,182,115,.36), 0 0 ${(28 + 52 * g).toFixed(1)}px rgba(21,219,168,${(0.16 + 0.3 * g).toFixed(3)}), inset 0 1px 0 rgba(255,255,255,.35), inset 0 -3px 8px rgba(0,50,35,.16)`);
-        const bl = 0.5 - 0.5 * Math.cos((2 * Math.PI * (t - LOCK2)) / 4.2);
         st(blob, 'opacity', (p(t, LOCK2, LOCK2 + 0.6, 'power2.out')).toFixed(3));
-        st(blob, 'transform', `scale(${lerp(0.6, 1.25, bOn ? bl : 0).toFixed(4)})`);
+        st(blob, 'transform', `scale(${(lerp(0.5, 0.72, p(t, LOCK2, LOCK2 + 0.6, 'power3.out')) + 0.53 * breath).toFixed(4)})`);
+        st(lowScrim, 'opacity', p(t, REINF - 0.2, REINF + 0.6, 'power2.out').toFixed(3));
         const bs = inv(t, BSHEEN[0], BSHEEN[1]);
         const bsOn = bs > 0 && bs < 1;
         st(bSheen, 'display', bsOn ? 'block' : 'none');

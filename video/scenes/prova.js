@@ -6,19 +6,28 @@
                  ring + anamorphic flare · "Performance," is already mid-slam
      0.50        "não vaidade." rises
      1.25        THE GAG — "vaidade." sags, grays and blurs; vanity chips gray
-                 out and fall while the money chips glow · subline
+                 out and fall while the money chips glow; the vanity half of
+                 the frame sinks into shade, the money half lights · subline
+     2.76–2.86   the subline's full stop swells into the brand's teal dot
      2.80–3.10   part 1 exits (up, blur, fade)
-     3.00–3.70   Brazil draws itself outward from Ceará (state borders)
+     2.84–3.20   the dot flies (expo.inOut arc + comet tail) into Ceará
+     3.15        LANDING — flash + shock ring; Ceará lights, the marker takes
+                 over with a squash; state borders are born from it (3.15–3.9)
      3.25–4.15   five arcs fly out of Ceará · states light up in a wave
      3.25        "Do Ceará para todo o Brasil."   4.00 eyebrow
-     4.10–4.60   partner logos pop in on two opposing marquee rows
-     5.50–6.00   everything fades and blurs out (S15's halves slide in above)
+     4.10–4.60   all 11 partner logos pop into a 4/4/3 grid (x 1000–1740)
+     4.15        last arc lands: shimmer across "todo o Brasil", the five
+                 destination dots pulse in sequence
+     5.20–5.55   grid + eyebrow fade/blur out (power2.out)
+     5.30–5.80   map, arcs, pulses, Ceará label fade/blur out (power2.out)
+     5.50–5.95   headline B fades/blurs out (power2.in; above S15's band)
    Hand-off in : white flash, "Performance," mid-reveal (S13 ends on a teal
                  point at 960,540 — the bloom starts exactly there).
-   Hand-off out: dark stage, map and logos faded + blurred out.
+   Hand-off out: empty dark stage (S15's halves slide in over 5.5–6.0 through
+                 y ≈ 470–610, which is already clear by 5.5).
    tl → line 2 / gag / subline / headline B / eyebrow only. Line 1 (it has
-   to be mid-reveal on frame 0), chips, burst, map, arcs, marquee, parallax
-   and exits are pure functions of local time in update().
+   to be mid-reveal on frame 0), chips, burst, flying dot, map, arcs, grid,
+   shimmer, parallax and exits are pure functions of local time in update().
    ============================================================ */
 GTR.scene({
   id: 'prova',
@@ -305,7 +314,8 @@ GTR.scene({
     const tailSvg = s('svg', { width: 1920, height: 1080, viewBox: '0 0 1920 1080', style: { position: 'absolute', left: '0', top: '0', overflow: 'visible', filter: 'drop-shadow(0 0 7px rgba(21,219,168,.85))' } }, flyL);
     const trail = new Array(NTR);
     for (let k = NTR - 1; k >= 0; k--) {                               // head segments painted last (on top)
-      trail[k] = s('line', { stroke: k < 4 ? '#bafbe6' : k < 9 ? '#5ff0c4' : '#15dba8', 'stroke-linecap': 'round', opacity: 0 }, tailSvg);
+      const c = k / (NTR - 1);                                         // opaque segments (no overlap banding), bright → brand teal
+      trail[k] = s('line', { stroke: `rgb(${Math.round(lerp(214, 21, c))},${Math.round(lerp(255, 219, c))},${Math.round(lerp(242, 168, c))})`, 'stroke-linecap': 'round', opacity: 0 }, tailSvg);
     }
     const fly = mkDot(1);
     // map translate (same formula as update) — the target is the Ceará point where the map sits at LAND
@@ -452,8 +462,9 @@ GTR.scene({
             sa(d, 'x1', A0[0].toFixed(2)); sa(d, 'y1', A0[1].toFixed(2));
             sa(d, 'x2', A1[0].toFixed(2)); sa(d, 'y2', A1[1].toFixed(2));
             sa(d, 'stroke-width', (FD * base * lerp(0.08, 0.8, fk * fk)).toFixed(2));
-            sa(d, 'opacity', (lerp(0.05, 0.9, fk) * (1 - land)).toFixed(3));
+            sa(d, 'opacity', 1);
           });
+          st(tailSvg, 'opacity', (0.9 * (1 - land)).toFixed(3));
         }
 
         /* ======== PART 2 ======== */

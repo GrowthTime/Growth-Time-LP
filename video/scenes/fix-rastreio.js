@@ -185,7 +185,7 @@ GTR.scene({
       borderRadius: '6px', background: C.bgAlt, border: `1px solid ${C.border}`, color: '#404040', fontSize: '13px', fontWeight: 600, whiteSpace: 'nowrap' } }, cCol);
     instChip.innerHTML = I('smartphone', { size: 12, color: C.tealDark, sw: 2.2 }) + '<span>Vendas 1 · </span>';
     const cDigWrap = h('span', { style: { position: 'relative', display: 'inline-block', fontVariantNumeric: 'tabular-nums', fontWeight: 700 } }, instChip);
-    const CHIP_ROOM = 3;                                 // px opened after the '·' when the box lands
+    const CHIP_ROOM = 4;                                 // px opened after the '·' when the box lands
     const cDigits = [...'4321'].map((ch) => {
       const d = h('span', { style: { display: 'inline-block', transformOrigin: '50% 60%' } }, cDigWrap);
       d.textContent = ch;
@@ -255,19 +255,22 @@ GTR.scene({
     };
     const LB = boxOf(lDigits), CB = boxOf(cDigits);
     const BIG = rectIn(big);                              // "5,6x" line box (full card width, text centred)
+    const bigRange = document.createRange();
+    bigRange.selectNodeContents(big);
+    const BIG_W = bigRange.getBoundingClientRect().width / WK;   // glyph run width (centred → mirror-safe)
     cDigWrap.style.marginLeft = '0px';
 
     // outline boxes, derived from the glyph runs: tag = '4' − 5 … '1' + 5 (the '1' → ']' gap is
-    // opened by TAG_ROOM as the box lands); chip = '4' − 3.5 … '1' + 3.5 (clear of the '·').
+    // opened by TAG_ROOM as the box lands); chip = '4' − 4 … '1' + 4 (clear of the '·').
     const mkBox = (b, l, r, pv, rad) => h('div', { style: {
       position: 'absolute', left: px(b.x - l), top: px(b.y - pv), width: px(b.w + l + r), height: px(b.h + 2 * pv), borderRadius: px(rad),
       border: `2px solid ${C.vibrant}`, boxShadow: '0 0 12px rgba(21,219,168,.75), inset 0 0 8px rgba(21,219,168,.3)', opacity: 0, transformOrigin: '50% 50%',
     } }, world);
-    const boxL = mkBox(LB, 5, 5, 3, 6), boxC = mkBox(CB, 3.5, 3.5, 2, 5);
+    const boxL = mkBox(LB, 5, 5, 3, 6), boxC = mkBox(CB, 4, 4, 2, 5);
 
     // laser arc: leaves the chip box on its right (clear of the contact name), arcs over
     // the pipeline and drops onto the label box from above. Cubic P0 → P1 → P2 → P3.
-    const LP0 = [CB.x + CB.w + 5, CB.cy], LP1 = [CB.x + CB.w + 165, CB.cy - 40];
+    const LP0 = [CB.x + CB.w + 5.5, CB.cy], LP1 = [CB.x + CB.w + 165, CB.cy - 40];
     const LP2 = [LB.cx + 70, LB.y - 170], LP3 = [LB.cx, LB.y - 4];
     const cub = (a, b, c, d, u) => { const v = 1 - u; return v * v * v * a + 3 * v * v * u * b + 3 * v * u * u * c + u * u * u * d; };
     const svgUp = s('svg', { width: 1920, height: 1080, viewBox: '0 0 1920 1080', style: { position: 'absolute', left: '0', top: '0', overflow: 'visible', pointerEvents: 'none' } }, world);
@@ -617,10 +620,10 @@ GTR.scene({
         /* ---------- camera + parallax plane ---------- */
         const cm = camAt(t);
         cam.set(cm);
-        // zoom blur at the pull-back's peak speed (power2.inOut velocity², max ≈ 4.5 px)
+        // zoom blur at the pull-back's peak speed (CSS blur = std-dev: 1.6 px ≈ 5 px visible spread)
         const pu = inv(t, PULL.t0, PULL.t1);
         const vel = pu > 0 && pu < 1 ? (pu < 0.5 ? 2 * pu : 2 * (1 - pu)) : 0;
-        const mb = 4 * vel * vel * vel;
+        const mb = 1.6 * vel * vel * vel;
         world.style.filter = mb > 0.08 ? `blur(${mb.toFixed(2)}px)` : 'none';
         const ex = p(t, 7.5, 7.95, 'power2.in');            // drift up
         const exA = p(t, 7.5, 7.95, 'sine.inOut');          // fade
@@ -853,7 +856,7 @@ GTR.scene({
 
         // Top 3 Criativos: hidden (and out of the frame's layout) until the pull-back has landed
         const tk = pop(t, T3_IN, 0.45, 'back.out(1.7)');
-        vis(top3, clamp(inv(t, T3_IN, T3_IN + 0.1)));
+        vis(top3, p(t, T3_IN, T3_IN + 0.07, 'power2.out'));   // ~4 frames: a pop, never a gray slab
         top3.style.transform = `translateY(${14 * (1 - tk)}px) scale(${lerp(0.94, 1, tk)})`;
         const land = decay(t, PULSE.t1, 3.2);
         rows.forEach((r) => {
@@ -880,10 +883,11 @@ GTR.scene({
         pg.setTransform(1, 0, 0, 1, 0, 0);
         pg.clearRect(0, 0, 1920, 1080);
         if (t >= PULSE.t0 && t < PULSE.t1 + 0.5) {
-          const P0 = camProj(cm, BIG.x + BIG.w / 2, BIG.y + BIG.h * 0.52);
+          // leaves from the right edge of the "5,6x" (never strikes through the digits)
+          const P0 = camProj(cm, BIG.x + BIG.w / 2 + BIG_W / 2 + 4, BIG.y + BIG.h * 0.56);
           const rk0 = p(t, ROW_AT[0], ROW_AT[0] + 0.45, 'power3.out');
           const P3 = [R1_END[0] - 24 * (1 - rk0), R1_END[1] + 14 * (1 - tk)];
-          const P1 = [P0[0] + 220, P0[1] + 100], P2 = [P3[0] - 100, P3[1] - 140];
+          const P1 = [P0[0] + 170, P0[1] + 110], P2 = [P3[0] - 100, P3[1] - 140];
           const at = (u) => [cub(P0[0], P1[0], P2[0], P3[0], u), cub(P0[1], P1[1], P2[1], P3[1], u)];
           const ue = (tt) => GTR.E('power2.inOut')(clamp(inv(tt, PULSE.t0, PULSE.t1)));
           if (t < PULSE.t1 + 0.1) {
