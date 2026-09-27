@@ -18,13 +18,35 @@ video/
   assets/             fontes da LP, logo, logos de clientes, cha-ching.mp3 do app
 ```
 
+## O filme: "Ponto Final · Do caos à máquina" (94 s)
+
+| tempo | cena | o que mostra |
+|---|---|---|
+| 0:00 | `dor-caos` | badge de notificações 1 → 99+, WhatsApp lotado: *Ninguém responde.* (ERRO 01) |
+| 0:04 | `dor-banido` | número banido, sem aviso (ERRO 02) |
+| 0:08 | `dor-dinheiro` | o dinheiro do anúncio some sem rastro (ERRO 03) |
+| 0:12 | `dor-sumiu` | a cliente ouro some e ninguém percebe (ERRO 04) → colapso |
+| 0:16 | `ponto-final` | silêncio, o ponto verde, *Ponto final no caos*, logo GT monta nos 45° |
+| 0:22 | `fix-ia` | DROP · inbox multicanal, IA responde às 23:47 com a loja fechada → 01 RESPONDIDO |
+| 0:30 | `fix-oficial` | API Oficial da Meta + Coexistência, saúde do número → 02 API OFICIAL |
+| 0:36 | `fix-rastreio` | clique → conversa → venda, 4 dígitos do chip, ROAS real → 03 RASTREADO |
+| 0:44 | `fix-guto` | Guto encontra a cliente ouro e confere cada número → 04 CLIENTE NA MIRA |
+| 0:52 | `dashboard-funil` | funil 12.480 → 1.850 → 312 → R$ 620 mil: *Da mensagem ao caixa.* |
+| 0:58 | `modo-tv` | venda ao vivo com o cha-ching real, Bronze/Prata/Ouro, PARABÉNS |
+| 1:06 | `montagem` | loja online, botão em rodízio, fluxos (Beta) |
+| 1:12 | `sob-o-capo` | *Tecnologia que não dorme.* +260 mil linhas, 124 funções, 361 evoluções, 129 tabelas |
+| 1:20 | `prova` | *Performance, não vaidade.* · Do Ceará para todo o Brasil · parceiros |
+| 1:26 | `cta-final` | *Está na hora de escalar* · Agende seu diagnóstico gratuito |
+
+Roteiro completo, contratos entre cenas e fontes de cada número: [STORYBOARD.md](STORYBOARD.md).
+
 ## Gerar o vídeo
 
 ```bash
 node tools/sync-index.mjs                     # (re)gera as <script> das cenas a partir do timeline.js
 node tools/render.mjs --info                  # exporta out/timeline.json (duração, cenas, cues de som)
 python3 tools/soundtrack.py                   # audio/gtr-soundtrack.wav + .mp3
-node tools/render.mjs --video --fps 60 --audio audio/gtr-soundtrack.wav --out out/gtr-apresentacao.mp4
+node tools/render.mjs --video --fps 60 --crf 18 --grain 3 --audio audio/gtr-soundtrack.wav --out out/gtr-apresentacao-1080p60.mp4
 ```
 
 Pré-requisitos: Node 18+, `playwright` (Chromium), `ffmpeg` com libx264 no PATH, Python 3 com `numpy` e `scipy`.
