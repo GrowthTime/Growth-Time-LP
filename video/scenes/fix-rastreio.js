@@ -850,20 +850,85 @@ GTR.scene({
         const gl = t >= 2.5 && t < 2.6 ? 1 - 0.4 * inv(t, 2.5, 2.6) : 0;
         KIT.glitch(pill, gl, t, 83);
 
-        // Top 3 Criativos
-        const tk = pop(t, 5.68, 0.55, 'back.out(1.4)');
-        vis(top3, clamp(inv(t, 5.68, 5.8)));
-        top3.style.transform = `translateY(${36 * (1 - tk)}px) scale(${lerp(0.9, 1, tk)})`;
+        // Top 3 Criativos: hidden (and out of the frame's layout) until the pull-back has landed
+        const tk = pop(t, T3_IN, 0.45, 'back.out(1.7)');
+        vis(top3, clamp(inv(t, T3_IN, T3_IN + 0.1)));
+        top3.style.transform = `translateY(${14 * (1 - tk)}px) scale(${lerp(0.94, 1, tk)})`;
+        const land = decay(t, PULSE.t1, 3.2);
         rows.forEach((r) => {
           const at = r.c.at;
-          const rk = p(t, at, at + 0.5, 'power3.out');
-          r.row.style.opacity = clamp(inv(t, at, at + 0.22));
-          r.row.style.transform = `translateX(${-34 * (1 - rk)}px)`;
-          const bp = p(t, at + 0.08, at + 0.8, 'power3.out');
-          r.fill.style.width = px(BAR_W * (r.c.v / 5.6) * bp);
-          r.val.textContent = GTR.fmt.x(r.c.v * bp, 1);
-          if (r.gold) r.row.style.boxShadow = `0 0 ${14 + 10 * Math.sin(t * 3)}px rgba(243,179,21,${0.25 + 0.12 * Math.sin(t * 3)})`;
+          const rk = p(t, at, at + 0.45, 'power3.out');
+          r.row.style.opacity = clamp(inv(t, at, at + 0.15));
+          r.row.style.transform = `translateX(${-24 * (1 - rk)}px)`;
+          // true value printed from the first frame; only the bar grows (0 → value, 0.4 s)
+          r.fill.style.width = px(BAR_W * (r.c.v / 5.6) * p(t, at, at + 0.4, 'power3.out'));
+          if (r.gold) {
+            const gs = Math.sin(t * 3);
+            r.row.style.boxShadow = `0 0 ${14 + 10 * gs + 26 * land}px rgba(243,179,21,${0.25 + 0.12 * gs + 0.35 * land}), 0 0 0 ${3 * land}px rgba(21,219,168,${0.35 * land})`;
+            const vk = t >= PULSE.t1 && t < PULSE.t1 + 0.32 ? Math.sin(Math.PI * inv(t, PULSE.t1, PULSE.t1 + 0.32)) : 0;
+            r.val.style.transform = `scale(${1 + 0.16 * vk})`;
+            r.val.style.textShadow = land > 0.01 ? `0 0 ${16 * land}px rgba(21,219,168,${0.8 * land})` : 'none';
+            // sheen runs back from the value to the thumbnail (the rewind motif, once more)
+            const shq = inv(t, PULSE.t1 - 0.02, PULSE.t1 + 0.45);
+            r.sheen.style.opacity = shq > 0 && shq < 1 ? Math.sin(Math.PI * shq) : 0;
+            r.sheen.style.backgroundPosition = `${lerp(0, 100, GTR.E('power2.out')(shq))}% 0`;
+          }
         });
+
+        // pulse: ad card "5,6x" (projected from the world) → row #1 "5,6x"
+        pg.setTransform(1, 0, 0, 1, 0, 0);
+        pg.clearRect(0, 0, 1920, 1080);
+        if (t >= PULSE.t0 && t < PULSE.t1 + 0.5) {
+          const P0 = camProj(cm, BIG.x + BIG.w / 2, BIG.y + BIG.h * 0.52);
+          const rk0 = p(t, ROW_AT[0], ROW_AT[0] + 0.45, 'power3.out');
+          const P3 = [R1_END[0] - 24 * (1 - rk0), R1_END[1] + 14 * (1 - tk)];
+          const P1 = [P0[0] + 220, P0[1] + 100], P2 = [P3[0] - 100, P3[1] - 140];
+          const at = (u) => [cub(P0[0], P1[0], P2[0], P3[0], u), cub(P0[1], P1[1], P2[1], P3[1], u)];
+          const ue = (tt) => GTR.E('power2.inOut')(clamp(inv(tt, PULSE.t0, PULSE.t1)));
+          if (t < PULSE.t1 + 0.1) {
+            const fade = 1 - inv(t, PULSE.t1, PULSE.t1 + 0.1);
+            const N = 16;
+            pg.lineCap = 'round';
+            for (let k = 0; k < N; k++) {
+              const [xa, ya] = at(ue(t - (k * 0.12) / N)), [xb, yb] = at(ue(t - ((k + 1) * 0.12) / N));
+              const a = (1 - k / N) * fade;
+              pg.strokeStyle = k < 3 ? `rgba(232,255,248,${a})` : `rgba(21,219,168,${a * 0.9})`;
+              pg.lineWidth = Math.max(1, 6 - k * 0.32);
+              pg.shadowColor = 'rgba(21,219,168,0.9)';
+              pg.shadowBlur = 12;
+              pg.beginPath(); pg.moveTo(xa, ya); pg.lineTo(xb, yb); pg.stroke();
+            }
+            pg.shadowBlur = 0;
+            if (t < PULSE.t1) {
+              const [hx0, hy0] = at(ue(t));
+              const rg = pg.createRadialGradient(hx0, hy0, 0, hx0, hy0, 22);
+              rg.addColorStop(0, 'rgba(255,255,255,1)');
+              rg.addColorStop(0.3, 'rgba(160,255,228,0.9)');
+              rg.addColorStop(1, 'rgba(21,219,168,0)');
+              pg.fillStyle = rg;
+              pg.globalAlpha = clamp(inv(t, PULSE.t0, PULSE.t0 + 0.04));
+              pg.beginPath(); pg.arc(hx0, hy0, 22, 0, Math.PI * 2); pg.fill();
+              pg.globalAlpha = 1;
+            }
+          }
+          // landing: a ring + sparks on the row's value
+          const lt = t - PULSE.t1;
+          if (lt >= 0 && lt < 0.5) {
+            const q = lt / 0.5;
+            pg.strokeStyle = `rgba(21,219,168,${0.85 * (1 - q)})`;
+            pg.lineWidth = 2.5 * (1 - q) + 0.5;
+            pg.beginPath(); pg.arc(P3[0], P3[1], 14 + 46 * GTR.E('expo.out')(q), 0, Math.PI * 2); pg.stroke();
+            const r = GTR.rng(4077);
+            for (let k = 0; k < 14; k++) {
+              const ang = r() * Math.PI * 2, sp = 60 + r() * 90;
+              const e = 1 - Math.exp(-lt * 7);
+              pg.globalAlpha = (1 - q) * 0.95;
+              pg.fillStyle = k % 3 === 0 ? '#ffd46b' : k % 3 === 1 ? '#15dba8' : '#e8fff7';
+              pg.beginPath(); pg.arc(P3[0] + Math.cos(ang) * sp * e, P3[1] + Math.sin(ang) * sp * e, 1.3 + r() * 2, 0, Math.PI * 2); pg.fill();
+            }
+            pg.globalAlpha = 1;
+          }
+        }
 
         /* ---------- diagnostic chip ---------- */
         chip.set(t, inv(t, 0.25, 0.43), inv(t, 3.5, 4.0));

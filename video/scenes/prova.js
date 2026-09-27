@@ -37,7 +37,7 @@ GTR.scene({
     const LEAD = 0.12;                       // line 1 is already mid-slam on frame 0
     const L2 = 0.50, GAG = 1.25, SUB = 1.25;
     const OUT1 = [2.80, 3.10];
-    const DOT = [2.76, 2.86], FLY = [2.85, 3.15], LAND = 3.15;   // the subline's full stop detaches → Ceará
+    const DOT = [2.76, 2.86], FLY = [2.84, 3.20], LAND = 3.15;   // the subline's full stop detaches → Ceará (expo.inOut: ≥99.5% there at LAND)
     const MAP = [3.00, 3.60], HB = 3.25;
     const ARC0 = 3.25, ARC_STEP = 0.125, ARC_DUR = 0.40;
     const EB = 4.00, LOGO = 4.10, SHIM = 4.15;
@@ -170,7 +170,7 @@ GTR.scene({
     const CES = { x: MX + CE.x * K, y: MY + CE.y * K };
     mapL.style.transformOrigin = `${CES.x}px ${CES.y + 150}px`;
     const ceGlow = GTR.glow(mapL, { x: CES.x, y: CES.y, r: 420, color: '21,219,168', a: 0.26 });
-    const landFlash = GTR.glow(mapL, { x: CES.x, y: CES.y, r: 150, color: '200,255,238', a: 0.9 });
+    const landFlash = GTR.glow(mapL, { x: CES.x, y: CES.y, r: 150, color: '150,255,225', a: 0.55 });
     const mapWrap = div(mapL, { position: 'absolute', left: `${MX}px`, top: `${MY}px`, width: `${MW}px`, height: `${MH}px`, transformOrigin: `${CE.x * K}px ${CE.y * K}px`, opacity: 0 });
     const mapSvg = await KIT.loadSVG('assets/brazil-map.svg', mapWrap);
     mapSvg.setAttribute('width', MW);
@@ -300,7 +300,8 @@ GTR.scene({
     const FD = 24;                                                     // dot diameter at full size
     const mkDot = (a) => div(flyL, { position: 'absolute', left: `${-FD / 2}px`, top: `${-FD / 2}px`, width: `${FD}px`, height: `${FD}px`, borderRadius: '50%', opacity: 0,
       background: 'radial-gradient(circle at 42% 38%, #f4fffb 0%, #7ff5d2 38%, #33cc99 72%)', boxShadow: `0 0 ${14 * a}px rgba(21,219,168,.9), 0 0 ${40 * a}px rgba(21,219,168,.5)` });
-    const trail = [5, 4, 3, 2, 1].map(() => mkDot(0.4));
+    const NTR = 14;
+    const trail = Array.from({ length: NTR }, () => mkDot(0.35)).reverse();
     const fly = mkDot(1);
     // map translate (same formula as update) — the target is the Ceará point where the map sits at LAND
     const mapT = (t) => { const dr = E('sine.inOut')(inv(t, MAP[0], OUT_HEAD[1])); return [lerp(-10, 12, dr), lerp(10, -6, dr)]; };
@@ -308,7 +309,7 @@ GTR.scene({
     // where the stop sits when it detaches (head1 push + P1 lift at DOT[0])
     const hs0 = lerp(1, 1.035, E('sine.inOut')(inv(DOT[0], 0, OUT1[1])));
     const SRC = { x: 960 + (STOP0.x - 960) * hs0, y: 540 + (STOP0.y - 540) * hs0 - 40 * p(DOT[0], OUT1[0], OUT1[1], 'power2.in') };
-    const CTRL = { x: SRC.x - 40, y: TGT.y - 150 };                    // rises, then sweeps left into Ceará
+    const CTRL = { x: SRC.x + 30, y: 80 };                             // arcs up over the headline, then drops into Ceará
     const flyAt = (q) => {
       const a = (1 - q) * (1 - q), b = 2 * (1 - q) * q, c = q * q;
       return [a * SRC.x + b * CTRL.x + c * TGT.x, a * SRC.y + b * CTRL.y + c * TGT.y];
@@ -428,23 +429,25 @@ GTR.scene({
           const col = p(t, DOT[0], DOT[1] + 0.04, 'power2.out');       // white text ink → teal
           const shrink = E('power2.in')(inv(t, FLY[0] + 0.12, LAND));  // lands at the marker's size
           const land = p(t, LAND - 0.015, LAND + 0.06, 'power2.out');
-          const base = lerp(STOP0.d / FD, 1.15, pop) * lerp(1, 0.72, shrink);
+          const base = lerp(STOP0.d / FD, 0.92, pop) * lerp(1, 0.75, shrink);
           const posAt = (tt) => flyAt(E('expo.inOut')(inv(tt, FLY[0], FLY[1])));
           const P = posAt(t), Pb = posAt(t - 1 / 120);
           const vx = P[0] - Pb[0], vy = P[1] - Pb[1];
           const spd = Math.hypot(vx, vy);                                // px per half-frame
           const ang = spd > 0.5 ? Math.atan2(vy, vx) * 180 / Math.PI : 0;
-          const str = 1 + Math.min(1.6, spd / 30);
+          const str = 1 + Math.min(0.8, spd / 45);
           const filt = col < 0.999 ? `saturate(${col.toFixed(3)}) brightness(${lerp(2.2, 1, col).toFixed(3)})` : 'none';
           st(fly, 'opacity', String(1 - land));
           st(fly, 'filter', filt);
           st(fly, 'transform', `translate(${P[0].toFixed(2)}px, ${P[1].toFixed(2)}px) rotate(${ang.toFixed(2)}deg) scale(${(base * str).toFixed(4)}, ${(base / Math.sqrt(str)).toFixed(4)})`);
           trail.forEach((d, k) => {
-            const tk = t - (k + 1) * 0.007;
+            // comet tail: dense samples of the recent path, tapering
+            const tk = t - (k + 1) * 0.0028;
             if (tk < FLY[0] || spd < 2) { st(d, 'opacity', '0'); return; }
             const Q = posAt(tk);
-            st(d, 'opacity', String(((1 - (k + 1) / 6) * 0.55 * (1 - land)).toFixed(3)));
-            st(d, 'transform', `translate(${Q[0].toFixed(2)}px, ${Q[1].toFixed(2)}px) scale(${(base * (1 - (k + 1) * 0.12)).toFixed(4)})`);
+            const fk = 1 - (k + 1) / (NTR + 1);
+            st(d, 'opacity', String((fk * 0.6 * (1 - land)).toFixed(3)));
+            st(d, 'transform', `translate(${Q[0].toFixed(2)}px, ${Q[1].toFixed(2)}px) scale(${(base * lerp(0.25, 0.95, fk)).toFixed(4)})`);
           });
         }
 
@@ -478,7 +481,7 @@ GTR.scene({
         st(ceGlow, 'opacity', String(born * (0.7 + 0.3 * beat)));
         st(ceGlow, 'transform', `translate(${mtx.toFixed(1)}px, ${mty.toFixed(1)}px) scale(${(lerp(0.6, 1, born) + 0.05 * beat).toFixed(4)})`);
         // landing flash + shock ring
-        const lf = inv(t, LAND - 0.02, LAND + 0.5);
+        const lf = inv(t, LAND - 0.02, LAND + 0.42);
         st(landFlash, 'display', lf > 0 && lf < 1 ? 'block' : 'none');
         if (lf > 0 && lf < 1) {
           st(landFlash, 'opacity', String((1 - E('power2.out')(lf)).toFixed(3)));
@@ -541,7 +544,7 @@ GTR.scene({
         // Ceará marker: takes over from the flying dot with a squash, then pulses every beat
         const cmq = inv(t, LAND - 0.02, LAND + 0.32);
         const cm = t < LAND - 0.02 ? 0 : lerp(0.6, 1, E('back.out(3)')(cmq));
-        const sq = Math.sin(Math.PI * inv(t, LAND - 0.01, LAND + 0.16));
+        const sq = Math.sin(Math.PI * inv(t, LAND - 0.02, LAND + 0.13));
         sa(ceMark, 'transform', `translate(${CE.x} ${CE.y}) scale(${(cm * (1 - 0.24 * sq)).toFixed(4)} ${(cm * (1 + 0.2 * sq)).toFixed(4)})`);
         sa(ceHalo, 'r', ((24 + 8 * beat) / K).toFixed(2));
         ceRings.forEach((c, k) => {
