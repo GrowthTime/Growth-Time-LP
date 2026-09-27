@@ -109,3 +109,9 @@ Cues de som disponíveis (`ctx.cue(nome, t, opts)`): `whoosh {dur, up}`, `swoosh
 - **Profundidade:** sombras longas e suaves, glow teal, camadas com parallax (`KIT.camera` para push-in/rotação 3D).
 - **Nomes/dados:** só os da demonstração pública (Moda Fashion, Ana Silva, Júlia Costa, Marina Alves,
   Patrícia Modas…) e números verdadeiros do código. Sem nomes de clientes reais.
+
+## Arquivos exportados
+
+- `export/gtr-ponto-final-web-1080p30.mp4`: versão leve para web/WhatsApp (1080p30, ~14 MB).
+- O master 1080p60 (~58 MB) é gerado em `out/` pelo comando acima; não fica no Git por causa do tamanho.
+- `export/poster.jpg`: quadro do logo para capa/thumbnail.
