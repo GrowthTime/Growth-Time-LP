@@ -221,7 +221,10 @@ GTR.scene({
 
     /* ---------- ports on the card edges ---------- */
     // [x, pop time, token hit times]
+    // time the chip-flip sweep (sine.inOut over S1[0] → S2[1]) passes world x
+    const swHit = (x) => SWEEP.t0 + (SWEEP.t1 - SWEEP.t0) * Math.acos(1 - 2 * clamp(inv(x, S1[0], S2[1]))) / Math.PI;
     const ports = [[S1[0], 0.0, [1.0, 3.4]], [S1[1], 0.25, [1.5, 2.95]], [S2[0], 0.25, [1.5, 2.95]], [S2[1], 0.5, [2.0, 2.5]]].map(([x, at, hits]) => {
+      hits = hits.concat([swHit(x)]);
       const el = h('div', { style: { position: 'absolute', left: px(x - 8), top: px(LINE_Y - 8), width: '16px', height: '16px', borderRadius: '50%', background: '#04201b',
         border: `3px solid ${C.vibrant}`, boxShadow: '0 0 12px rgba(21,219,168,.8)', transformOrigin: '50% 50%' } }, world);
       return { el, at: at + 0.3, x, hits };
@@ -586,6 +589,12 @@ GTR.scene({
         });
       }
       burst(t, 3.4, S1[0], LINE_Y, 26, 33, 0.7);
+      // 3.5: chip flips to RASTREADO → one teal sweep runs the whole healed pipeline (ad → sale)
+      if (t >= SWEEP.t0 && t < SWEEP.t1 + 0.14) {
+        const x = lerp(S1[0], S2[1], p(t, SWEEP.t0, SWEEP.t1, 'sine.inOut'));
+        const a = clamp(Math.min(inv(t, SWEEP.t0, SWEEP.t0 + 0.03), 1 - inv(t, SWEEP.t1, SWEEP.t1 + 0.14)));
+        comet(x, LINE_Y, Math.max(S1[0], x - 360), a, 10);
+      }
       // ambient packets once the pipeline is proven
       if (t >= 4.8) {
         for (let j = 0; j < 8; j++) {
@@ -607,6 +616,11 @@ GTR.scene({
         /* ---------- camera + parallax plane ---------- */
         const cm = camAt(t);
         cam.set(cm);
+        // zoom blur at the pull-back's peak speed (power2.inOut velocity², max ≈ 4.5 px)
+        const pu = inv(t, PULL.t0, PULL.t1);
+        const vel = pu > 0 && pu < 1 ? (pu < 0.5 ? 2 * pu : 2 * (1 - pu)) : 0;
+        const mb = 4.5 * vel * vel;
+        world.style.filter = mb > 0.08 ? `blur(${mb.toFixed(2)}px)` : 'none';
         const ex = p(t, 7.5, 7.95, 'power2.in');            // drift up
         const exA = p(t, 7.5, 7.95, 'sine.inOut');          // fade
         cam.view.style.transform = `translateY(${-60 * ex}px)`;
@@ -698,13 +712,13 @@ GTR.scene({
         bubble.style.transform = `scale(${lerp(0.6, 1, pb)})`;
         // "4321" in the instance chip lights up
         const dg = p(t, 3.7, 3.95, 'power2.out');
+        cDigWrap.style.marginLeft = px(CHIP_ROOM * p(t, 3.6, 3.74, 'power2.inOut'));
         instChip.style.background = mix('f4f6f5', 'e7fbf4', dg);
         instChip.style.borderColor = mix('e5e5e5', '8fe6cb', dg);
         cDigits.forEach((d, i) => {
           const lift0 = 3.8 + i * 0.125;
           const kk = t >= lift0 && t < lift0 + 0.3 ? Math.sin(Math.PI * inv(t, lift0, lift0 + 0.3)) : 0;
           d.style.color = mix('404040', '0f766e', dg);
-          d.style.fontWeight = dg > 0.5 ? 800 : 600;
           d.style.textShadow = dg > 0 ? `0 0 ${10 * dg + 8 * kk}px rgba(21,219,168,${0.55 * dg + 0.4 * kk})` : 'none';
           d.style.transform = `translateY(${-3 * kk}px) scale(${1 + 0.25 * kk})`;
         });
@@ -740,17 +754,13 @@ GTR.scene({
         const st = p(t, 3.5, 3.78, 'expo.out');
         big.style.opacity = clamp(inv(t, 3.5, 3.58));
         big.style.transform = `scale(${lerp(1.15, 1, st)})`;
-        big.style.filter = t >= 3.5 ? `drop-shadow(0 0 ${lerp(34, 12, st)}px rgba(21,219,168,${lerp(0.95, 0.35, st)}))` : 'none';
-        bigSkel.style.opacity = 1 - clamp(inv(t, 3.5, 3.56));
-        bigSkel.style.backgroundPosition = `${lerp(200, -100, fract(t * 1.2))}% 0`;
-        const ik = p(t, 3.62, 3.95, 'power3.out');
-        invest.style.opacity = ik;
-        invest.style.transform = `translateY(${10 * (1 - ik)}px)`;
-        const ck2 = pop(t, 3.78, 0.45, 'back.out(2)');
-        capi.style.opacity = clamp(inv(t, 3.78, 3.9));
-        capiIn.style.transform = `scale(${lerp(0.6, 1, ck2)})`;
-        const sendK = t >= 3.85 && t < 4.35 ? Math.sin(Math.PI * inv(t, 3.85, 4.35)) : 0;
+        const emit = t >= PULSE.t0 - 0.06 && t < PULSE.t0 + 0.3 ? Math.sin(Math.PI * inv(t, PULSE.t0 - 0.06, PULSE.t0 + 0.3)) : 0;
+        big.style.filter = t >= 3.5 ? `drop-shadow(0 0 ${lerp(34, 12, st) + 26 * emit}px rgba(21,219,168,${lerp(0.95, 0.35, st) + 0.6 * emit}))` : 'none';
+        // the CAPI pill is on the face from the flip; it confirms ("sent") right after the stamp
+        const sendK = t >= 3.72 && t < 4.22 ? Math.sin(Math.PI * inv(t, 3.72, 4.22)) : 0;
         capiIc.style.transform = `translate(${5 * sendK}px, ${-5 * sendK}px)`;
+        capiIn.style.transform = `scale(${1 + 0.045 * sendK})`;
+        capiIn.style.boxShadow = sendK > 0 ? `0 0 0 ${3 * sendK}px rgba(21,219,168,${0.22 * sendK}), 0 0 ${18 * sendK}px rgba(21,219,168,${0.35 * sendK})` : 'none';
 
         /* ---------- the 4 digits ---------- */
         clones.forEach((cl, i) => {
@@ -787,6 +797,7 @@ GTR.scene({
         const bc = p(t, 3.72, 3.95, 'back.out(2)');
         boxC.style.opacity = clamp(inv(t, 3.72, 3.84));
         boxC.style.transform = `scale(${lerp(1.5, 1, bc)})`;
+        lDigits[3].style.marginRight = px(TAG_ROOM * p(t, 4.34, 4.5, 'power2.inOut'));
         const bl = p(t, 4.45, 4.68, 'back.out(2)');
         boxL.style.opacity = clamp(inv(t, 4.45, 4.55));
         boxL.style.transform = `scale(${lerp(1.5, 1, bl)})`;

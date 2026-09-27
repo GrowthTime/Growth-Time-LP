@@ -88,9 +88,9 @@ GTR.scene({
       // [x, y, fall px/s] — world coords at local 0
       [[640, 110, 26], [760, 250, 10], [1160, 170, 30], [1345, 95, 22], [1290, 270, 10], [1560, 110, 24],
         [1915, 170, 34], [1915, 540, 20], [1790, 690, 12], [110, 790, 10], [1030, 40, 26]].forEach(([x, y, vy]) => {
-        const sc = 0.5 + r() * 0.2;
-        const el = miniToken(bokehBack, { x, y, blur: 2 + r() });
-        BACK.push({ el, x, y, vy, sc, a: 0.12 + r() * 0.06, vr: (r() - 0.5) * 36, r0: (r() - 0.5) * 50, ph: r() * 10 });
+        const sc = 0.58 + r() * 0.12;
+        const el = miniToken(bokehBack, { x, y, blur: 1.8 + r() * 0.6 });
+        BACK.push({ el, x, y, vy, sc, a: 0.14 + r() * 0.05, vr: (r() - 0.5) * 36, r0: (r() - 0.5) * 50, ph: r() * 10 });
       });
     }
     // exclusion rects (world): nodes, eyebrows, counter, chip log, pipeline band, headline zone
