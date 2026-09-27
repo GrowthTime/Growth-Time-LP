@@ -4,17 +4,20 @@
    closing the loop opened in S5 ("Ponto final no caos").
     -0.50–0.00  "Está na hora" whips in from the left, "de escalar" + the
                 green dot from the right (update: pre-roll) · motion echoes
-     0.00       LOCK [86.0] — seam glint on the 45° + anamorphic flare
+     0.00       LOCK [86.0] — 0.18 s lens-star glint on the flare line at the seam
+                + anamorphic flare (both under the baseline, behind the type)
                 (global teal flash + section impact live in timeline.js)
      0.00–2.00  hold, push 1 → 1.02 · the dot winds up from 1.70
      2.00–2.75  the dot pops and flies a 45° up-right arc into the logo-dot
                 slot, lands with a squash · headline scales to .8 (2.0–2.6)
-     2.20–3.60  GT mark assembles around the slot (KIT.logoAnim)
+     2.20–3.60  GT mark assembles around the slot (KIT.logoAnim); wordmark
+                GROWTH TIME + RESULTS (teal) = the S5 lockup
      3.00       lock pulse · 45° sheen across the mark · CTA button springs in
      3.50       button sheen · 3.60 reinforcement · 4.00/4.25 contacts
      4.50–8.00  hold — phyllotaxis dust spreads from the logo dot, button
                 breathes, arrow nudges, rings at 5.0 / 7.0, final ring 7.5
-   Hand-off in : S14 fading/blurring out underneath (85.5–86.0).
+   Hand-off in : S14 fading/blurring out underneath (85.5–86.0); scrim ramps in
+                 over 85.5–85.92 (sine) with the halves' travel.
    Hand-off out: complete end card, no fade (last frame 93.98).
    tl → button spring, reinforcement words, contacts only. Everything else
    (halves, dot flight, logo, glows, canvases, pulses) is update(local).
@@ -81,10 +84,27 @@ GTR.scene({
     const { ctx: spc } = GTR.canvas(back);
 
     /* ---------------- logo (top) ---------------- */
-    const logo = KIT.logoAnim(card, { x: 960, y: 300, width: 460, withText: true, gray: '#e5e7eb' });
+    const logo = KIT.logoAnim(card, { x: 960, y: 300, width: 460, withText: true, gray: '#e5e7eb', text: 'GROWTH TIME RESULTS' });
     const L = logo.logo;
     L.svg.style.display = 'block';                    // no inline baseline gap → exact box height
-    if (L.text) L.text.setAttribute('fill', '#9CA3AF');
+    // wordmark = the S5 lockup (GROWTH TIME #9CA3AF + RESULTS #15dba8), same proportions as ponto-final:
+    // font/mark width 50/821, tracking justified to the mark (0.2–0.42 em), cap centre 76.3 units under
+    // the mark (viewBox units). logoAnim keeps the per-letter fade; tracking + x are driven in update().
+    const WM_MX0 = 30.32, WM_MX1 = 678.27;            // mark extent (viewBox)
+    const WM_FS = (WM_MX1 - WM_MX0) * 50 / 821;       // ≈ 39.5 units ≈ 25 px
+    const WM_N = 'GROWTH TIME RESULTS'.length;
+    const wmCtx = document.createElement('canvas').getContext('2d');
+    wmCtx.font = `${WM_FS}px "Russo One"`;
+    const WM_W0 = wmCtx.measureText('GROWTH TIME RESULTS').width;   // zero-tracking advance
+    const WM_LS1 = clamp((WM_MX1 - WM_MX0 - WM_W0) / (WM_N - 1), WM_FS * 0.2, WM_FS * 0.42);
+    const WM_LS0 = WM_FS * 0.9;
+    const wmX = (ls) => (WM_MX0 + WM_MX1) / 2 - (WM_W0 + (WM_N - 1) * ls) / 2;
+    if (L.text) {
+      L.text.setAttribute('fill', '#9CA3AF');
+      L.text.style.fontSize = `${WM_FS.toFixed(2)}px`;
+      L.text.setAttribute('y', (349.6 + 0.35 * WM_FS).toFixed(2));   // cap centre at 349.6 like S5
+      [...L.text.childNodes].slice('GROWTH TIME '.length).forEach((ts) => ts.setAttribute('fill', TEAL));
+    }
     const LK = 460 / 720;
     const LTOP = 300 - logo.el.offsetHeight / 2;
     const DOTX = 960 - 230 + 656.12 * LK;             // ≈ 1149.2
@@ -161,13 +181,22 @@ GTR.scene({
     shine.textContent = 'Está na hora de escalar';
     Object.assign(shine.style, { left: `${X0}px`, top: `${TOP}px`, color: '#f2fffb', textShadow: '0 0 22px rgba(21,219,168,.9)', display: 'none' });
     const SHINE = [0.45, 1.35];
-    // lock glint on the seam (short 45° slash in the word gap) + anamorphic flare on the baseline zone.
-    // Both sit BEHIND the type (inserted before halfA) so the promise is never slashed / struck through.
+    // lock glint + anamorphic flare, both BEHIND the type (inserted before halfA).
+    // The glint is a small 4-point lens star sitting ON the flare line at the seam, i.e. below the
+    // baseline, not in the word gap at cap height (a bar there read as 'hora/de'). Short vertical arm
+    // (56 px, faded ends), wider horizontal arm riding the flare, hot core.
     const XS = X0 + wA + SPC / 2;
-    const glint = div(hl, { position: 'absolute', left: `${XS - 3}px`, top: '460px', width: '6px', height: '160px', borderRadius: '3px',
-      background: 'linear-gradient(180deg, rgba(234,255,248,0), #eafff8 50%, rgba(234,255,248,0))', boxShadow: '0 0 26px rgba(21,219,168,.9)',
-      transformOrigin: '50% 50%', opacity: 0 });
     const FLARE_Y = Math.round(TOP + BASE + 17);      // just under the baseline (= 598)
+    const GL_W = 150, GL_H = 56;
+    const glint = div(hl, { position: 'absolute', left: `${XS - GL_W / 2}px`, top: `${FLARE_Y + 1 - GL_H / 2}px`, width: `${GL_W}px`, height: `${GL_H}px`,
+      transformOrigin: '50% 50%', opacity: 0 });
+    const ray = 'rgba(234,255,248,0), #eafff8 50%, rgba(234,255,248,0)';
+    div(glint, { position: 'absolute', left: `${GL_W / 2 - 1.5}px`, top: '0', width: '3px', height: `${GL_H}px`, borderRadius: '2px',
+      background: `linear-gradient(180deg, ${ray})`, boxShadow: '0 0 12px rgba(21,219,168,.85)' });
+    div(glint, { position: 'absolute', left: '0', top: `${GL_H / 2 - 1.5}px`, width: `${GL_W}px`, height: '3px', borderRadius: '2px',
+      background: `linear-gradient(90deg, ${ray})`, boxShadow: '0 0 12px rgba(21,219,168,.85)' });
+    div(glint, { position: 'absolute', left: `${GL_W / 2 - 16}px`, top: `${GL_H / 2 - 16}px`, width: '32px', height: '32px', borderRadius: '50%',
+      background: 'radial-gradient(circle, #ffffff 0%, rgba(234,255,248,.9) 20%, rgba(21,219,168,.4) 48%, rgba(21,219,168,0) 72%)' });
     const flare = div(hl, { position: 'absolute', left: `${XS - 760}px`, top: `${FLARE_Y}px`, width: '1520px', height: '2px', borderRadius: '1px',
       background: 'linear-gradient(90deg, rgba(21,219,168,0), rgba(21,219,168,.75) 38%, #f0fffa 50%, rgba(21,219,168,.75) 62%, rgba(21,219,168,0))',
       boxShadow: '0 0 18px rgba(21,219,168,.8)', transformOrigin: `760px 50%`, opacity: 0 });
@@ -382,7 +411,9 @@ GTR.scene({
       tl,
       update(t) {
         /* --- stage layers: scrim, parallax push/drift --- */
-        const scr = t < 0 ? p(t, IN0, -0.36, 'power2.out') : 1 - p(t, 0.3, 1.8, 'sine.inOut');
+        // pre-roll: a soft 0.42 s sine ramp that tracks the halves' travel (full at -0.08, when they are ~in),
+        // so S14 dims gradually under the incoming type instead of popping darker in 2–3 frames
+        const scr = t < 0 ? p(t, IN0, -0.08, 'sine.inOut') : 1 - p(t, 0.3, 1.8, 'sine.inOut');
         st(scrim, 'opacity', scr.toFixed(3));
         st(scrim, 'display', scr > 0.002 ? 'block' : 'none');
         const cS = 1 + 0.018 * p(t, 2.6, 8.0, 'sine.inOut');
@@ -430,17 +461,20 @@ GTR.scene({
           st(shine, 'maskImage', m);
           st(shine, 'opacity', (0.8 * Math.sin(Math.PI * sh) ** 0.5).toFixed(3));
         }
-        // lock glint + flare
-        const gk = inv(t, 0, 0.45);
+        // lock glint (0.18 s star on the flare) + flare (0.45 s)
+        const fk = inv(t, 0, 0.45);
+        const fOn = t >= 0 && fk < 1;
+        st(flare, 'display', fOn ? 'block' : 'none');
+        if (fOn) {
+          st(flare, 'opacity', (0.55 * (1 - fk) ** 2).toFixed(3));
+          st(flare, 'transform', `scaleX(${lerp(0.15, 1.1, E('expo.out')(fk)).toFixed(3)})`);
+        }
+        const gk = inv(t, 0, 0.18);
         const gOn = t >= 0 && gk < 1;
         st(glint, 'display', gOn ? 'block' : 'none');
-        st(flare, 'display', gOn ? 'block' : 'none');
         if (gOn) {
-          const fade = (1 - gk) ** 2;
-          st(glint, 'opacity', fade.toFixed(3));
-          st(glint, 'transform', `rotate(45deg) scaleY(${lerp(0.3, 1.25, E('expo.out')(gk)).toFixed(3)})`);
-          st(flare, 'opacity', (0.55 * fade).toFixed(3));
-          st(flare, 'transform', `scaleX(${lerp(0.15, 1.1, E('expo.out')(gk)).toFixed(3)})`);
+          st(glint, 'opacity', ((1 - gk) ** 1.5).toFixed(3));
+          st(glint, 'transform', `scale(${lerp(0.5, 1.15, E('expo.out')(gk)).toFixed(3)})`);
         }
 
         /* --- the period: wind-up in the headline, then the flight --- */
@@ -500,8 +534,15 @@ GTR.scene({
         }
 
         /* --- logo assembly around the slot --- */
-        logo.set(Math.max(0, (t - LOGO0) * 1.6));
+        const lt = Math.max(0, (t - LOGO0) * 1.6);
+        logo.set(lt);
         L.parts.dot.style.opacity = 0;                              // the flying period is the dot
+        if (L.text) {
+          // same collapse timing as logoAnim (1.15–2.1 logo-s), re-centred on the mark axis every frame
+          const ls = lerp(WM_LS0, WM_LS1, p(lt, 1.15, 2.1, 'expo.out'));
+          L.text.style.letterSpacing = `${ls.toFixed(3)}px`;          // logoAnim.set() rewrites it: no st() cache
+          L.text.setAttribute('x', wmX(ls).toFixed(2));
+        }
         const ls = inv(t, LSHEEN[0], LSHEEN[1]);
         const lsOn = ls > 0 && ls < 1;
         st(lSheen, 'display', lsOn ? 'inline' : 'none');

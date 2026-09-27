@@ -526,6 +526,8 @@ GTR.scene({
           : '';
         KIT.glitch(hA.el, amt, t, 23);
         KIT.glitch(hB.el, amt, t, 37);
+        // keep both headlines whole on the last frames so the red key word never drops out on the cut
+        if (t >= 3.9) { hA.el.style.clipPath = ''; hB.el.style.clipPath = ''; }
         emB.style.textShadow = amt > 0.001 && hB.el.style.textShadow ? `${hB.el.style.textShadow}, ${glowNow}` : glowNow;
         if (amt > 0.001) {
           const r = rng(gseed + 1);

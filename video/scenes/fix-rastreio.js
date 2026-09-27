@@ -625,8 +625,8 @@ GTR.scene({
         const vel = pu > 0 && pu < 1 ? (pu < 0.5 ? 2 * pu : 2 * (1 - pu)) : 0;
         const mb = 1.6 * vel * vel * vel;
         world.style.filter = mb > 0.08 ? `blur(${mb.toFixed(2)}px)` : 'none';
-        const ex = p(t, 7.5, 7.95, 'power2.in');            // drift up
-        const exA = p(t, 7.5, 7.95, 'sine.inOut');          // fade
+        const ex = p(t, 7.6, 8.0, 'power2.in');             // drift up (runs to the cut: no dead frame before S9)
+        const exA = p(t, 7.62, 8.0, 'power1.in');           // fade
         cam.view.style.transform = `translateY(${-60 * ex}px)`;
         cam.view.style.opacity = 1 - exA;
         plane.style.transform = `translate(${cm.x * 0.45}px, ${cm.y * 0.45 - 30 * ex}px) scale(${1 + (cm.s - 1) * 0.45})`;

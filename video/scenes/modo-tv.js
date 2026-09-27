@@ -3,7 +3,8 @@
    Modo TV do GTR (TVMode.jsx recriado 1:1 num 1280×720 lógico ×1.25):
    a TV liga do preto, cada venda toca (cha-ching) com toast + anel no card,
    Bia cruza o Bronze, a câmera mergulha no card da Ana, ela cruza o Ouro
-   e o PARABÉNS dispara com confete no flash dourado [62.0]. Sai inclinando.
+   e o PARABÉNS dispara com confete no flash dourado [62.0]. Sai inclinando:
+   o tilt atravessa o corte (TV ainda ~22% visível no último quadro).
    Tudo é função pura do tempo: o tl só revela textos HUD; o resto é update().
    ============================================================ */
 GTR.scene({
@@ -484,8 +485,9 @@ GTR.scene({
         const ryC = lerp(0, -1.6, p(t, 6.4, 7.8, 'sine.inOut'));
         s = lerp(s, sC, kC); x = lerp(x, xC, kC); y = lerp(y, yC, kC); ry = lerp(ry, ryC, kC);
       }
-      // tilt out
-      const kD = p(t, 7.6, 8.0, 'power2.in');
+      // tilt out — carries through the cut: starts 7.5 so it is ~93% done on the last frame (7.983)
+      // and still accelerating there (power2.in) → S12 cuts in on motion, not on an empty stage
+      const kD = p(t, 7.5, 8.0, 'power2.in');
       rx += -12 * kD; y += -200 * kD;
       return { x, y, s, rx, ry, kD };
     };
@@ -516,7 +518,8 @@ GTR.scene({
       cam.set({ x: c.x, y: c.y, s: c.s, rx: c.rx, ry: c.ry });
       const mb = Math.max(10 * c.kD, motionBlur(t));
       st(cam.view, 'filter', mb > 0.12 ? `blur(${f2(mb)}px)` : 'none');
-      st(cam.view, 'opacity', f2(1 - p(t, 7.6, 7.93, 'power1.in'))); // fully gone before the cut → empty stage
+      // soft-tailed fade that never reaches 0: the tilting TV is still ~.22 on the last frame (no dark dropout)
+      st(cam.view, 'opacity', f2(1 - 0.78 * p(t, 7.55, 8.0, 'sine.inOut')));
 
       /* ---- power-on ---- */
       const lineX = p(t, 0, 0.12, 'power2.out');

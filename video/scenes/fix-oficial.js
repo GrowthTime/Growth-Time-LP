@@ -51,6 +51,8 @@ GTR.scene({
 
     /* ---------- phone: WhatsApp Business app, same chat as S6 ---------- */
     const phone = KIT.phone(world, { x: PH.x, y: PH.y, w: PH.w });
+    // same night as S1/S6 (the chat shows 23:47–23:48)
+    { const sbTime = phone.screen.firstChild && phone.screen.firstChild.firstChild; if (sbTime) sbTime.textContent = '23:48'; }
     const frame = phone.el.firstChild;
     // move the bezel paint to its own layer so it can fade in without fading the screen
     const bezel = h('div', { style: {
@@ -371,12 +373,14 @@ GTR.scene({
 
         /* ---- phone float (shared with the plate so its edges land exactly on the screen) ---- */
         const fy = noise(t * 0.35, 1.7) * 7 * calm, frx = noise(t * 0.3, 8.1) * 1.2 * calm;
-        const bz = p(t, 0.25, 0.45, 'power2.out');
+        const bz = p(t, 0.15, 0.35, 'power2.out');
 
-        /* ---- plate morph: full frame → phone screen (rect done by 0.42), framed by the bezel ~0.35–0.48,
-                then it dissolves into the chat 0.48–0.6 ---- */
-        if (t < 0.6) {
-          const m = p(t, 0, 0.42, 'power3.inOut');
+        /* ---- plate morph: full frame → phone screen. The ease moves on the very first frame (the 30.0
+                downbeat + whoosh) — an inOut ease sat ~0.15 s on a frozen full-frame plate. The rect is
+                ~95% seated by 0.2 and exact by 0.45; the bezel frames it 0.15–0.35 and the plate
+                dissolves DURING the settle (0.18–0.38) so the chat reads inside the screen by ~0.3 ---- */
+        if (t < 0.45) {
+          const m = p(t, 0, 0.45, 'expo.out');
           const L = lerp(PLATE0.x, SCR.x, m), T = lerp(PLATE0.y, SCR.y, m);
           plate.style.display = 'block';
           plate.style.left = px(L);
@@ -392,7 +396,7 @@ GTR.scene({
           plate.style.backgroundSize = `${tile}px ${tile}px`;
           plate.style.backgroundPosition = `${mod(ox - L, tile)}px ${mod(oy - T, tile)}px`;
           plate.style.boxShadow = `0 ${40 * m}px ${120 * m}px rgba(0,0,0,${0.5 * m * (1 - bz)})`;
-          plate.style.opacity = 1 - p(t, 0.48, 0.6, 'power1.inOut');
+          plate.style.opacity = 1 - p(t, 0.18, 0.38, 'power1.inOut');
         } else plate.style.display = 'none';
 
         /* ---- phone ---- */

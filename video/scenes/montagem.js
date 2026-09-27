@@ -7,8 +7,10 @@
      C (4–6)  fluxos (Beta) — the reactivation flow that would have saved
               Revenda Bella (her gold "RB" token runs the "sim" path).
    Hand-off in : Panel A's light stage cuts in on the bar (after S11's empty dark stage).
-   Hand-off out: the dark flow canvas, mostly wireframed, teal scan line at y ≈ 1080
-                 (S13 opens with its own scan from y 0).
+   Hand-off out: the scan turns the flow into its wireframe, which then clears under a
+                 veil trailing the line (S13's veil, mirrored): last frame = the veiled
+                 empty dark stage, teal scan line at y ≈ 1080. S13 opens on the same
+                 veiled stage with its own scan from y 0 (a second pass, not a pop).
    tl → eyebrow / headline reveals only. Everything else is a pure
    function of local time in update().
    ============================================================ */
@@ -84,11 +86,6 @@ GTR.scene({
     const bandA = div(A, { position: 'absolute', left: '980px', top: '-420px', width: '560px', height: '1900px', transformOrigin: '50% 50%',
       background: 'linear-gradient(90deg, rgba(21,219,168,0), rgba(21,219,168,.075) 42%, rgba(21,219,168,.075) 58%, rgba(21,219,168,0))' });
     div(A, { position: 'absolute', inset: '0', background: 'radial-gradient(120% 100% at 45% 45%, rgba(11,43,41,0) 58%, rgba(11,43,41,.13) 100%)' });
-    // local petrol patch ONLY behind fx's white "Imagens e dados ilustrativos" (x 28–235, y ≈ 1040–1058),
-    // plateau + soft falloff so the text sits on ≈ rgb(75,90,90) while the rest of the white stage stays clean
-    // (anchored on the corner so it reads as a soft corner shade, not a floating blob)
-    div(A, { position: 'absolute', left: '0', top: '760px', width: '1000px', height: '320px', zIndex: 1, pointerEvents: 'none',
-      background: 'radial-gradient(540px 170px at 0px 320px, rgba(0,21,22,.74) 0%, rgba(0,21,22,.68) 40%, rgba(0,21,22,.56) 55%, rgba(0,21,22,.3) 72%, rgba(0,21,22,.1) 87%, rgba(0,21,22,0) 100%)' });
     const floorA = div(A, { position: 'absolute', left: '1090px', top: '960px', width: '520px', height: '80px', borderRadius: '50%', zIndex: 2,
       background: 'radial-gradient(closest-side, rgba(11,43,41,.30), rgba(11,43,41,0))' });
     // floating product tiles (depth-of-field layers around the phone)
@@ -265,7 +262,7 @@ GTR.scene({
     const gridC = div(Cp, { position: 'absolute', left: '-48px', top: '-48px', width: '2016px', height: '1176px',
       backgroundImage: 'radial-gradient(#ffffff14 1.5px, transparent 1.5px)', backgroundSize: '24px 24px',
       webkitMaskImage: 'radial-gradient(80% 75% at 50% 52%, #000 45%, transparent 100%)', maskImage: 'radial-gradient(80% 75% at 50% 52%, #000 45%, transparent 100%)' });
-    GTR.glow(Cp, { x: 960, y: 560, r: 780, color: '21,219,168', a: 0.1 });
+    const glowC = GTR.glow(Cp, { x: 960, y: 560, r: 780, color: '21,219,168', a: 0.1 });
 
     const NW = 250, NH = 80;
     const NODES = [
@@ -480,6 +477,11 @@ GTR.scene({
     KIT.revealWords(tl, hudLive.hc.units, 4.10, { dur: 0.6, stagger: 0.07 });
 
     // scan line (turns the flow into its wireframe as it passes)
+    // exit veil: S13's scan veil mirrored (clear at the line, rgba(0,12,13,.6) from 70 px up), trailing ABOVE the
+    // line, so S12's last frame is S13's first — the veiled empty stage — and S13's scan reads as a second pass
+    const SCAN_VEIL = 1180;
+    const scanVeil = div(Cp, { position: 'absolute', left: '0', top: '0', width: '1920px', height: `${SCAN_VEIL}px`, zIndex: 7, pointerEvents: 'none',
+      background: 'linear-gradient(0deg, rgba(0,12,13,0) 0px, rgba(0,12,13,.6) 70px, rgba(0,12,13,.6) 100%)', display: 'none' });
     const scanBand = div(Cp, { position: 'absolute', left: '0', top: '0', width: '1920px', height: '220px', zIndex: 8, pointerEvents: 'none',
       background: 'linear-gradient(0deg, rgba(21,219,168,.26), rgba(21,219,168,.06) 45%, rgba(21,219,168,0))', display: 'none' });
     const scanLine = div(Cp, { position: 'absolute', left: '0', top: '0', width: '1920px', height: '3px', zIndex: 9, background: '#b9fbe6',
@@ -684,8 +686,13 @@ GTR.scene({
       gridC.style.transform = `translate(${-(t - 4) * 8}px, ${-(t - 4) * 5}px)`;
       flowWire.set(t);
       flowLive.set(t);
+      // the stage clears behind the scan: wireframe (incl. its headline, BETA pill and RB outline), dot grid and
+      // glow hold a beat, then fade out under the trailing veil — nothing of S12 is left for the cut to pop
+      const clr = 1 - inv(t, SCAN[0] + 0.14, SCAN[1] - 0.02);
       // wireframe placeholders under the live flow, stronger once the scan has passed
-      wireG.style.opacity = 0.55 + 0.45 * inv(t, SCAN[0], SCAN[1]);
+      wireG.style.opacity = (0.55 + 0.45 * inv(t, SCAN[0], SCAN[1])) * clr;
+      gridC.style.opacity = clr;
+      glowC.style.opacity = clr;
       hudWire.hc.el.style.opacity = t >= SCAN[0] ? 1 : 0;
       hudWire.beta.style.opacity = t >= SCAN[0] ? 1 : 0;
       const bk = p(t, 4.40, 4.75, 'back.out(2)');
@@ -702,10 +709,15 @@ GTR.scene({
         scanLine.style.opacity = fl;
         scanBand.style.display = 'block';
         scanBand.style.transform = `translateY(${y - 220}px)`;
+        // veil builds as the line descends (the wireframe stays readable early), full S13 strength on the last frame
+        scanVeil.style.display = 'block';
+        scanVeil.style.transform = `translateY(${y - SCAN_VEIL}px)`;
+        scanVeil.style.opacity = p(t, SCAN[0], SCAN[1], 'power2.in');
       } else {
         liveG.style.clipPath = 'none';
         scanLine.style.display = 'none';
         scanBand.style.display = 'none';
+        scanVeil.style.display = 'none';
       }
     };
 

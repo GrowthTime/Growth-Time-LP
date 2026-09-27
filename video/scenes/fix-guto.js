@@ -2,7 +2,9 @@
    S9 · fix-guto · start 44.0 · dur 8.0 · z 23 · pre 0 · post 0
    Fix 04: Guto, the analytics copilot, finds the vanished gold client
    (Revenda Bella) and proves every number against the database.
-   First frame (44.0): dark stage, the Guto button still below frame.
+   First frame (44.0): dark stage, the Guto button already rising into frame
+   (centre y 1060, glow + red dot visible) on the bar line; it settles by 0.15,
+   chip 04 stamps from 0.00 and the button → panel morph runs 0.15–0.70.
    Last frame (52.0): stage dimmed to ~70% black, the Guto button (56 px,
    teal gradient, white sparkles, red dot) centred at (1758, 958) → S10.
    The tl only drives the HUD headline reveals; everything else is a
@@ -39,7 +41,7 @@ GTR.scene({
 
     /* ---------------- geometry (screen px) ---------------- */
     const P = { x: 700, y: 130, w: 680, h: 820, r: 20 };      // Guto panel
-    const B0 = { x: 1760, y: 1180, d: 90 };                    // button start (below frame)
+    const B0 = { x: 1760, y: 1060, d: 90 };                    // button start (already peeking in at 44.0)
     const B1 = { x: 1700, y: 960, d: 90 };                     // button rest
     const BE = { x: 1758, y: 958, d: 56 };                     // hand-off button (S10)
     const SX = 1440, SW = 360, SH = 130, SY = [300, 470, 640]; // source cards
@@ -418,16 +420,16 @@ GTR.scene({
 
     /* ================= TIMELINE (HUD headlines only) ================= */
     const tl = ctx.tl();
-    KIT.revealWords(tl, hA.units, 0.5);
+    KIT.revealWords(tl, hA.units, 0.3);
     KIT.hideUnits(tl, hA.units, 3.6);
     KIT.revealWords(tl, hB.units, 4.0);
-    KIT.hideUnits(tl, hB.units, 7.0, { dur: 0.3, stagger: 0.02 });
+    KIT.hideUnits(tl, hB.units, 7.4, { dur: 0.3, stagger: 0.02 });
     tl.set({}, {}, 8);
 
     /* ================= SFX ================= */
     ctx.cue('pop', 0.0, { db: -6, pan: 0.6 });
-    ctx.cue('tick', 0.1, { db: -6 });
-    ctx.cue('whoosh', 0.3, { dur: 0.5, pan: 0.3 });
+    ctx.cue('tick', 0.0, { db: -6 });                                               // chip 04 stamps on the bar line
+    ctx.cue('whoosh', 0.15, { dur: 0.5, pan: 0.3 });
     [0.9, 1.0, 1.1].forEach((t) => ctx.cue('pop', t, { db: -8 }));
     ctx.cue('pop', 1.4);
     ctx.cue('shimmer', 1.6, { db: -8 });
@@ -440,8 +442,8 @@ GTR.scene({
     T_VER.forEach((t, i) => ctx.cue('blip', t, { freq: 2000 + i * 200, pan: 0.2 + i * 0.2 }));
     ARR.forEach((t, i) => ctx.cue('tick', t, { db: -8, pan: 0.55 + i * 0.05 }));   // check stamps land
     ctx.cue('ping', 5.0);
-    ctx.cue('swoosh', 7.2, { up: false, dur: 0.42 });                               // panel folds into Guto
-    ctx.cue('pop', 7.62, { db: -6, pan: 0.6 });                                      // red dot lands (hand-off)
+    ctx.cue('swoosh', 7.34, { up: false, dur: 0.42 });                              // panel folds into Guto
+    ctx.cue('pop', 7.75, { db: -6, pan: 0.6 });                                      // red dot lands (hand-off)
 
     /* ================= per-frame ================= */
     const shadowFor = (k) => `0 ${lerp(14, 40, k)}px ${lerp(34, 120, k)}px rgba(0,0,0,${lerp(0.4, 0.55, k)}), 0 0 0 1px rgba(255,255,255,${lerp(0.14, 0.08, k)}), 0 0 ${lerp(46, 80, k)}px rgba(21,219,168,${lerp(0.55, 0.12, k)})`;
@@ -453,7 +455,7 @@ GTR.scene({
         const o = panOff(t);
         // camera: s1 = slow push around (1600, 540); s2 = push onto the answer bubble while the
         // brackets draw (3.85–4.8), released 5.2–6.6. Composite: p' = S·p + T (origin 0 0).
-        const s1 = 1 + 0.025 * p(t, 1.0, 7.0, 'sine.inOut') * (1 - p(t, 7.0, 7.6, 'power2.inOut'));
+        const s1 = 1 + 0.025 * p(t, 1.0, 7.0, 'sine.inOut') * (1 - p(t, 7.2, 7.8, 'power2.inOut'));
         const s2 = 1 + 0.038 * p(t, 3.85, 4.8, 'sine.inOut') * (1 - p(t, 5.2, 6.6, 'sine.inOut'));
         const FX = 950, FY = 400;
         const camS = s1 * s2;
@@ -462,24 +464,24 @@ GTR.scene({
 
         /* ---------- button ↔ panel morph ---------- */
         let R, k;
-        if (t < 0.3) {
-          const e = p(t, 0, 0.3, 'back.out(1.7)');
+        if (t < 0.15) {
+          const e = p(t, 0, 0.15, 'back.out(1.7)');
           R = btnRect({ x: lerp(B0.x, B1.x, e), y: lerp(B0.y, B1.y, e), d: B0.d });
           k = 0;
-        } else if (t < 7.05) {
-          const m = p(t, 0.3, 0.9, 'expo.out');
+        } else if (t < 7.2) {
+          const m = p(t, 0.15, 0.7, 'expo.out');
           R = lerpRect(btnRect(B1), { x: P.x + o.x, y: P.y + o.y, w: P.w, h: P.h, r: P.r }, m);
           k = m;
         } else {
           // fold back into the button: a readable shrink (power3, not expo) that keeps the white
           // panel + content until w < ~250, and rounds off early so it is a circle by w ≈ 140
-          const m = p(t, 7.05, 7.72, 'power3.inOut');
-          const o0 = panOff(7.05);
+          const m = p(t, 7.2, 7.85, 'power3.inOut');
+          const o0 = panOff(7.2);
           R = lerpRect({ x: P.x + o0.x, y: P.y + o0.y, w: P.w, h: P.h, r: P.r }, btnRect(BE), m);
           R.r = lerp(P.r, Math.min(R.w, R.h) / 2, p(m, 0.45, 0.8, 'power1.inOut'));
           k = 1 - m;
           // landing settle
-          const sb = 0.07 * bump(t, 7.7, 0.24);
+          const sb = 0.07 * bump(t, 7.79, 0.18);
           if (sb > 0) R = { x: R.x - R.w * sb / 2, y: R.y - R.h * sb / 2, w: R.w * (1 + sb), h: R.h * (1 + sb), r: R.r * (1 + sb) };
         }
         morph.style.left = `${R.x}px`;
@@ -489,37 +491,39 @@ GTR.scene({
         morph.style.borderRadius = `${R.r}px`;
         morph.style.boxShadow = shadowFor(k);
         const cx = R.x + R.w / 2, cy = R.y + R.h / 2;
-        mGrad.style.opacity = t < 7 ? 1 - p(t, 0.3, 0.48, 'power1.inOut') : p(t, 7.42, 7.54, 'power1.inOut');
-        const iconA = t < 7 ? 1 - inv(t, 0.3, 0.4) : inv(t, 7.48, 7.64);
+        mGrad.style.opacity = t < 7 ? 1 - p(t, 0.15, 0.33, 'power1.inOut') : p(t, 7.56, 7.68, 'power1.inOut');
+        const iconA = t < 7 ? 1 - inv(t, 0.15, 0.25) : inv(t, 7.62, 7.77);
         vis(mIcon, iconA);
         mIcon.style.transform = `scale(${R.w / 90}) rotate(${noise(2.2, t * 0.8) * 10}deg)`;
-        const cA = t < 7 ? p(t, 0.36, 0.7, 'power2.out') : 1 - p(t, 7.38, 7.49, 'power2.in');
+        const cA = t < 7 ? p(t, 0.21, 0.55, 'power2.out') : 1 - p(t, 7.52, 7.63, 'power2.in');
         vis(content, cA);
         content.style.transform = `scale(${R.w / P.w}, ${R.h / P.h})`;
-        const shp = p(t, 0.62, 1.25, 'power2.inOut');
+        const shp = p(t, 0.47, 1.1, 'power2.inOut');
         sheen.style.transform = `translate(${lerp(-360, P.w + 120, shp)}px, -200px) rotate(45deg)`;
         sheen.style.visibility = shp > 0 && shp < 1 ? 'visible' : 'hidden';
         // red dot (button states only)
-        const dA = t < 7 ? 1 - inv(t, 0.3, 0.36) : pop(t, 7.62, 0.32, 'back.out(3)');
+        const dA = t < 7 ? 1 - inv(t, 0.15, 0.21) : pop(t, 7.75, 0.22, 'back.out(3)');
         const dD = 0.2 * R.w + 2;
         vis(redDot, clamp(dA * 3));
         redDot.style.transform = `translate(${cx + 0.35 * R.w - 10}px, ${cy - 0.35 * R.h - 10}px) scale(${(dD / 20) * Math.max(0, dA)})`;
         // button glow + pulses
-        const gA = t < 7 ? 1 - p(t, 0.3, 0.6, 'power2.out') : p(t, 7.45, 7.95, 'power2.out');
+        const gA = t < 7 ? 1 - p(t, 0.15, 0.45, 'power2.out') : p(t, 7.59, 8.0, 'power2.out');
         btnGlow.style.opacity = gA * (0.85 + 0.15 * Math.sin(t * 5));
         btnGlow.style.transform = `translate(${cx}px, ${cy}px) scale(${lerp(0.7, 1, R.w / 90)})`;
         // pulse ring rides the morph rect centre (it sits under the morph div, so the growing panel
-        // swallows it) and is gone by 0.36 — never left hanging after the button starts to morph
+        // swallows it) and is gone by 0.24 — never left hanging after the button starts to morph.
+        // Intro: fires on the bar line (0.00) so the first frames carry the button's pulse.
+        // Outro: rings out from the landed button into the cut (still expanding at 8.0).
         const intro = t < 4;
-        const pr = intro ? inv(t, 0.12, 0.5) : inv(t, 7.66, 7.96);
-        const ringA = intro ? 0.8 * (1 - inv(t, 0.26, 0.36)) : 0.55;
+        const pr = intro ? inv(t, 0.0, 0.34) : inv(t, 7.8, 8.08);
+        const ringA = intro ? 0.8 * (1 - inv(t, 0.14, 0.24)) : 0.6;
         ringEl.style.transform = `translate(${cx}px, ${cy}px) scale(${lerp(0.9, 2.1, E('power2.out')(pr))})`;
         ringEl.style.opacity = pr > 0 && pr < 1 ? (1 - pr) * ringA : 0;
 
         /* ---------- back glows ---------- */
-        glowP.style.opacity = p(t, 0.4, 1.2, 'power2.out') * (1 - p(t, 7.0, 7.6, 'power2.in')) * (0.85 + 0.15 * Math.sin(t * 1.2));
+        glowP.style.opacity = p(t, 0.25, 1.05, 'power2.out') * (1 - p(t, 7.25, 7.8, 'power2.in')) * (0.85 + 0.15 * Math.sin(t * 1.2));
         glowP.style.transform = `translate(${noise(1.1, t * 0.2) * 40}px, ${noise(5.5, t * 0.2) * 30}px)`;
-        glowS.style.opacity = p(t, 1.6, 2.4, 'power2.out') * (1 - p(t, 7.0, 7.4, 'power2.in'));
+        glowS.style.opacity = p(t, 1.6, 2.4, 'power2.out') * (1 - p(t, 7.15, 7.5, 'power2.in'));
 
         /* ---------- empty state + chips ---------- */
         const out = p(t, 1.42, 1.62, 'power2.in');
@@ -631,10 +635,10 @@ GTR.scene({
         });
         ansW = Math.max(DOTS_W, prefR[n] + ANS_PX) + extraW;
         ans.style.width = `${ansW}px`;
-        // brackets fade with the source column (7.0–7.3), before the panel folds
-        brSvg.style.opacity = 1 - p(t, 7.0, 7.3, 'power2.in');
+        // brackets fade with the source column (7.15–7.45), as the panel starts to fold
+        brSvg.style.opacity = 1 - p(t, 7.15, 7.45, 'power2.in');
         g2.clearRect(0, 0, 1920, 1080);
-        const trA = 1 - p(t, 7.0, 7.3, 'power2.in');
+        const trA = 1 - p(t, 7.15, 7.45, 'power2.in');
         if (t >= T_VER[0] && trA > 0) {
           g2.save();
           g2.lineCap = 'round';
@@ -697,7 +701,7 @@ GTR.scene({
 
         /* ---------- source column ---------- */
         const so = srcOff(t);
-        const colOut = 1 - p(t, 7.0, 7.3, 'power2.in');
+        const colOut = 1 - p(t, 7.15, 7.45, 'power2.in');
         const ebA = p(t, 1.5, 1.85, 'power3.out');
         vis(eyebrow.el, ebA * colOut);
         eyebrow.el.style.transform = `translate(${(1 - ebA) * 24}px, ${so}px)`;
@@ -756,17 +760,17 @@ GTR.scene({
         vis(cursor.el, p(t, 1.0, 1.12, 'power1.out') * (1 - p(t, 1.62, 1.9, 'power1.in')));
 
         /* ---------- HUD ---------- */
-        const hudOut = 1 - p(t, 7.0, 7.3, 'power2.in');
-        scrim.style.opacity = p(t, 0.3, 1.0, 'power2.out') * hudOut;
-        hA.el.style.transform = `translateY(-50%) translateX(${lerp(6, -4, inv(t, 0.5, 4.0))}px)`;
-        hB.el.style.transform = `translateY(-50%) translateX(${lerp(10, -10, p(t, 4.0, 7.3, 'sine.inOut'))}px)`;
+        const hudOut = 1 - p(t, 7.4, 7.75, 'power2.in');
+        scrim.style.opacity = p(t, 0.15, 0.85, 'power2.out') * hudOut;
+        hA.el.style.transform = `translateY(-50%) translateX(${lerp(6, -4, inv(t, 0.3, 4.0))}px)`;
+        hB.el.style.transform = `translateY(-50%) translateX(${lerp(10, -10, p(t, 4.0, 7.7, 'sine.inOut'))}px)`;
 
-        /* ---------- chip: red at 0.10, flips on the answer (2.0), fades 7.5–7.8 ---------- */
-        chip.set(t, inv(t, 0.1, 0.28), inv(t, 2.0, 2.5));
-        chipWrap.style.opacity = 1 - p(t, 7.5, 7.8, 'power2.in');
+        /* ---------- chip: red at 0.00 (bar line), flips on the answer (2.0), fades 7.6–7.9 ---------- */
+        chip.set(t, inv(t, 0.0, 0.18), inv(t, 2.0, 2.5));
+        chipWrap.style.opacity = 1 - p(t, 7.6, 7.9, 'power2.in');
 
         /* ---------- hand-off dim ---------- */
-        const dm = 0.7 * p(t, 7.3, 7.9, 'power1.inOut');
+        const dm = 0.7 * p(t, 7.6, 7.95, 'power1.inOut');
         dim.style.opacity = dm;
         dim.style.display = dm > 0.001 ? 'block' : 'none';
       },

@@ -355,6 +355,39 @@ GTR.scene({
     } }, root);
     salePill.innerHTML = I('trophy', { size: 20, sw: 2.2 }) + '<span>Pedido fechado · <span style="color:#fff;font-weight:800;font-variant-numeric:tabular-nums">R$ 1.167</span></span>';
 
+    // HUD stopwatch — the fix's key number at hero size. Mirrors the in-app pill (3.8 → 4.3) in the
+    // headline slot, lands "4,0 s" on the chip flip (4.3), then shrinks (4.5–4.9) into a kicker above
+    // Headline B and rides out with the HUD (7.0). Dial = lucide `timer` with a sweeping hand + sector.
+    const SWK = { y: 470, ky: 300, ks: 0.4 };    // big-state centre y, kicker centre y, kicker scale
+    const swHud = h('div', { style: {
+      position: 'absolute', left: '120px', top: `${SWK.y}px`, display: 'flex', alignItems: 'center', gap: '26px',
+      transformOrigin: '0% 50%', visibility: 'hidden', pointerEvents: 'none',
+    } }, root);
+    const swEye = h('div', { class: 'body', style: {
+      position: 'absolute', left: '4px', bottom: 'calc(100% + 12px)', fontSize: '20px', fontWeight: 700, letterSpacing: '0.18em',
+      textTransform: 'uppercase', color: C.vibrant, whiteSpace: 'nowrap',
+    } }, swHud);
+    swEye.textContent = 'Tempo de resposta';
+    const swDial = h('div', { style: { position: 'relative', width: '112px', height: '112px', flex: 'none', color: C.vibrant, filter: 'drop-shadow(0 0 16px rgba(21,219,168,.55))' } }, swHud,
+      '<svg width="112" height="112" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:block;overflow:visible">'
+      + '<path class="sw-sec" d="" fill="rgba(21,219,168,.3)" stroke="none"/>'
+      + '<line x1="10" x2="14" y1="2" y2="2"/><circle cx="12" cy="14" r="8"/>'
+      + '<line class="sw-hand" x1="12" y1="14" x2="12" y2="9.2"/></svg>');
+    const swSec = swDial.querySelector('.sw-sec');
+    const swHand = swDial.querySelector('.sw-hand');
+    const swNum = h('div', { class: 'display', style: {
+      display: 'flex', alignItems: 'baseline', fontSize: '120px', lineHeight: '120px', color: C.vibrant, whiteSpace: 'nowrap',
+    } }, swHud);
+    const swInt = h('span', { style: { display: 'inline-block', textAlign: 'center' } }, swNum);
+    h('span', {}, swNum).textContent = ',';
+    const swDec = h('span', { style: { display: 'inline-block', textAlign: 'center' } }, swNum);
+    h('span', { style: { fontSize: '84px', marginLeft: '20px' } }, swNum).textContent = 's';
+    // fixed digit cells so the comma and "s" never jitter while counting (measured once; fonts are loaded)
+    let digW = 0;
+    for (let d = 0; d <= 9; d++) { swInt.textContent = String(d); digW = Math.max(digW, swInt.offsetWidth); }
+    swInt.style.width = swDec.style.width = `${digW}px`;
+    const swPulse = KIT.pulse(root, { x: 176, y: SWK.y, r: 150, color: C.vibrant, sw: 3 }); // repositioned per frame
+
     // diagnostic chip (own wrapper so the portal can fade it without touching the stamp)
     const chipWrap = h('div', { style: { position: 'absolute', inset: '0', pointerEvents: 'none' } }, root);
     const chip = KIT.diagChip(chipWrap, { n: '01', err: 'SEM RESPOSTA', ok: 'RESPONDIDO', x: 120, y: 96 });
@@ -366,9 +399,11 @@ GTR.scene({
     const tl = ctx.tl();
     KIT.revealWords(tl, hA.units, 1.0);
     tl.fromTo(pills, { y: 26, opacity: 0, scale: 0.9 }, { y: 0, opacity: 1, scale: 1, duration: 0.5, stagger: 0.1, ease: 'back.out(1.6)' }, 1.75);
-    KIT.hideUnits(tl, hA.units, 3.75);
-    tl.to(pills, { y: -24, opacity: 0, duration: 0.35, stagger: 0.04, ease: 'power2.in' }, 3.75);
-    KIT.revealWords(tl, hB.units, 4.5);
+    // A + pills clear by ≈3.9 so the HUD stopwatch (3.8) owns the headline slot through the proof beat;
+    // B waits until the stopwatch has shrunk to its kicker (4.5–4.9)
+    KIT.hideUnits(tl, hA.units, 3.5, { dur: 0.3 });
+    tl.to(pills, { y: -24, opacity: 0, duration: 0.3, stagger: 0.04, ease: 'power2.in' }, 3.5);
+    KIT.revealWords(tl, hB.units, 4.75);
     KIT.revealWords(tl, subUnits, 5.25, { y: 30, blur: 8, dur: 0.6, stagger: 0.05 });
     KIT.hideUnits(tl, hB.units, 7.0, { dur: 0.3 });
     KIT.hideUnits(tl, subUnits, 7.0, { dur: 0.3, stagger: 0.02 });
@@ -675,6 +710,42 @@ GTR.scene({
         salePill.style.transform = `translate(${(1 - hudOut) * -30}px, ${(1 - clamp(sk)) * 14}px) scale(${lerp(0.75, 1, sk)})`;
         const sg = Math.sin(Math.PI * inv(t, 6.3, 7.0));
         salePill.style.boxShadow = `0 10px 30px rgba(0,0,0,.3), 0 0 ${10 + 22 * sg}px rgba(21,219,168,${0.15 + 0.3 * sg})`;
+        // HUD stopwatch: rise + un-blur in (3.8), mirror the pill, land on the flip (4.3), shrink to kicker (4.5–4.9)
+        const swIn = p(t, 3.8, 4.15, 'power3.out');
+        const swK = p(t, 4.5, 4.9, 'power3.inOut');
+        const land = inv(t, 4.3, 4.62);
+        const lg = Math.sin(Math.PI * land);
+        const swA = clamp(swIn * 1.4) * hudOut;
+        const swSc = lerp(0.92, 1, swIn) * lerp(1, SWK.ks, swK) * (1 + 0.07 * lg);
+        const swTx = (1 - hudOut) * -30, swTy = (1 - swIn) * 40 + (SWK.ky - SWK.y) * swK;
+        vis(swHud, swA);
+        if (swA > 0) {
+          const sv = t < 3.0 ? 0 : GTR.map(t, 3.0, 4.3, 0, 4, 'none');
+          const txt = GTR.fmt.dec(sv, 1);
+          swInt.textContent = txt[0];
+          swDec.textContent = txt[2];
+          swHud.style.transform = `translate(${swTx}px, ${swTy}px) translateY(-50%) scale(${swSc})`;
+          swHud.style.filter = swIn < 1 ? `blur(${(1 - swIn) * 10}px)` : 'none';
+          swNum.style.textShadow = `0 0 ${30 + 30 * lg}px rgba(21,219,168,${0.55 + 0.35 * lg}), 0 0 80px rgba(21,219,168,.25)`;
+          swEye.style.opacity = 1 - p(t, 4.45, 4.7, 'power2.in');
+          // dial: one full sweep for the 4 s, from 12 o'clock
+          const fr = clamp(sv / 4);
+          const ang = fr * Math.PI * 2, RR = 6.6;
+          swSec.setAttribute('d', fr >= 0.999
+            ? `M12 ${14 - RR}A${RR} ${RR} 0 1 1 11.99 ${14 - RR}Z`
+            : fr <= 0 ? '' : `M12 14L12 ${14 - RR}A${RR} ${RR} 0 ${fr > 0.5 ? 1 : 0} 1 ${(12 + RR * Math.sin(ang)).toFixed(3)} ${(14 - RR * Math.cos(ang)).toFixed(3)}Z`);
+          swSec.setAttribute('fill', `rgba(21,219,168,${0.3 + 0.35 * lg})`);
+          swHand.setAttribute('transform', `rotate(${(fr * 360).toFixed(2)} 12 14)`);
+        }
+        // landing ring rides with the dial (centre of the timer's circle) as it shrinks to the kicker
+        const spr = inv(t, 4.3, 4.9);
+        swPulse.set(spr);
+        if (spr > 0 && spr < 1) {
+          swPulse.el.style.left = `${120 + 56 * swSc + swTx - 150}px`;
+          swPulse.el.style.top = `${SWK.y + swTy + (2 * 112 / 24) * swSc - 150}px`;
+          swPulse.el.style.transform = `scale(${(0.2 + spr * 0.8) * swSc})`;
+        }
+
         const nIn = p(t, 2.5, 3.0, 'power3.out');
         vis(night, nIn * hudOut);
         night.style.transform = `translateY(-50%) translateX(${(1 - nIn) * -40 + (1 - hudOut) * -30}px)`;

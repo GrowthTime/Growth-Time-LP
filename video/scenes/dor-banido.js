@@ -42,13 +42,15 @@ GTR.scene({
 
     /* ---- phone (identical to S1's final state). Built twice: a colour copy and a
        grayscale(1) brightness(.55) copy that the red scan reveals top-down (2.5–2.9). ---- */
+    // S1's list at t = 4.0: dor-caos ROWS after its LIVE events (Patrícia +2 → 'Consegue me atender?' 23:52,
+    // (85) +1 → 'Alô?' 23:52); the rest untouched. Keep in sync with dor-caos.js if S1 changes.
     const ROWS = [
-      { name: 'Patrícia Modas', msg: 'Oi! Vi o anúncio da coleção verão', n: 5, time: '23:46', av: 'PM' },
-      { name: '(85) 9 ••••-3344', msg: 'Oi, tem grade?', n: 3, time: '23:31' },
-      { name: '(21) 9 ••••-2208', msg: 'Faz entrega em SP?', n: 5, time: '22:58' },
-      { name: '(71) 9 ••••-1177', msg: 'Alguém aí?', n: 8, time: '21:10' },
+      { name: 'Patrícia Modas', msg: 'Consegue me atender?', n: 5, time: '23:52', av: 'PM' },
+      { name: '(85) 9 ••••-3344', msg: 'Alô?', n: 3, time: '23:52' },
+      { name: '(21) 9 ••••-2208', msg: 'Faz entrega em SP?', n: 5, time: '21:52' },
+      { name: '(71) 9 ••••-1177', msg: 'Alguém aí?', n: 7, time: '18:52' },
       { name: '(11) 9 ••••-0932', msg: 'Tem a grade em preto?', n: 4, time: 'Ontem' },
-      { name: '(81) 9 ••••-7765', msg: 'Pode me mandar o link?', n: 14, time: 'Ontem' },
+      { name: '(81) 9 ••••-7765', msg: 'Pode me mandar o link?', n: 12, time: 'Ontem' },
     ];
     const buildPhone = (filter) => {
       const phone = KIT.phone(rig, { x: PX, y: PY, w: PW });
@@ -136,17 +138,17 @@ GTR.scene({
        same sx/sy/z, same front/back layer). Keep the two in sync if S1 changes. */
     const SW = [
       // text, time, sx, sy, z(at 2.5), timer index, pop slot (0.75 + slot·0.125), front layer
-      ['Oi, tem grade?', '23:12', 285, 250, 0, 0, 0, 1],
+      ['Oi, tem grade?', '23:39', 285, 250, 0, 0, 0, 1],          // 13 min
       ['Qual o mínimo do atacado?', '22:47', 1330, 132, -380, -1, 1, 0],
       ['Ainda tem o vestido midi?', '22:31', 1540, 900, -260, -1, 2, 0],
-      ['Faz entrega em SP?', '21:58', 290, 470, 90, 2, 3, 1],
-      ['Pode me mandar o link?', '17:34', 275, 925, -200, -1, 4, 1],
-      ['Quanto fica a grade de 6?', '20:15', 1200, 945, -170, 4, 5, 0],
-      ['Aceita Pix?', '19:52', 240, 690, -40, 3, 6, 1],
-      ['Alguém aí?', '19:03', 950, 800, 30, 5, 7, 0],
+      ['Faz entrega em SP?', '21:52', 290, 470, 90, 2, 6, 1],      // 2 h
+      ['Pode me mandar o link?', 'Ontem', 275, 925, -200, -1, 4, 1],
+      ['Quanto fica a grade de 6?', 'Ontem', 1200, 945, -170, 4, 5, 0], // 1 dia
+      ['Aceita Pix?', '25/09', 240, 690, -40, 5, 3, 1],             // 2 dias
+      ['Alguém aí?', '18:52', 950, 800, 30, 3, 7, 0],               // 5 h
       ['Oi??', '18:47', 1805, 470, -460, -1, 8, 0],
       ['Vocês têm catálogo?', '18:20', 720, 110, 150, -1, 9, 1],
-      ['Tem no preto?', '21:40', 940, 250, -90, 1, 10, 0],
+      ['Tem no preto?', '23:05', 940, 250, -90, 1, 10, 0],          // 47 min
       ['Chegou a saia plissada?', '16:08', 1655, 118, -650, -1, 11, 0],
     ];
     const TIMERS = ['sem resposta · 13 min', '47 min', '2 h', '5 h', '1 dia', '2 dias'];
@@ -166,7 +168,8 @@ GTR.scene({
       const f = (P - zd) / P;
       // fade window: gone before the fall reaches y ≈ 1000 (keeps the disclaimer band clean)
       const fadeEnd = clamp(Math.sqrt((2 * Math.max(0, 1000 - sy)) / 2600), 0.2, 0.5);
-      return { wrap, zd, rot, ph, gray: ti >= 0 ? 0.4 : 0, x: 960 + (sx - 960) * f, y: 540 + (sy - 540) * f, sx, fadeEnd };
+      // far: S1's counter-parallax weight (deep right-column bubbles drift right at 14 px/s after the slide)
+      return { wrap, zd, rot, ph, gray: ti >= 0 ? 0.4 : 0, x: 960 + (sx - 960) * f, y: 540 + (sy - 540) * f, sx, fadeEnd, far: clamp((-zd - 300) / 350) };
     });
     // drop order: right → left, so the headline column is clear before the title lands (0.5)
     ghosts.slice().sort((a, b) => b.sx - a.sx).forEach((q, k) => { q.t0 = 0.03 + k * 0.035; q.spin = k % 2 ? 1 : -1; });
@@ -184,9 +187,9 @@ GTR.scene({
        (left third + lower right, clear of the chips and of the disclaimer band x < 380, y > 1020) ---- */
     const DEBRIS = [
       // text, time, screen x, y, z, rot, alpha
-      ['Alguém aí?', '19:03', 250, 640, -540, -6, 0.42],
+      ['Alguém aí?', '18:52', 250, 640, -540, -6, 0.42],
       ['Oi??', '18:47', 345, 872, -320, 5, 0.34],
-      ['Tem no preto?', '21:40', 1590, 905, -620, -4, 0.5],
+      ['Tem no preto?', '23:05', 1590, 905, -620, -4, 0.5],
     ].map(([text, time, sx, sy, z, rot, alpha], i) => {
       const wrap = h('div', { style: { position: 'absolute', left: '0', top: '0', width: 'max-content', transformOrigin: '50% 50%', display: 'none' } }, ghostsBack);
       const el = KIT.bubble(wrap, { side: 'in', text, time, size: 20, maxW: 'none' });
@@ -252,7 +255,12 @@ GTR.scene({
     const offR = s('feOffset', { in: 'r', dx: 0, dy: 0, result: 'ro' }, filt);
     s('feColorMatrix', { in: 'd', type: 'matrix', values: '0 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 1 0', result: 'gb' }, filt);
     const offGB = s('feOffset', { in: 'gb', dx: 0, dy: 0, result: 'gbo' }, filt);
-    s('feBlend', { in: 'ro', in2: 'gbo', mode: 'screen' }, filt);
+    s('feBlend', { in: 'ro', in2: 'gbo', mode: 'screen', result: 'bl' }, filt);
+    // The screen recombine compounds alpha (a → 2a − a²: the .85 scrim renders ≈ .98, glows / blurred ghosts
+    // darken), so switching the filter off would pop the frame brighter. Cross-fade the split back into the
+    // plain displaced source (premultiplied lerp, k2 = w, k3 = 1 − w): w = 1 at 0.0 matches S1's filter
+    // exactly across the cut, w → 0 with amt, so the filter is an identity by the time it is removed.
+    const mixSplit = s('feComposite', { in: 'bl', in2: 'd', operator: 'arithmetic', k1: 0, k2: 1, k3: 0, k4: 0 }, filt);
     // whip motion blur: horizontal-led Gaussian that converges to the isotropic 24 px contract at 4.0 (S3's first frame)
     const wf = s('filter', { id: 'db-whip', x: '-10%', y: '-10%', width: '120%', height: '120%', 'color-interpolation-filters': 'sRGB' }, fsvg);
     const wBlur = s('feGaussianBlur', { in: 'SourceGraphic', stdDeviation: '0 0', edgeMode: 'none' }, wf);
@@ -336,6 +344,9 @@ GTR.scene({
           const cx = (10 + r() * 10) * amt;
           offR.setAttribute('dx', String(cx));
           offGB.setAttribute('dx', String(-cx));
+          const w = amt / 0.6;                                          // 1 at the cut → 0 as the tear settles
+          mixSplit.setAttribute('k2', w.toFixed(4));
+          mixSplit.setAttribute('k3', (1 - w).toFixed(4));
           tearWrap.style.filter = 'url(#db-tear)';
           const rb = rng(gseed + 7);
           tearWrap.style.clipPath = rb() < 0.22 * amt
@@ -424,7 +435,7 @@ GTR.scene({
           const z = q.zd + 80 * (g - 2.5);
           const k = P / (P - z);
           const fall = tau > 0 ? 0.5 * 2600 * tau * tau : 0;
-          const X = 960 + (q.x - 960) * k;
+          const X = 960 + (q.x + q.far * (120 + 14 * (g - 2)) - 960) * k;   // + S1's par (slide = 1)
           const Y = 540 + (q.y + noise(q.ph, g * 0.6) * 10 - 540) * k + fall;
           const rot = q.rot + noise(q.ph + 3, g * 0.5) * 2 + (tau > 0 ? q.spin * tau * 60 : 0);
           q.wrap.style.transform = `translate(${X}px, ${Y}px) translate(-50%, -50%) rotate(${rot}deg) scale(${k})`;

@@ -20,7 +20,8 @@
                  destination dots pulse in sequence
      5.20–5.55   grid + eyebrow fade/blur out (power2.out)
      5.30–5.80   map, arcs, pulses, Ceará label fade/blur out (power2.out)
-     5.50–5.95   headline B fades/blurs out (power2.in; above S15's band)
+     5.30–5.70   headline B lifts (y −30), fades/blurs out (power2.out,
+                 front-loaded: ≤ 5% by 5.62, before S15's halves are legible)
    Hand-off in : white flash, "Performance," mid-reveal (S13 ends on a teal
                  point at 960,540 — the bloom starts exactly there).
    Hand-off out: empty dark stage (S15's halves slide in over 5.5–6.0 through
@@ -50,8 +51,10 @@ GTR.scene({
     const MAP = [3.00, 3.60], HB = 3.25;
     const ARC0 = 3.25, ARC_STEP = 0.125, ARC_DUR = 0.40;
     const EB = 4.00, LOGO = 4.10, SHIM = 4.15;
-    // staggered, front-loaded exit (S15's halves slide in over 5.5–6.0 through y ≈ 470–610)
-    const OUT_GRID = [5.20, 5.55], OUT_MAP = [5.30, 5.80], OUT_HEAD = [5.50, 5.95];
+    // staggered, front-loaded exit (S15's halves slide in over 5.5–6.0 through y ≈ 470–610;
+    // they read from ≈5.62, so headline B must be gone by then — no two headlines at once)
+    const OUT_GRID = [5.20, 5.55], OUT_MAP = [5.30, 5.80], OUT_HEAD = [5.30, 5.70];
+    const DRIFT_END = 5.95;                  // map / HUD parallax span (independent of the exits)
 
     /* =====================================================================
        PART 1 · Performance, não vaidade.
@@ -278,6 +281,9 @@ GTR.scene({
     tl.fromTo(eb.label, { opacity: 0, x: -18 }, { opacity: 1, x: 0, duration: 0.45, ease: 'power3.out' }, EB + 0.03);
 
     // partners: 3-row grid (4/4/3) — all 11 logos on screen at once, x 1000–1740, rows drift in opposite directions
+    // Real third-party marks (same set/heading as the landing's marquee): each needs the owner's written OK for use
+    // in an ad — esp. 'uece' (public university seal ⇒ implied endorsement). Never put metrics next to a logo.
+    // To drop one, delete it from its row: short rows auto-centre (4/3/3 without 'uece' verified).
     const PW = 170, PHT = 96, GAP = 20, STEP = PW + GAP, GX = 1000;
     const ROWS = [
       { files: ['clara-jeans', 'quids', 'moov', 'levoo'], y: 530, dir: -1 },
@@ -319,7 +325,7 @@ GTR.scene({
     }
     const fly = mkDot(1);
     // map translate (same formula as update) — the target is the Ceará point where the map sits at LAND
-    const mapT = (t) => { const dr = E('sine.inOut')(inv(t, MAP[0], OUT_HEAD[1])); return [lerp(-10, 12, dr), lerp(10, -6, dr)]; };
+    const mapT = (t) => { const dr = E('sine.inOut')(inv(t, MAP[0], DRIFT_END)); return [lerp(-10, 12, dr), lerp(10, -6, dr)]; };
     const TGT = { x: CES.x + mapT(LAND)[0], y: CES.y + mapT(LAND)[1] };
     // where the stop sits when it detaches (head1 push + P1 lift at DOT[0])
     const hs0 = lerp(1, 1.035, E('sine.inOut')(inv(DOT[0], 0, OUT1[1])));
@@ -471,10 +477,10 @@ GTR.scene({
         const p2On = t > MAP[0] - 0.05;
         st(P2, 'display', p2On ? 'block' : 'none');
         if (!p2On) return;
-        // staggered exit: grid + eyebrow first, then the map, headline B last (it sits above S15's band)
+        // staggered exit: grid + eyebrow first, then the map and headline B (clear before S15's headline reads)
         const gOut = p(t, OUT_GRID[0], OUT_GRID[1], 'power2.out');
         const mOut = p(t, OUT_MAP[0], OUT_MAP[1], 'power2.out');
-        const hOut = p(t, OUT_HEAD[0], OUT_HEAD[1], 'power2.in');
+        const hOut = p(t, OUT_HEAD[0], OUT_HEAD[1], 'power2.out');
         st(hudGrid, 'opacity', String(1 - gOut));
         st(hudGrid, 'filter', gOut > 0.001 ? `blur(${(10 * gOut).toFixed(2)}px)` : 'none');
         st(hudGrid, 'transform', gOut > 0.001 ? `translateY(${(-14 * gOut).toFixed(2)}px)` : 'none');
@@ -483,11 +489,11 @@ GTR.scene({
         st(mapL, 'transform', mOut > 0.001 ? `scale(${(1 + 0.05 * mOut).toFixed(4)})` : 'none');
         st(hudHead, 'opacity', String(1 - hOut));
         st(hudHead, 'filter', hOut > 0.001 ? `blur(${(12 * hOut).toFixed(2)}px)` : 'none');
-        st(hudHead, 'transform', hOut > 0.001 ? `translateY(${(-10 * hOut).toFixed(2)}px)` : 'none');
+        st(hudHead, 'transform', hOut > 0.001 ? `translateY(${(-30 * hOut).toFixed(2)}px)` : 'none');
 
         // map: scale 1.08 → 1, slow 3D drift (every part of it animates itself in, so the wrapper stays opaque)
         const mi = p(t, MAP[0], MAP[1], 'power3.out');
-        const drift = E('sine.inOut')(inv(t, MAP[0], OUT_HEAD[1]));
+        const drift = E('sine.inOut')(inv(t, MAP[0], DRIFT_END));
         const [mtx, mty] = mapT(t);
         st(mapWrap, 'opacity', '1');
         st(mapWrap, 'transform', `translate(${mtx.toFixed(2)}px, ${mty.toFixed(2)}px) perspective(1600px) rotateX(${lerp(12, 6, drift).toFixed(2)}deg) rotateY(${lerp(14, 6, drift).toFixed(2)}deg) scale(${lerp(1.08, 1, mi).toFixed(4)})`);

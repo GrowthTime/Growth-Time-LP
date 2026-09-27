@@ -3,11 +3,14 @@
    "Tecnologia que não dorme." — a network sphere where every node is one
    of the 124 real cloud functions, plus four hero stats (true numbers from
    the code), each alone on screen ≥ 1.4 s, rolled in like an odometer.
-     0.00–0.40  teal scan line sweeps down and reveals the stage
-     0.40–1.40  124 nodes fly into a Fibonacci sphere (micro-flash on landing)
+     0.00–0.30  S12's scan line turns round at the bottom (y 1066) and sweeps back UP, lifting
+                the veil (bottom → top) off the headline + node fly-in already under way
+     0.05       headline · 0.10–1.10  124 nodes fly into a Fibonacci sphere (micro-flash on landing)
      0.5 / 2.0 / 3.5 / 5.0   stat slot-rolls (sphere pulses on each)
      6.40–7.40  2×2 recap · 7.40–8.00 collapse → one teal point at (960, 540)
-   Hand-off in : dark stage (grid fades in via space), scan line at y 0.
+   Hand-off in : S12's last frame, continued: the veiled dark stage (rgba(0,12,13,.6) above the
+                 line), teal scan line + trailing band at the bottom (y 1066). Same luma on
+                 both sides of the cut; the line reverses there instead of jumping back to y 0.
    Hand-off out: dark stage + single bright teal point r 6 with glow at (960, 540).
    tl → headline / chips / caption / recap reveals only. Canvas, stats
    (odometer digits, sheen, blur), scan and drift are pure fns in update().
@@ -24,9 +27,12 @@ GTR.scene({
     const layer = (z, extra = {}) => h('div', { style: Object.assign({ position: 'absolute', left: '0', top: '0', width: '1920px', height: '1080px', zIndex: z, pointerEvents: 'none' }, extra) }, root);
 
     /* ---------- timing (local s) ---------- */
-    const SCAN = [0.0, 0.40];
-    const HEAD_IN = 0.30, HEAD_OUT = 7.30;
-    const FLY0 = 0.40, FLY_SPAN = 0.40, FLY_DUR = 0.60;          // last node lands at 1.40
+    const SCAN = [0.0, 0.30];                                     // upward sweep y 1066 → 0 (sine.inOut)
+    // S12's line is at y ≈ 1055 on its last 60 fps frame, still going down: ours turns round just
+    // under it (glow fully in frame) instead of at the clipped edge; S12's veil there is at .955 of full
+    const SCAN_Y0 = 1066, VEIL_A = 0.955;
+    const HEAD_IN = 0.05, HEAD_OUT = 7.30;
+    const FLY0 = 0.10, FLY_SPAN = 0.40, FLY_DUR = 0.60;          // last node lands at 1.10
     const TS = [0.5, 2.0, 3.5, 5.0];                              // stat slot-rolls
     const STAT4_OUT = 6.40;
     const STAT4_LBL_OUT = [6.24, 6.40];                           // stat-4 label clears before the recap draws
@@ -120,7 +126,7 @@ GTR.scene({
         const nx = opts.length ? opts[Math.floor(pr() * opts.length)] : adj[cur][0];
         prev = cur; cur = nx; path.push(cur);
       }
-      return { path, speed: 1.7 + pr() * 1.6, ph: pr() * 3, t0: 1.25 + pr() * 0.5 };
+      return { path, speed: 1.7 + pr() * 1.6, ph: pr() * 3, t0: 0.95 + pr() * 0.5 };
     });
     // 11 charge sparks: drawn in from the old sphere radius into the collapsed core during the hold
     const sr = rng('sob-o-capo:sparks');
@@ -131,7 +137,7 @@ GTR.scene({
 
     /* ---------- projection ---------- */
     const COS_T = Math.cos(TILT), SIN_T = Math.sin(TILT);
-    const angY = (t) => ((12 * t + 48 * p(t, 0.3, 2.6, 'power2.out')) * Math.PI) / 180;
+    const angY = (t) => ((12 * t + 48 * p(t, 0.1, 2.4, 'power2.out')) * Math.PI) / 180;
     const center = (t) => ({
       x: SPH.x + noise(t * 0.22, 3.3) * 8,
       y: SPH.y + noise(t * 0.2, 7.1) * 8,
@@ -388,24 +394,34 @@ GTR.scene({
     fadeOut([capIn], FADE + 0.12);
 
     /* =====================================================================
-       SCAN (0–0.40): teal line sweeps down, the veil below it is the unrevealed stage
+       SCAN (0–0.30): S12's line (last seen at y ≈ 1055, going down) bounces off the bottom edge and
+       sweeps back UP. The veil ABOVE the line is the unrevealed stage — the exact veil S12 laid on its
+       last frame (clear at the line, rgba(0,12,13,.6) from 70 px up) — so the cut keeps its luma and the
+       sweep lifts it off content that is already arriving (headline 0.05, nodes 0.10).
        ===================================================================== */
-    const veil = h('div', { style: { position: 'absolute', left: '0', top: '0', width: '1920px', height: '1180px',
-      background: 'linear-gradient(180deg, rgba(0,12,13,0) 0px, rgba(0,12,13,.6) 70px, rgba(0,12,13,.6) 100%)' } }, scanL);
-    const band = h('div', { style: { position: 'absolute', left: '0', top: '0', width: '1920px', height: '240px',
+    const VEIL_H = 1180;
+    const veil = h('div', { style: { position: 'absolute', left: '0', top: '0', width: '1920px', height: `${VEIL_H}px`,
+      background: 'linear-gradient(0deg, rgba(0,12,13,0) 0px, rgba(0,12,13,.6) 70px, rgba(0,12,13,.6) 100%)' } }, scanL);
+    // S12's trailing band (above its descending line), carried over the cut and dropped as the line turns round
+    const BAND_UP = 220;
+    const bandUp = h('div', { style: { position: 'absolute', left: '0', top: '0', width: '1920px', height: `${BAND_UP}px`,
       background: 'linear-gradient(0deg, rgba(21,219,168,.26), rgba(21,219,168,.06) 45%, rgba(21,219,168,0))' } }, scanL);
+    // trailing band of the upward sweep: below the line, over the freshly revealed stage
+    const BAND = 240;
+    const band = h('div', { style: { position: 'absolute', left: '0', top: '0', width: '1920px', height: `${BAND}px`,
+      background: 'linear-gradient(180deg, rgba(21,219,168,.26), rgba(21,219,168,.06) 45%, rgba(21,219,168,0))' } }, scanL);
     const bandDots = h('div', { style: { position: 'absolute', inset: '0',
       backgroundImage: 'radial-gradient(rgba(120,255,215,.55) 1.3px, transparent 1.6px)', backgroundSize: '24px 24px',
-      webkitMaskImage: 'linear-gradient(0deg, #000 0%, rgba(0,0,0,.35) 40%, transparent 100%)', maskImage: 'linear-gradient(0deg, #000 0%, rgba(0,0,0,.35) 40%, transparent 100%)' } }, band);
+      webkitMaskImage: 'linear-gradient(180deg, #000 0%, rgba(0,0,0,.35) 40%, transparent 100%)', maskImage: 'linear-gradient(180deg, #000 0%, rgba(0,0,0,.35) 40%, transparent 100%)' } }, band);
     const line = h('div', { style: { position: 'absolute', left: '0', top: '0', width: '1920px', height: '3px', background: '#b9fbe6',
       boxShadow: '0 0 6px 1px #15dba8, 0 0 22px 5px rgba(21,219,168,.75), 0 0 60px 12px rgba(21,219,168,.35)' } }, scanL);
 
     /* =====================================================================
        SFX
        ===================================================================== */
-    ctx.cue('whoosh', 0.00, { dur: 0.4 });
+    ctx.cue('whoosh', 0.00, { dur: 0.3 });
     ctx.cue('glitch', 0.00, { dur: 0.1, db: -12 });
-    ctx.cue('type', 0.40, { dur: 1.0, rate: 24, db: -12 });
+    ctx.cue('type', FLY0, { dur: 1.0, rate: 24, db: -12 });
     ctx.cue('impact', 0.50, { size: 0.5 });
     ctx.cue('blip', 0.50, { freq: 1400 });
     [1.9, 3.4, 4.9].forEach((tt) => ctx.cue('glitch', tt, { dur: 0.08, db: -10 }));
@@ -443,7 +459,7 @@ GTR.scene({
       const ay = angY(t), ca = Math.cos(ay), sa = Math.sin(ay);
       const pulse = pulseAt(t);
       const pulseN = pulseAt(t, true);
-      const structA = p(t, 0.9, 1.8, 'power2.out') * (1 - p(t, COLL0, COLL0 + 0.14, 'power2.in'));
+      const structA = p(t, 0.6, 1.5, 'power2.out') * (1 - p(t, COLL0, COLL0 + 0.14, 'power2.in'));
 
       // ---- node positions ----
       for (const n of nodes) {
@@ -515,7 +531,7 @@ GTR.scene({
       }
 
       // ---- packets ----
-      const pkA = inv(t, 1.3, 1.7) * (1 - inv(t, COLL0, COLL0 + 0.1));
+      const pkA = inv(t, 1.0, 1.4) * (1 - inv(t, COLL0, COLL0 + 0.1));
       if (pkA > 0.003) {
         for (const pk of packets) {
           if (t < pk.t0) continue;
@@ -635,21 +651,24 @@ GTR.scene({
       update(local) {
         const t = Math.max(0, local);
 
-        // scan
-        const sy = 1080 * p(t, SCAN[0], SCAN[1], 'power1.inOut');
+        // scan: upward sweep SCAN_Y0 → 0 (sine.inOut = the turnaround at the bottom eases in)
+        const sy = SCAN_Y0 * (1 - p(t, SCAN[0], SCAN[1], 'sine.inOut'));
         const scanOn = t < SCAN[1] + 0.02;
         st(scanL, 'display', scanOn ? 'block' : 'none');
         if (scanOn) {
-          st(veil, 'transform', `translateY(${sy.toFixed(1)}px)`);
-          st(band, 'transform', `translateY(${(sy - 240).toFixed(1)}px)`);
+          st(veil, 'transform', `translateY(${(sy - VEIL_H).toFixed(1)}px)`);
+          st(veil, 'opacity', VEIL_A);
+          st(bandUp, 'transform', `translateY(${(sy - BAND_UP).toFixed(1)}px)`);
+          st(bandUp, 'opacity', (1 - p(t, 0, 0.12, 'power1.out')).toFixed(3));
+          st(band, 'transform', `translateY(${sy.toFixed(1)}px)`);
           st(line, 'transform', `translateY(${(sy - 1.5).toFixed(1)}px)`);
           st(line, 'opacity', (1 - inv(t, SCAN[1] - 0.04, SCAN[1] + 0.02)).toFixed(3));
-          st(band, 'opacity', (1 - inv(t, SCAN[1] - 0.08, SCAN[1] + 0.02)).toFixed(3));
+          st(band, 'opacity', (inv(t, 0, 0.06) * (1 - inv(t, SCAN[1] - 0.08, SCAN[1] + 0.02))).toFixed(3));
         }
 
         // sphere
         const { c, pulse } = draw(t);
-        const haloA = p(t, 0.5, 1.5, 'power2.out') * (1 - p(t, COLL0, COLL0 + 0.3, 'power2.in'));
+        const haloA = p(t, 0.2, 1.2, 'power2.out') * (1 - p(t, COLL0, COLL0 + 0.3, 'power2.in'));
         st(halo, 'opacity', clamp(haloA * (0.75 + 0.5 * pulse)).toFixed(3));
         st(halo, 'transform', `translate(${(c.x - SPH.x).toFixed(1)}px, ${(c.y - SPH.y).toFixed(1)}px) scale(${(c.z * (1 + 0.08 * pulse)).toFixed(3)})`);
 

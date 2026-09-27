@@ -147,10 +147,10 @@ GTR.scene({
 
     /* ---------- KPI row ---------- */
     const KPI = [
-      { title: 'Clientes Novos', v: 1284, f: (v) => int(v), pct: '+12,4%', up: true, ico: 'users', bg: 'linear-gradient(135deg,#ecfdf5,#d1fae5)', ib: '#d1fae5', ic: '#059669' },
+      { title: 'Clientes Novos', v: 241, f: (v) => int(v), pct: '+12,4%', up: true, ico: 'users', bg: 'linear-gradient(135deg,#ecfdf5,#d1fae5)', ib: '#d1fae5', ic: '#059669' },
       { title: 'Valor Total de Vendas', v: 620000, f: (v) => 'R$ ' + int(v), pct: '+18,2%', up: true, ico: 'dollar-sign', bg: 'linear-gradient(135deg,#faf5ff,#f3e8ff)', ib: '#f3e8ff', ic: '#9333ea' },
-      { title: 'Ticket Médio', v: 483, f: (v) => 'R$ ' + int(v), pct: '+5,1%', up: true, ico: 'receipt', bg: 'linear-gradient(135deg,#eff6ff,#dbeafe)', ib: '#dbeafe', ic: '#2563eb' },
-      { title: 'CPA', v: 38.4, f: (v) => 'R$ ' + n2(v), pct: '−7,8%', up: false, ico: 'badge-dollar-sign', bg: 'linear-gradient(135deg,#f8fafc,#f1f5f9)', ib: '#e9eef4', ic: '#475569' },
+      { title: 'Ticket Médio', v: 1987, f: (v) => 'R$ ' + int(v), pct: '+5,1%', up: true, ico: 'receipt', bg: 'linear-gradient(135deg,#eff6ff,#dbeafe)', ib: '#dbeafe', ic: '#2563eb' },
+      { title: 'CPA', v: 102.9, f: (v) => 'R$ ' + n2(v), pct: '−7,8%', up: false, ico: 'badge-dollar-sign', bg: 'linear-gradient(135deg,#f8fafc,#f1f5f9)', ib: '#e9eef4', ic: '#475569' },
     ];
     const KW = (CW - 64 - 3 * 16) / 4; // 335
     const kpis = KPI.map((d, i) => {

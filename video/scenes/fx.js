@@ -30,7 +30,8 @@ GTR.scene({
     if (!RENDER) h('div', { style: { position: 'absolute', inset: '0', background: 'radial-gradient(140% 110% at 50% 50%, rgba(0,0,0,0) 60%, rgba(0,0,0,0.35) 100%)' } }, root);
     const flash = h('div', { style: { position: 'absolute', inset: '0', opacity: 0 } }, root);
     // discreet disclaimer while demo UI/data is on screen: GTR.TIMELINE.disclaimer = [[t0, t1], ...]
-    const note = h('div', { class: 'ui', style: { position: 'absolute', left: '28px', bottom: '22px', fontSize: '15px', fontWeight: 500, letterSpacing: '0.02em', color: 'rgba(255,255,255,0.55)', textShadow: '0 1px 6px rgba(0,0,0,0.6)', opacity: 0 } }, root);
+    // small dark pill of its own so it stays legible over light UI panels too
+    const note = h('div', { class: 'ui', style: { position: 'absolute', left: '20px', bottom: '16px', padding: '5px 12px', borderRadius: '999px', background: 'rgba(0,21,22,0.55)', fontSize: '14px', fontWeight: 500, letterSpacing: '0.02em', color: 'rgba(255,255,255,0.72)', opacity: 0 } }, root);
     note.textContent = 'Imagens e dados ilustrativos';
     const ranges = GTR.TIMELINE.disclaimer || [];
     const flashes = (GTR.TIMELINE.flashes || []).map((f) => Object.assign({ color: '255,255,255', a: 0.75, dur: 0.35 }, f));
