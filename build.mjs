@@ -32,7 +32,7 @@ const log = (...a) => console.log('•', ...a);
 // ---------------------------------------------------------------------------
 rmSync(DIST, { recursive: true, force: true });
 mkdirSync(DIST, { recursive: true });
-const SKIP = new Set(['dist', '.wrangler', 'node_modules', 'build.mjs', '.git']);
+const SKIP = new Set(['dist', '.wrangler', 'node_modules', 'build.mjs', '.git', 'video']); // video/ = fonte do vídeo motion graphics, não vai pro deploy
 for (const entry of readdirSync(ROOT)) {
   if (SKIP.has(entry)) continue;
   cpSync(path.join(ROOT, entry), path.join(DIST, entry), { recursive: true });

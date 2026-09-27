@@ -1,0 +1,184 @@
+/* ============================================================
+   GTR — motion graphics · base styles
+   Brand tokens mirror ../colors_and_type.css (Growth Time).
+   Fonts are the same self-hosted woff2 files the landing uses.
+   ============================================================ */
+
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: block;
+  src: url(../assets/fonts/inter-latin.woff2) format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: block;
+  src: url(../assets/fonts/inter-latinext.woff2) format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: 'Open Sans';
+  font-style: normal;
+  font-weight: 300 800;
+  font-display: block;
+  src: url(../assets/fonts/opensans-latin.woff2) format('woff2');
+}
+@font-face {
+  font-family: 'Russo One';
+  font-style: normal;
+  font-weight: 400;
+  font-display: block;
+  src: url(../assets/fonts/russoone-latin.woff2) format('woff2');
+}
+
+:root {
+  /* signature teal-green */
+  --gt-teal: #38cc9c;
+  --gt-teal-vibrant: #15dba8;
+  --gt-teal-logo: #00cf9a;
+  --gt-teal-mark: #33cc99;
+  --gt-teal-dark: #27ae8f;
+  --gt-action: #2bb673;
+  --gt-green-inst: #066767;
+  /* petróleo */
+  --gt-petroleo: #0b2b29;
+  --gt-petroleo-deep: #001516;
+  --gt-ink: #121212;
+  --gt-gray-logo: #9ca3af;
+  /* neutrals */
+  --gt-bg: #fafafa;
+  --gt-bg-alt: #f4f6f5;
+  --gt-fg: #171717;
+  --gt-fg-muted: #5f5e5a;
+  --gt-fg-subtle: #737373;
+  --gt-border: #e5e5e5;
+  /* status */
+  --gt-danger: #ef4444;
+  --gt-warning: #f97316;
+  /* tiers */
+  --tier-bronze: #bd6b2f;
+  --tier-prata: #a3adba;
+  --tier-ouro: #f3b315;
+  /* channels */
+  --wa: #25d366;
+  --ig-1: #f58529;
+  --ig-2: #dd2a7b;
+  --ig-3: #8134af;
+  --meta: #0866ff;
+
+  --font-display: 'Russo One', 'Inter', system-ui, sans-serif;
+  --font-ui: 'Inter', system-ui, sans-serif;
+  --font-body: 'Open Sans', 'Inter', system-ui, sans-serif;
+  --font-emoji: 'Noto Color Emoji', 'Apple Color Emoji', 'Segoe UI Emoji', sans-serif;
+}
+
+* { box-sizing: border-box; }
+html, body {
+  margin: 0;
+  height: 100%;
+  background: #000;
+  overflow: hidden;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: geometricPrecision;
+}
+
+#viewport {
+  position: fixed;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  background: #000;
+}
+#stage {
+  position: relative;
+  width: 1920px;
+  height: 1080px;
+  overflow: hidden;
+  background: var(--gt-petroleo-deep);
+  color: #fff;
+  font-family: var(--font-ui);
+  transform-origin: 50% 50%;
+  flex: none;
+}
+body.render #viewport { display: block; }
+body.render #stage { transform: none !important; }
+
+.scene {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  contain: strict;
+}
+.scene * { will-change: auto; }
+
+/* helpers scenes can use */
+.abs { position: absolute; }
+.center { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); }
+.display { font-family: var(--font-display); font-weight: 400; letter-spacing: 0.01em; }
+.ui { font-family: var(--font-ui); }
+.body { font-family: var(--font-body); }
+.emoji { font-family: var(--font-emoji); font-style: normal; }
+.teal { color: var(--gt-teal-vibrant); }
+.glow-text { text-shadow: 0 0 24px rgba(21, 219, 168, 0.55), 0 0 64px rgba(21, 219, 168, 0.25); }
+.split-unit { display: inline-block; white-space: pre; will-change: transform, opacity; }
+.gt-icon { display: inline-block; vertical-align: middle; flex: none; }
+
+/* glass card used across UI recreations */
+.glass {
+  background: linear-gradient(180deg, rgba(255,255,255,0.075), rgba(255,255,255,0.025));
+  border: 1px solid rgba(255,255,255,0.10);
+  border-radius: 22px;
+  box-shadow: 0 30px 80px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.08);
+}
+.card-light {
+  background: #fff;
+  color: var(--gt-fg);
+  border-radius: 18px;
+  border: 1px solid var(--gt-border);
+  box-shadow: 0 30px 80px rgba(0,0,0,0.35);
+}
+
+/* ---------- player chrome (hidden in render mode) ---------- */
+#controls {
+  position: fixed;
+  left: 0; right: 0; bottom: 0;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 16px 14px;
+  background: linear-gradient(0deg, rgba(0,0,0,0.85), rgba(0,0,0,0));
+  color: #e5e7eb;
+  font: 500 13px/1 var(--font-ui);
+  opacity: 0;
+  transition: opacity .25s ease;
+  z-index: 10;
+}
+body:hover #controls, body.paused #controls { opacity: 1; }
+body.render #controls { display: none; }
+#controls button {
+  appearance: none; border: 0; cursor: pointer;
+  width: 40px; height: 40px; border-radius: 999px;
+  background: rgba(21,219,168,0.16); color: #15dba8;
+  display: grid; place-items: center;
+}
+#controls button:focus-visible { outline: 2px solid #15dba8; outline-offset: 2px; }
+#scrub { flex: 1; accent-color: #15dba8; min-width: 0; }
+#time { font-variant-numeric: tabular-nums; min-width: 96px; text-align: right; }
+#startOverlay {
+  position: fixed; inset: 0; z-index: 20;
+  display: grid; place-items: center;
+  background: rgba(0,0,0,0.35);
+  cursor: pointer;
+}
+#startOverlay span {
+  display: inline-flex; align-items: center; gap: 12px;
+  padding: 18px 28px; border-radius: 999px;
+  background: #15dba8; color: #001516;
+  font: 700 18px/1 var(--font-ui);
+  box-shadow: 0 0 60px rgba(21,219,168,0.5);
+}
+body.render #startOverlay, body.started #startOverlay { display: none; }
