@@ -182,7 +182,7 @@ GTR.scene({
     const eg = ecgCv.getContext('2d');
     // scan sheen that sweeps the strip on each 30-min check (3.5 / 4.5)
     const scan = h('div', { style: { position: 'absolute', top: '0', bottom: '0', left: '0', width: '220px', pointerEvents: 'none', opacity: 0,
-      background: 'linear-gradient(90deg, rgba(21,219,168,0), rgba(21,219,168,0.14) 60%, rgba(160,255,228,0.28) 92%, rgba(21,219,168,0))' } }, strip);
+      background: 'linear-gradient(90deg, rgba(21,219,168,0), rgba(21,219,168,0.12) 55%, rgba(160,255,228,0.24) 80%, rgba(21,219,168,0))' } }, strip);
     const CHECKS = [3.5, 4.5];
 
     const pulseB = KIT.pulse(world, { x: B[0], y: B[1], r: 110, color: C.vibrant, sw: 3 });
