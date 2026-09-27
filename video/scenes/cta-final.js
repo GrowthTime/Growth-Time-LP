@@ -46,14 +46,28 @@ GTR.scene({
 
     /* ---------------- layers ---------------- */
     // soft scrim behind the headline while S14 is still fading out below
+    // (wide ellipse: S14's plate column x 1000–1800 and the map sit at ~35% under the incoming type)
     const scrim = full(root, 1);
-    scrim.style.background = 'radial-gradient(1050px 380px at 960px 540px, rgba(0,21,22,.88), rgba(0,21,22,.5) 55%, rgba(0,21,22,0) 100%)';
+    scrim.style.background = 'radial-gradient(1500px 560px at 960px 560px, rgba(0,21,22,.9), rgba(0,21,22,.6) 60%, rgba(0,21,22,.25) 100%)';
     scrim.style.opacity = 0;
+    // directional (horizontal) motion-blur filters for the whip-in: one per half / echo
+    const fSvg = s('svg', { width: 0, height: 0, style: 'position:absolute;left:0;top:0;width:0;height:0;overflow:hidden' }, root);
+    const fDefs = s('defs', {}, fSvg);
+    let fN = 0;
+    const mkBlur = () => {
+      const id = `cta-final-mb${fN++}`;
+      const f = s('filter', { id, x: '-20%', y: '-40%', width: '140%', height: '180%', 'color-interpolation-filters': 'sRGB' }, fDefs);
+      const g = s('feGaussianBlur', { stdDeviation: '0 0' }, f);
+      return { url: `url(#${id})`, g, last: '' };
+    };
     const back = full(root, 2);
     back.style.transformOrigin = '960px 540px';
     const card = full(root, 3);
     card.style.transformOrigin = '960px 540px';
 
+    // soft pool behind the lower text block: the backdrop's stray particles sink back (fix: '• .' doubles)
+    const lowScrim = div(card, { position: 'absolute', left: `${960 - 700}px`, top: `${845 - 175}px`, width: '1400px', height: '350px',
+      background: 'radial-gradient(closest-side, rgba(0,21,22,.62), rgba(0,21,22,.5) 45%, rgba(0,21,22,.2) 78%, rgba(0,21,22,0) 100%)', opacity: 0 });
     const gHead = GTR.glow(back, { x: 960, y: 540, r: 860, color: '21,219,168', a: 0.12 });
     const gLogo = GTR.glow(back, { x: 960, y: 292, r: 470, color: '21,219,168', a: 0.2 });
     gHead.style.opacity = 0;
@@ -133,21 +147,26 @@ GTR.scene({
       hl.insertBefore(a, halfA);
       hl.insertBefore(b, halfA);
       a.style.display = b.style.display = 'none';
-      return { k, a, b, esc: b.querySelector('span'), alpha: k === 1 ? 0.28 : 0.12 };
+      return { k, a, b, esc: b.querySelector('span'), alpha: k === 1 ? 0.28 : 0.12, fa: mkBlur(), fb: mkBlur() };
     });
+    const fA = mkBlur(), fB = mkBlur();
     // specular sweep across the locked phrase (hold 0.45–1.35): a masked bright copy
     const shine = mkLine(hl);
     shine.textContent = 'Está na hora de escalar';
     Object.assign(shine.style, { left: `${X0}px`, top: `${TOP}px`, color: '#f2fffb', textShadow: '0 0 22px rgba(21,219,168,.9)', display: 'none' });
     const SHINE = [0.45, 1.35];
-    // lock glint on the seam (45° slash) + anamorphic flare
+    // lock glint on the seam (short 45° slash in the word gap) + anamorphic flare on the baseline zone.
+    // Both sit BEHIND the type (inserted before halfA) so the promise is never slashed / struck through.
     const XS = X0 + wA + SPC / 2;
-    const glint = div(hl, { position: 'absolute', left: `${XS - 3}px`, top: '360px', width: '6px', height: '360px', borderRadius: '3px',
+    const glint = div(hl, { position: 'absolute', left: `${XS - 3}px`, top: '460px', width: '6px', height: '160px', borderRadius: '3px',
       background: 'linear-gradient(180deg, rgba(234,255,248,0), #eafff8 50%, rgba(234,255,248,0))', boxShadow: '0 0 26px rgba(21,219,168,.9)',
       transformOrigin: '50% 50%', opacity: 0 });
-    const flare = div(hl, { position: 'absolute', left: `${XS - 760}px`, top: '539px', width: '1520px', height: '2px', borderRadius: '1px',
+    const FLARE_Y = Math.round(TOP + BASE + 20);      // just under the baseline (≈ 598)
+    const flare = div(hl, { position: 'absolute', left: `${XS - 760}px`, top: `${FLARE_Y}px`, width: '1520px', height: '2px', borderRadius: '1px',
       background: 'linear-gradient(90deg, rgba(21,219,168,0), rgba(21,219,168,.75) 38%, #f0fffa 50%, rgba(21,219,168,.75) 62%, rgba(21,219,168,0))',
       boxShadow: '0 0 18px rgba(21,219,168,.8)', transformOrigin: `760px 50%`, opacity: 0 });
+    hl.insertBefore(glint, halfA);
+    hl.insertBefore(flare, halfA);
 
     /* ---------------- CTA button ---------------- */
     const blob = div(card, { position: 'absolute', left: `${960 - 560}px`, top: `${690 - 200}px`, width: '1120px', height: '400px', borderRadius: '50%',
@@ -168,7 +187,7 @@ GTR.scene({
 
     /* ---------------- reinforcement + contacts ---------------- */
     const reinf = div(card, { position: 'absolute', left: '0', top: '790px', width: '1920px', textAlign: 'center', transform: 'translateY(-50%)',
-      fontFamily: 'var(--font-body)', fontSize: '22px', fontWeight: '600', letterSpacing: '0.01em', color: 'rgba(255,255,255,.65)', whiteSpace: 'nowrap' });
+      fontFamily: 'var(--font-body)', fontSize: '28px', fontWeight: '600', letterSpacing: '0.01em', color: 'rgba(255,255,255,.8)', whiteSpace: 'nowrap' });
     const rUnits = ['Sem', 'compromisso', '·', 'resposta', 'rápida', 'no', 'WhatsApp'].map((w, i) => {
       if (i) reinf.appendChild(document.createTextNode(' '));
       const u = h('span', { class: 'split-unit' }, reinf);
@@ -176,7 +195,7 @@ GTR.scene({
       if (w === '·') { u.style.color = TEAL; u.style.fontWeight = '800'; }
       return u;
     });
-    const contacts = div(card, { position: 'absolute', left: '0', top: '880px', display: 'flex', alignItems: 'center', gap: '34px', transform: 'translateY(-50%)',
+    const contacts = div(card, { position: 'absolute', left: '0', top: '888px', display: 'flex', alignItems: 'center', gap: '34px', transform: 'translateY(-50%)',
       fontFamily: 'var(--font-ui)', fontWeight: '600', fontSize: '30px', letterSpacing: '0.005em', color: 'rgba(255,255,255,.92)', whiteSpace: 'nowrap' });
     const mkC = (icon, text) => div(contacts, { display: 'inline-flex', alignItems: 'center', gap: '14px', transformOrigin: '50% 50%' },
       `<span style="display:inline-flex;color:${TEAL};filter:drop-shadow(0 0 8px rgba(21,219,168,.45))">${I(icon, { size: 30, sw: 2.2 })}</span><span>${text}</span>`);

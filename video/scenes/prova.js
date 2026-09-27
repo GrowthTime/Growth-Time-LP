@@ -300,8 +300,13 @@ GTR.scene({
     const FD = 24;                                                     // dot diameter at full size
     const mkDot = (a) => div(flyL, { position: 'absolute', left: `${-FD / 2}px`, top: `${-FD / 2}px`, width: `${FD}px`, height: `${FD}px`, borderRadius: '50%', opacity: 0,
       background: 'radial-gradient(circle at 42% 38%, #f4fffb 0%, #7ff5d2 38%, #33cc99 72%)', boxShadow: `0 0 ${14 * a}px rgba(21,219,168,.9), 0 0 ${40 * a}px rgba(21,219,168,.5)` });
-    const NTR = 14;
-    const trail = Array.from({ length: NTR }, () => mkDot(0.35)).reverse();
+    // comet tail: tapered round-capped segments along the recent path (overlap → one continuous streak)
+    const NTR = 18, TDT = 0.0026;
+    const tailSvg = s('svg', { width: 1920, height: 1080, viewBox: '0 0 1920 1080', style: { position: 'absolute', left: '0', top: '0', overflow: 'visible', filter: 'drop-shadow(0 0 7px rgba(21,219,168,.85))' } }, flyL);
+    const trail = new Array(NTR);
+    for (let k = NTR - 1; k >= 0; k--) {                               // head segments painted last (on top)
+      trail[k] = s('line', { stroke: k < 4 ? '#bafbe6' : k < 9 ? '#5ff0c4' : '#15dba8', 'stroke-linecap': 'round', opacity: 0 }, tailSvg);
+    }
     const fly = mkDot(1);
     // map translate (same formula as update) — the target is the Ceará point where the map sits at LAND
     const mapT = (t) => { const dr = E('sine.inOut')(inv(t, MAP[0], OUT_HEAD[1])); return [lerp(-10, 12, dr), lerp(10, -6, dr)]; };
@@ -441,13 +446,13 @@ GTR.scene({
           st(fly, 'filter', filt);
           st(fly, 'transform', `translate(${P[0].toFixed(2)}px, ${P[1].toFixed(2)}px) rotate(${ang.toFixed(2)}deg) scale(${(base * str).toFixed(4)}, ${(base / Math.sqrt(str)).toFixed(4)})`);
           trail.forEach((d, k) => {
-            // comet tail: dense samples of the recent path, tapering
-            const tk = t - (k + 1) * 0.0028;
-            if (tk < FLY[0] || spd < 2) { st(d, 'opacity', '0'); return; }
-            const Q = posAt(tk);
-            const fk = 1 - (k + 1) / (NTR + 1);
-            st(d, 'opacity', String((fk * 0.6 * (1 - land)).toFixed(3)));
-            st(d, 'transform', `translate(${Q[0].toFixed(2)}px, ${Q[1].toFixed(2)}px) scale(${(base * lerp(0.25, 0.95, fk)).toFixed(4)})`);
+            const A0 = posAt(t - k * TDT), A1 = posAt(t - (k + 1) * TDT);
+            if (Math.hypot(A1[0] - A0[0], A1[1] - A0[1]) < 0.6) { sa(d, 'opacity', 0); return; }
+            const fk = 1 - k / NTR;
+            sa(d, 'x1', A0[0].toFixed(2)); sa(d, 'y1', A0[1].toFixed(2));
+            sa(d, 'x2', A1[0].toFixed(2)); sa(d, 'y2', A1[1].toFixed(2));
+            sa(d, 'stroke-width', (FD * base * lerp(0.08, 0.8, fk * fk)).toFixed(2));
+            sa(d, 'opacity', (lerp(0.05, 0.9, fk) * (1 - land)).toFixed(3));
           });
         }
 

@@ -47,13 +47,14 @@ GTR.scene({
     const EYES = [[350, '01 · CLIQUE', 0.9], [960, '02 · CONVERSA', 1.5], [1640, '03 · VENDA', 2.0]];
     // push-in (3.5–4.1): world point F lands on screen point S at scale s
     const PUSH = { s: 1.26, F: [549, 435], S: [940, 436] };
-    // pull-back (5.15–6.05, power2.inOut, log-scale zoom about a fixed screen point):
-    // the pipeline becomes a strip at y ≈ 110–360. ≤ 0.03 scale change per frame @60fps.
-    const PULL = { s: 0.55, x: -16, y: -250, t0: 5.15, t1: 6.05 };
+    // pull-back (4.95–6.25, power2.inOut = cubic, log-scale zoom about a fixed screen point):
+    // the pipeline becomes a strip at y ≈ 110–360. Peak ≈ 0.028 scale change per frame @60fps;
+    // the slow cubic start keeps the "=" proof framed until ~5.2.
+    const PULL = { s: 0.55, x: -16, y: -250, t0: 4.95, t1: 6.25 };
     const TOP3 = { x: 510, y: 405, w: 900, h: 320 };
     // the Top 3 card only pops once the world is within ~3% of its final framing
     // (ad card bottom ≤ y 370), then its rows cascade.
-    const T3_IN = 5.95;
+    const T3_IN = 5.97;
     const ROW_AT = [6.05, 6.25, 6.45];
     const PULSE = { t0: 6.08, t1: 6.4 };                 // ad "5,6x" → row #1 "5,6x"
     const SWEEP = { t0: 3.5, t1: 3.8 };                  // chip flip: teal sweep ad → sale
@@ -619,7 +620,7 @@ GTR.scene({
         // zoom blur at the pull-back's peak speed (power2.inOut velocity², max ≈ 4.5 px)
         const pu = inv(t, PULL.t0, PULL.t1);
         const vel = pu > 0 && pu < 1 ? (pu < 0.5 ? 2 * pu : 2 * (1 - pu)) : 0;
-        const mb = 4.5 * vel * vel;
+        const mb = 4 * vel * vel * vel;
         world.style.filter = mb > 0.08 ? `blur(${mb.toFixed(2)}px)` : 'none';
         const ex = p(t, 7.5, 7.95, 'power2.in');            // drift up
         const exA = p(t, 7.5, 7.95, 'sine.inOut');          // fade
