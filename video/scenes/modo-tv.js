@@ -74,6 +74,10 @@ GTR.scene({
       boxShadow: '0 30px 80px rgba(0,0,0,.5), 0 60px 160px rgba(0,0,0,.35), 0 0 0 1px rgba(255,255,255,.07), inset 0 1px 0 rgba(255,255,255,.10)',
     } }, W);
     const led = h('div', { style: { position: 'absolute', left: '807px', bottom: '3px', width: '5px', height: '4px', borderRadius: '2px', background: '#15dba8', boxShadow: '0 0 6px #15dba8, 0 0 14px rgba(21,219,168,.8)' } }, bezel);
+    // tilt-out accent: a teal glint racing along the top bezel edge (7.5–7.9)
+    const glint = h('div', { style: { position: 'absolute', left: '0', top: '-1px', width: '1620px', height: '3px', borderRadius: '2px', opacity: 0, pointerEvents: 'none',
+      background: 'linear-gradient(90deg, rgba(21,219,168,0) 0%, rgba(21,219,168,.9) 42%, #eafff8 50%, rgba(21,219,168,.9) 58%, rgba(21,219,168,0) 100%)',
+      backgroundSize: '34% 100%', backgroundRepeat: 'no-repeat', filter: 'drop-shadow(0 0 6px rgba(21,219,168,.95)) drop-shadow(0 0 16px rgba(21,219,168,.6))' } }, bezel);
     const plate = h('div', { style: { position: 'absolute', left: '-900px', top: '-700px', width: '3720px', height: '2480px', background: '#000' } }, W);
     const screen = h('div', { style: {
       position: 'absolute', left: '160px', top: '90px', width: '1600px', height: '900px', overflow: 'hidden', borderRadius: '3px',
@@ -262,28 +266,36 @@ GTR.scene({
         anaSpark.push({ e, a: -Math.PI * (0.1 + r() * 0.8) + (r() - 0.5) * 0.6, v: 60 + r() * 110, d: r() * 0.08 });
       }
     }
-    // floating "+ R$ 4.400" over Ana's card
-    const plus = h('div', { style: { position: 'absolute', left: '0', top: '0', display: 'flex', alignItems: 'center', gap: '4px', padding: '3px 10px', borderRadius: '999px', background: '#15dba8', color: '#053b30', fontWeight: 800, fontSize: '15px', lineHeight: 1.2, boxShadow: '0 6px 18px rgba(21,219,168,.45)', opacity: 0, whiteSpace: 'nowrap', zIndex: 8 } }, ui,
-      ic('plus', 13, '#053b30', 3.2) + '<span>R$ 4.400</span>');
     // layout offsets inside Ana's card — measured after the first update(0) fills every text (see end of build)
-    const PLUS = { x: 0, y: 0 }, BAR_END = { x: 0, y: 0 };
+    const BAR_END = { x: 0, y: 0 };
+    // extra gold ring on Ana's Ouro mark, fired on the global gold flash [62.0]
+    const anaThumpRing = h('div', { style: { position: 'absolute', left: 'calc(100% - 22px)', top: '-16px', width: '44px', height: '44px', borderRadius: '50%', border: '3px solid #fbbf24', boxShadow: '0 0 18px rgba(251,191,36,.8)', opacity: 0, pointerEvents: 'none' } }, cards.ana.barHold);
 
-    /* ---------------- UI · toasts (bottom-right of the screen) ---------------- */
-    const TOAST_W = 290, TOAST_H = 52, TOAST_GAP = 6;
-    const toasts = SALES.map((sl) => {
+    /* ---------------- UI · toast feed (top-right: over the static PROJEÇÃO DO MÊS column) ----------------
+       Newest on top, max 2, opaque, 4 px apart over a blanked column (nothing can show through).
+       The oldest slides right + fades in 0.15 s instead of being pushed out of the column.
+       Ana's hero sale gets its own big HUD toast in the zoomed shot (below). */
+    const FEED = SALES.filter((sl) => sl.id !== 'ana');
+    const FEED_GAP = 4;
+    const FEED_BOX = { x: 0, y: 0, w: 339, h: 120 }; // measured from c3 after update(0)
+    const toastHTML = (sl, k) => {
       const d = S[sl.id];
+      return `<div style="width:${34 * k}px;height:${34 * k}px;border-radius:999px;background:linear-gradient(135deg,#15dba8,#27ae8f);display:grid;place-items:center;flex:none;box-shadow:0 ${4 * k}px ${12 * k}px rgba(21,219,168,.45)">${ic('sparkles', 18 * k, '#fff', 2.2)}</div>` +
+        `<div style="line-height:1.15;min-width:0">` +
+        `<div style="font-size:${10.5 * k}px;font-weight:800;letter-spacing:.12em;color:#1f8f73;text-transform:uppercase">Venda realizada</div>` +
+        `<div style="display:flex;align-items:baseline;gap:${7 * k}px;margin-top:${2 * k}px;white-space:nowrap"><span style="font-size:${22 * k}px;font-weight:800;letter-spacing:-.01em;color:#0b2b29;font-variant-numeric:tabular-nums">${brl(sl.v)}</span><span style="font-size:${13 * k}px;font-weight:600;color:#2b5e53">· ${d.name}</span></div></div>`;
+    };
+    const toasts = FEED.map((sl, i) => {
       const el = h('div', { style: {
-        position: 'absolute', left: `${1260 - TOAST_W}px`, top: `${704 - TOAST_H}px`, width: `${TOAST_W}px`, height: `${TOAST_H}px`, borderRadius: '14px',
-        background: 'linear-gradient(#e7faf3,#bdf0d6)', border: '1px solid rgba(21,219,168,.75)',
-        boxShadow: '0 14px 34px rgba(11,43,41,.22), 0 0 26px rgba(21,219,168,.45)', display: 'flex', alignItems: 'center', gap: '12px', padding: '0 14px',
-        transformOrigin: '85% 100%', opacity: 0, zIndex: 5,
-      } }, ui);
-      h('div', { style: { width: '34px', height: '34px', borderRadius: '999px', background: 'linear-gradient(135deg,#15dba8,#27ae8f)', display: 'grid', placeItems: 'center', flex: 'none', boxShadow: '0 4px 12px rgba(21,219,168,.45)' } }, el, ic('sparkles', 18, '#fff', 2.2));
-      h('div', { style: { lineHeight: 1.15, minWidth: '0' } }, el,
-        `<div style="font-size:10.5px;font-weight:800;letter-spacing:.12em;color:#1f8f73;text-transform:uppercase">Venda realizada</div>` +
-        `<div style="display:flex;align-items:baseline;gap:7px;margin-top:2px;white-space:nowrap"><span style="font-size:22px;font-weight:800;letter-spacing:-.01em;color:#0b2b29">${brl(sl.v)}</span><span style="font-size:13px;font-weight:600;color:#2b5e53">· ${d.name}</span></div>`);
-      return { el, sl };
+        position: 'absolute', left: '0', top: '0', width: '339px', height: '58px', borderRadius: '13px',
+        background: 'linear-gradient(#e9fbf4,#c3f1db)', border: '1px solid rgba(21,219,168,.8)',
+        boxShadow: '0 10px 24px rgba(11,43,41,.16), 0 0 22px rgba(21,219,168,.38)', display: 'flex', alignItems: 'center', gap: '12px', padding: '0 14px',
+        transformOrigin: '100% 50%', opacity: 0, zIndex: 5 + i, overflow: 'hidden',
+      } }, ui, toastHTML(sl, 1));
+      const sheen = h('div', { style: { position: 'absolute', top: '0', bottom: '0', left: '0', width: '40%', background: 'linear-gradient(100deg, rgba(255,255,255,0), rgba(255,255,255,.75), rgba(255,255,255,0))', opacity: 0, pointerEvents: 'none' } }, el);
+      return { el, sl, sheen, i };
     });
+    const FEED_OUT = [2.70, 2.76]; // the last two leave (slot 1 first) as the camera starts its dive
 
     /* =====================================================================
        HUD — lower thirds (outside the camera)
@@ -339,20 +351,44 @@ GTR.scene({
     const medalRing = h('div', { style: { position: 'absolute', left: `${medX0 + 2 * 62 + 24 - 40}px`, top: `${BAND_H / 2 - 40}px`, width: '80px', height: '80px', borderRadius: '50%', border: '3px solid #f3b315', opacity: 0 } }, bandB.inner);
     const medalSheen = h('div', { style: { position: 'absolute', inset: '0', borderRadius: '50%', background: 'linear-gradient(115deg, rgba(255,255,255,0) 35%, rgba(255,255,255,.85) 50%, rgba(255,255,255,0) 65%)', backgroundSize: '300% 100%', mixBlendMode: 'screen' } }, medals[2]);
 
-    // band slide in/out (tl owns the wrap/inner transforms)
+    // band slide in/out (tl owns the wrap/inner transforms). B enters at 6.15, over the clean UI (overlay gone).
+    const T_B = 6.15;
     tl.fromTo(bandA.wrap, { x: -(bandA.bw + 90) }, { x: 0, duration: 0.35, ease: 'power3.out' }, 1.0);
     tl.fromTo(bandA.inner, { x: -140, opacity: 0 }, { x: 0, opacity: 1, duration: 0.45, ease: 'power3.out' }, 1.04);
     tl.to(bandA.wrap, { x: -(bandA.bw + 90), duration: 0.32, ease: 'power2.in' }, 2.75);
-    tl.fromTo(bandB.wrap, { x: -(bandB.bw + 90) }, { x: 0, duration: 0.35, ease: 'power3.out' }, 6.0);
-    tl.fromTo(bandB.inner, { x: -140, opacity: 0 }, { x: 0, opacity: 1, duration: 0.45, ease: 'power3.out' }, 6.04);
+    tl.fromTo(bandB.wrap, { x: -(bandB.bw + 90) }, { x: 0, duration: 0.35, ease: 'power3.out' }, T_B);
+    tl.fromTo(bandB.inner, { x: -140, opacity: 0 }, { x: 0, opacity: 1, duration: 0.45, ease: 'power3.out' }, T_B + 0.04);
     tl.to(bandB.wrap, { x: -(bandB.bw + 90), duration: 0.33, ease: 'power2.in' }, 7.6);
 
     /* =====================================================================
-       HUD — PARABÉNS overlay (4.0–6.3) + confetti
+       HUD — Ana's hero toast (zoomed shot, bottom-right, ~1.3× the TV toast)
        ===================================================================== */
-    const party = h('div', { style: { position: 'absolute', inset: '0', display: 'none', pointerEvents: 'none' } }, root);
-    const scrim = h('div', { style: { position: 'absolute', inset: '0', background: 'rgba(17,24,39,.72)', backdropFilter: 'blur(6px)', webkitBackdropFilter: 'blur(6px)', opacity: 0 } }, party);
+    const HT = { w: 560, h: 96, x: 1800 - 560, y: 975 - 96 };
+    const heroToast = h('div', { style: {
+      position: 'absolute', left: `${HT.x}px`, top: `${HT.y}px`, width: `${HT.w}px`, height: `${HT.h}px`, borderRadius: '20px',
+      background: 'linear-gradient(#e9fbf4,#c3f1db)', border: '1.5px solid rgba(21,219,168,.9)',
+      boxShadow: '0 28px 70px rgba(0,21,22,.42), 0 10px 24px rgba(0,21,22,.22), 0 0 0 1px rgba(255,255,255,.4) inset, 0 0 46px rgba(21,219,168,.55)',
+      display: 'none', alignItems: 'center', gap: '18px', padding: '0 24px', transformOrigin: '100% 50%', opacity: 0, zIndex: 2,
+    } }, root, toastHTML(SALES[4], 1.6));
+    const heroIcon = heroToast.firstChild;
+    const heroClip = h('div', { style: { position: 'absolute', inset: '0', borderRadius: '20px', overflow: 'hidden', pointerEvents: 'none' } }, heroToast);
+    const heroSheen = h('div', { style: { position: 'absolute', top: '0', bottom: '0', left: '0', width: '38%', background: 'linear-gradient(100deg, rgba(255,255,255,0), rgba(255,255,255,.8), rgba(255,255,255,0))' } }, heroClip);
+    const heroPing = h('div', { style: { position: 'absolute', left: '24px', top: `${HT.h / 2 - 27}px`, width: '54px', height: '54px', borderRadius: '50%', border: '3px solid #15dba8', boxShadow: '0 0 12px rgba(21,219,168,.7)', opacity: 0, pointerEvents: 'none' } }, heroToast);
+
+    /* =====================================================================
+       HUD — PARABÉNS overlay (4.0–6.35) + confetti
+       Dark petróleo scrim (blur 16) lighter/warmer behind the trophy + a vignette that
+       follows the TV's left edge so the space/UI seam dissolves into one dark field.
+       ===================================================================== */
+    const party = h('div', { style: { position: 'absolute', inset: '0', display: 'none', pointerEvents: 'none', zIndex: 2 } }, root);
+    const scrim = h('div', { style: { position: 'absolute', inset: '0',
+      background: 'radial-gradient(circle 620px at 960px 350px, rgba(52,36,4,.64) 0%, rgba(10,26,20,.79) 48%, rgba(0,21,22,.86) 100%)',
+      backdropFilter: 'blur(16px)', webkitBackdropFilter: 'blur(16px)', opacity: 0 } }, party);
+    const vig = h('div', { style: { position: 'absolute', inset: '0', opacity: 0 } }, party);
+    const vigR = 'radial-gradient(ellipse 1250px 720px at 960px 430px, rgba(0,8,9,0) 58%, rgba(0,8,9,.55) 100%)';
     const pc = h('div', { style: { position: 'absolute', inset: '0', transformOrigin: '50% 48%' } }, party);
+    bandA.wrap.style.zIndex = '3';
+    bandB.wrap.style.zIndex = '3';
     const goldGlow = GTR.glow(pc, { x: 960, y: 400, r: 760, color: '243,179,21', a: 0.26 });
     const rays = h('div', { style: {
       position: 'absolute', left: `${960 - 700}px`, top: `${330 - 700}px`, width: '1400px', height: '1400px', borderRadius: '50%',
@@ -387,7 +423,7 @@ GTR.scene({
     KIT.revealWords(tl, pLine.units, 4.35, { y: 40, dur: 0.5, stagger: 0.045, blur: 10 });
     tl.fromTo(pill, { xPercent: -50, yPercent: -50, scale: 0.6, opacity: 0 }, { xPercent: -50, yPercent: -50, scale: 1, opacity: 1, duration: 0.5, ease: 'back.out(1.8)' }, 4.7);
 
-    const conf = GTR.canvas(root, { style: { pointerEvents: 'none' } });
+    const conf = GTR.canvas(root, { style: { pointerEvents: 'none', zIndex: 4 } });
     const CONF = { colors: ['#38cc9c', '#2ba37b', '#4dd9ac', '#ffffff', '#f3b315'], life: 3.5 };
 
     /* =====================================================================
@@ -409,10 +445,11 @@ GTR.scene({
     ctx.cue('pop', 4.5);
     ctx.cue('pop', 4.7, { db: -6 });
     ctx.cue('swoosh', 6.0);
-    ctx.cue('blip', 6.0, { freq: 900 });
-    ctx.cue('blip', 6.25, { freq: 1200 });
-    ctx.cue('blip', 6.5, { freq: 1600 });
-    ctx.cue('shimmer', 6.5);
+    // medals pop 6.25 / 6.5 / 6.75 (band B enters at 6.15, after the overlay content has gone)
+    ctx.cue('blip', 6.25, { freq: 900 });
+    ctx.cue('blip', 6.5, { freq: 1200 });
+    ctx.cue('blip', 6.75, { freq: 1600 });
+    ctx.cue('shimmer', 6.75);
     ctx.cue('whoosh', 7.65, { dur: 0.35 });
 
     /* =====================================================================
@@ -444,6 +481,14 @@ GTR.scene({
       rx += -12 * kD; y += -200 * kD;
       return { x, y, s, rx, ry, kD };
     };
+    // camera push reads as a deliberate move: gaussian "motion" blur scaled by the easing slope
+    const slope = (ease, t, a, b) => {
+      const u = inv(t, a, b), hh = 0.004;
+      if (u <= 0 || u >= 1) return 0;
+      const f = E(ease);
+      return (f(Math.min(1, u + hh)) - f(Math.max(0, u - hh))) / (2 * hh) / 3; // 1 at the power3.inOut peak
+    };
+    const motionBlur = (t) => Math.max(3.2 * slope('power3.inOut', t, 2.75, 3.5), 2.2 * slope('power3.inOut', t, 6.0, 6.7));
 
     /* =====================================================================
        UPDATE — everything time-driven
@@ -451,13 +496,18 @@ GTR.scene({
     const RING_TEAL = (k) => `0 0 0 ${f2(3 * k)}px rgba(21,219,168,${f2(k)}), 0 0 ${f2(30 * k)}px rgba(21,219,168,${f2(0.55 * k)})`;
     const BASE_SHADOW = '0 1px 2px rgba(0,0,0,.04), 0 2px 8px rgba(0,0,0,.04)';
 
+    // one hit on the gold flash [62.0]: Ana's card thumps 1 → 1.06 → 1 (3.97–4.22), gold border + Ouro ring re-fire
+    const T_THUMP = 3.97;
+    const thumpK = (t) => { const a = t - T_THUMP; if (a < 0 || a > 0.25) return 0; return a < 0.06 ? E('power2.out')(a / 0.06) : 1 - E('power2.inOut')(inv(a, 0.06, 0.25)); };
+
     const update = (local) => {
       const t = Math.max(0, local);
 
       /* ---- camera ---- */
       const c = camAt(t);
       cam.set({ x: c.x, y: c.y, s: c.s, rx: c.rx, ry: c.ry });
-      st(cam.view, 'filter', c.kD > 0.001 ? `blur(${f2(10 * c.kD)}px)` : 'none');
+      const mb = Math.max(10 * c.kD, motionBlur(t));
+      st(cam.view, 'filter', mb > 0.12 ? `blur(${f2(mb)}px)` : 'none');
       st(cam.view, 'opacity', f2(1 - p(t, 7.6, 7.93, 'power1.in'))); // fully gone before the cut → empty stage
 
       /* ---- power-on ---- */
@@ -481,6 +531,9 @@ GTR.scene({
       st(tvGlow, 'opacity', f2(clamp(0.8 + 0.9 * flare + 0.35 * hit, 0, 2)));
       st(tvGlow, 'transform', `scale(${f2(1 + 0.12 * flare + 0.03 * hit)})`);
       st(glass, 'backgroundPosition', `${f2(88 - t * 5 - c.ry * 6)}% 0`);
+      const gk = inv(t, 7.5, 7.88);
+      st(glint, 'opacity', gk > 0 && gk < 1 ? f2(Math.sin(Math.PI * Math.min(1, gk * 1.25)) ) : '0');
+      st(glint, 'backgroundPosition', `${f2(lerp(-30, 130, E('power2.inOut')(gk)))}% 0`);
 
       /* ---- header ---- */
       tx(clock, `15:42:${String(7 + Math.floor(t)).padStart(2, '0')}`);
@@ -505,7 +558,9 @@ GTR.scene({
       /* ---- seller cards ---- */
       // live ranking: Paula (72,7%) passes Carla (71,8%) after her sale → cards trade places
       const kSwap = p(t, 1.1, 1.45, 'power3.inOut');
-      const ranks = { ana: 1, marina: 2, julia: 3, carla: kSwap >= 0.5 ? 5 : 4, paula: kSwap >= 0.5 ? 4 : 5, bia: 6 };
+      const T_FLIP = 1.28; // badge flips edge-on at the swap midpoint and comes back with the new rank
+      const ranks = { ana: 1, marina: 2, julia: 3, carla: t >= T_FLIP ? 5 : 4, paula: t >= T_FLIP ? 4 : 5, bia: 6 };
+      const flipDeg = t < T_FLIP ? 90 * p(t, 1.16, T_FLIP, 'power2.in') : 90 * (1 - p(t, T_FLIP, 1.42, 'back.out(2)'));
       for (const id of ORDER) {
         const cd = cards[id], d = cd.d;
         const a = addFor(id, t);
@@ -526,19 +581,21 @@ GTR.scene({
         let shadow;
         if (id === 'ana' && t >= T_OURO) {
           const g = p(t, T_OURO, T_OURO + 0.25, 'power2.out');
-          const fl = Math.exp(-(t - T_OURO) * 3.2);
-          shadow = `0 0 0 ${f2(2 + 2 * fl)}px rgba(251,191,36,${f2(0.7 * g + 0.3 * fl)}), 0 0 ${f2(24 + 36 * fl)}px rgba(251,191,36,${f2(0.35 + 0.4 * fl)}), ${BASE_SHADOW}`;
+          const fl = Math.max(Math.exp(-(t - T_OURO) * 3.2), t >= T_THUMP ? Math.exp(-(t - T_THUMP) * 4) : 0); // re-fires on the gold flash
+          shadow = `0 0 0 ${f2(2 + 2.5 * fl)}px rgba(251,191,36,${f2(Math.min(1, 0.7 * g + 0.3 * fl))}), 0 0 ${f2(24 + 40 * fl)}px rgba(251,191,36,${f2(0.35 + 0.45 * fl)}), ${BASE_SHADOW}`;
           tint = 0;
         } else {
           shadow = ring > 0.001 ? `${RING_TEAL(ring)}, ${BASE_SHADOW}` : BASE_SHADOW;
         }
         if (kSwap > 0 && kSwap < 1 && id === 'paula') shadow += ', 0 24px 40px rgba(0,0,0,.14)';
+        if (id === 'ana') sc = 1 + 0.06 * thumpK(t);
         st(cd.el, 'transform', `translate(${f2(px)}px, ${f2(py)}px) scale(${sc.toFixed(4)})`);
         st(cd.el, 'zIndex', String(z));
         st(cd.el, 'boxShadow', shadow);
         st(cd.el, 'background', tint > 0.001 ? `linear-gradient(rgba(21,219,168,${f2(0.07 * tint)}),rgba(21,219,168,${f2(0.07 * tint)})), #fff` : (id === 'ana' && t >= T_OURO ? `linear-gradient(rgba(251,191,36,${f2(0.06 * p(t, T_OURO, 4.3))}),rgba(251,191,36,0) 60%), #fff` : '#fff'));
-        // rank badge
+        // rank badge (+ rotateX flip on the swap)
         if (cd.rankNow !== ranks[id]) { cd.rankNow = ranks[id]; cd.rank.innerHTML = rankHTML(ranks[id]); }
+        if (id === 'paula' || id === 'carla') st(cd.rank, 'transform', `perspective(140px) rotateX(${f2(flipDeg)}deg)`);
         // numbers
         tx(cd.val, brl(month));
         const pctM = (month / d.ouro) * 100;
@@ -590,7 +647,7 @@ GTR.scene({
         if (id === 'bia') cd.bar.shine(p(t, crossT, crossT + 0.55, 'power2.inOut'));
         if (id === 'ana') cd.bar.shine(p(t, T_OURO, T_OURO + 0.6, 'power2.inOut'));
       }
-      // Ana extras: gold bar glow, medal pill, congrats strip, "+R$ 4.400", sparkles
+      // Ana extras: gold bar glow, medal pill, congrats strip, flash ring, sparkles
       {
         const cd = cards.ana;
         const g = t >= T_OURO ? 1 : 0;
@@ -602,17 +659,10 @@ GTR.scene({
         st(cd.congrats, 'height', `${f2(26 * kc)}px`);
         st(cd.congrats, 'marginBottom', `${f2(10 * kc)}px`);
         st(cd.congratsIn, 'transform', `translateY(${f2(-26 * (1 - kc))}px)`);
-        // "+ R$ 4.400" rises from the value
-        const ka = t - 3.0;
-        const pv = ka >= 0 && ka < 1.2;
-        st(plus, 'display', pv ? 'flex' : 'none');
-        if (pv) {
-          const rise = E('power3.out')(inv(ka, 0, 0.9));
-          const op = Math.min(inv(ka, 0, 0.12), 1 - inv(ka, 0.85, 1.2));
-          const sc = E('back.out(2)')(inv(ka, 0, 0.3));
-          st(plus, 'transform', `translate(${f2(cd.pos.x + PLUS.x)}px, ${f2(cd.pos.y + PLUS.y + 12 * (1 - rise) - 14 * p(ka, 0.7, 1.2, 'power1.in'))}px) scale(${f2(0.6 + 0.4 * sc)})`);
-          st(plus, 'opacity', f2(op));
-        }
+        // Ouro ring re-fires on the flash (bigger, softer)
+        const tr2 = inv(t, T_THUMP, T_THUMP + 0.55);
+        st(anaThumpRing, 'opacity', tr2 > 0 && tr2 < 1 ? f2(0.95 * (1 - tr2)) : '0');
+        st(anaThumpRing, 'transform', `scale(${f2(0.5 + 1.9 * E('power2.out')(tr2))})`);
         // gold sparkles burst from the bar end at the Ouro crossing
         const bx0 = cd.pos.x + BAR_END.x, by0 = cd.pos.y + BAR_END.y;
         for (const sp of anaSpark) {
@@ -626,21 +676,49 @@ GTR.scene({
         }
       }
 
-      /* ---- toasts (live feed, newest at the bottom, older ones rise and leave) ---- */
-      const LIFE = 0.9, FADE = 0.22;
-      toasts.forEach((to, i) => {
-        const age = t - to.sl.t;
-        const vis = age >= 0 && age < LIFE + FADE;
+      /* ---- toast feed: top-right over the (blanked) PROJEÇÃO column; newest on top, max 2 ----
+         A new toast pops into slot 0 and pushes the previous one down to slot 1; the toast that
+         would fall to slot 2 slides right + fades in 0.15 s (it never leaves the column). */
+      st(c3, 'opacity', f2(t < 1.5 ? 1 - p(t, 0.4, 0.52, 'power1.inOut') : p(t, 2.95, 3.25, 'power1.inOut')));
+      const slotH = FEED_BOX.h / 2 + FEED_GAP / 2;
+      toasts.forEach((to) => {
+        const i = to.i, age = t - to.sl.t;
+        const exitAt = i + 2 < FEED.length ? FEED[i + 2].t - 0.06 : FEED_OUT[FEED.length - 1 - i === 0 ? 1 : 0];
+        const ex = p(t, exitAt, exitAt + 0.15, 'power2.in');
+        const vis = age >= 0 && ex < 1;
         st(to.el, 'display', vis ? 'flex' : 'none');
         if (!vis) return;
-        let up = 0;
-        for (let j = i + 1; j < toasts.length; j++) up += p(t, toasts[j].sl.t, toasts[j].sl.t + 0.3, 'power3.out') * (TOAST_H + TOAST_GAP);
+        const push = i + 1 < FEED.length ? p(t, FEED[i + 1].t, FEED[i + 1].t + 0.3, 'power3.out') : 0;
         const sc = age < 0.3 ? lerp(0.7, 1.04, E('power2.out')(age / 0.3)) : lerp(1.04, 1, E('power2.inOut')(inv(age, 0.3, 0.5)));
-        const rise = 30 * (1 - E('power3.out')(inv(age, 0, 0.4)));
-        const fo = p(age, LIFE, LIFE + FADE, 'power2.in');
-        st(to.el, 'transform', `translateY(${f2(-up + rise - 16 * fo)}px) scale(${sc.toFixed(4)})`);
-        st(to.el, 'opacity', f2(Math.min(1, age / 0.1) * (1 - fo)));
+        const slideIn = 26 * (1 - E('power3.out')(inv(age, 0, 0.35)));
+        st(to.el, 'transform', `translate(${f2(FEED_BOX.x + slideIn + 90 * ex)}px, ${f2(FEED_BOX.y + push * slotH)}px) scale(${sc.toFixed(4)})`);
+        st(to.el, 'opacity', f2(Math.min(1, age / 0.08) * (1 - ex)));
+        const sh = inv(age, 0.18, 0.62);
+        st(to.sheen, 'opacity', sh > 0 && sh < 1 ? '1' : '0');
+        st(to.sheen, 'transform', `translateX(${f2(lerp(-150, 900, E('power2.inOut')(sh)))}px)`);
       });
+
+      /* ---- Ana's hero toast (HUD, zoomed shot): slides in 3.0–3.5, leaves under the gold flash ---- */
+      {
+        const a = t - 3.0;
+        const ex = p(t, 3.93, 4.06, 'power2.in');
+        const vis = a >= 0 && ex < 1;
+        st(heroToast, 'display', vis ? 'flex' : 'none');
+        if (vis) {
+          const kin = E('power3.out')(inv(a, 0, 0.5));
+          const sc = a < 0.28 ? lerp(0.86, 1.03, E('power2.out')(a / 0.28)) : lerp(1.03, 1, E('power2.inOut')(inv(a, 0.28, 0.5)));
+          const fy = Math.sin(a * 2.6) * 3 * p(a, 0.4, 0.8, 'sine.inOut');
+          st(heroToast, 'transform', `translate(${f2(180 * (1 - kin) + 120 * ex)}px, ${f2(fy)}px) scale(${sc.toFixed(4)})`);
+          st(heroToast, 'opacity', f2(Math.min(1, a / 0.1) * (1 - ex)));
+          const sh = inv(a, 0.3, 0.85);
+          st(heroSheen, 'opacity', sh > 0 && sh < 1 ? '1' : '0');
+          st(heroSheen, 'transform', `translateX(${f2(lerp(-260, 820, E('power2.inOut')(sh)))}px)`);
+          const pr = inv(a, 0.12, 0.62);
+          st(heroPing, 'opacity', pr > 0 && pr < 1 ? f2(0.85 * (1 - pr)) : '0');
+          st(heroPing, 'transform', `scale(${f2(1 + 0.6 * E('power2.out')(pr))})`);
+          st(heroIcon, 'transform', `scale(${f2(1 + 0.14 * bump(a - 0.05, 0.3))})`);
+        }
+      }
 
       /* ---- lower third A equalizer (reacts to each cha-ching) ---- */
       if (t > 0.95 && t < 3.2) {
@@ -652,31 +730,36 @@ GTR.scene({
           st(b, 'transform', `scaleY(${f2(hgt)})`);
         });
       }
-      /* ---- lower third B medals 6.00 / 6.25 / 6.50 ---- */
+      /* ---- lower third B medals 6.25 / 6.50 / 6.75 ---- */
       medals.forEach((m, i) => {
-        const a2 = t - (6.0 + i * 0.25);
+        const a2 = t - (6.25 + i * 0.25);
         const k = a2 <= 0 ? 0 : E('back.out(2.2)')(inv(a2, 0, 0.4));
         const fl = a2 > 0 ? Math.exp(-a2 * 4) : 0;
         st(m, 'transform', `scale(${f2(k * (1 + 0.1 * fl))}) rotate(${f2(-40 * (1 - E('power3.out')(inv(a2, 0, 0.5))))}deg)`);
       });
       {
-        const a3 = t - 6.5;
+        const a3 = t - 6.75;
         const rp = inv(a3, 0, 0.7);
         st(medalRing, 'opacity', rp > 0 && rp < 1 ? f2(0.9 * (1 - rp)) : '0');
         st(medalRing, 'transform', `scale(${f2(0.5 + 1.1 * E('power2.out')(rp))})`);
-        st(medalSheen, 'backgroundPosition', `${f2(lerp(120, -40, p(t, 6.75, 7.35, 'power2.inOut')))}% 0`);
+        st(medalSheen, 'backgroundPosition', `${f2(lerp(120, -40, p(t, 7.0, 7.5, 'power2.inOut')))}% 0`);
       }
 
       /* ---- PARABÉNS overlay ---- */
-      const pOn = t >= 4.0 && t < 6.35;
+      const pOn = t >= 4.0 && t < 6.36;
       st(party, 'display', pOn ? 'block' : 'none');
       if (pOn) {
-        const out = p(t, 6.0, 6.22, 'power2.in');           // content leaves first (scale-up + blur)…
-        const outS = p(t, 6.02, 6.3, 'power1.inOut');       // …then the scrim lifts
-        st(scrim, 'opacity', f2(p(t, 4.0, 4.2, 'power2.out') * (1 - outS)));
+        const out = p(t, 6.0, 6.12, 'power2.in');           // content leaves first (scale-up + blur)…
+        const outS = p(t, 6.12, 6.35, 'power1.inOut');      // …scrim + backdrop blur hold until 6.12, then lift
+        const sO = f2(p(t, 4.0, 4.2, 'power2.out') * (1 - outS));
+        st(scrim, 'opacity', sO);
+        st(vig, 'opacity', sO);
+        // vignette: kill the TV-edge seam (dark space | blurred UI) by ramping the UI side to the same dark
+        const seam = 960 + (150 - 960) * c.s + c.x;
+        st(vig, 'background', `linear-gradient(90deg, rgba(0,12,13,.9) 0px, rgba(0,12,13,.9) ${f2(seam + 16)}px, rgba(0,12,13,.62) ${f2(seam + 130)}px, rgba(0,12,13,.22) ${f2(seam + 330)}px, rgba(0,12,13,0) ${f2(seam + 520)}px, rgba(0,12,13,0) 1420px, rgba(0,12,13,.62) 1920px), ${vigR}`);
         st(pc, 'opacity', f2(1 - out));
-        st(pc, 'transform', `scale(${(1 + 0.08 * out).toFixed(4)})`);
-        st(pc, 'filter', out > 0.001 ? `blur(${f2(10 * out)}px)` : 'none');
+        st(pc, 'transform', `scale(${(1 + 0.06 * out).toFixed(4)})`);
+        st(pc, 'filter', out > 0.001 ? `blur(${f2(8 * out)}px)` : 'none');
         const ta = t - 4.0;
         const ts = ta < 0.3 ? lerp(0, 1.15, E('power3.out')(ta / 0.3)) : lerp(1.15, 1, E('power2.inOut')(inv(ta, 0.3, 0.5)));
         const fy = Math.sin(ta * 2.4) * 6 * p(ta, 0.4, 1.0, 'sine.inOut');
@@ -705,12 +788,18 @@ GTR.scene({
     // measure once, with real texts in place (offset* = layout values, unaffected by transforms)
     update(0);
     {
-      const nm = cards.ana.nameEl, bh = cards.ana.barHold;
-      PLUS.x = nm.offsetLeft + nm.offsetWidth + 12;
-      PLUS.y = nm.offsetTop + nm.offsetHeight / 2 - 16;
+      const bh = cards.ana.barHold;
       BAR_END.x = bh.offsetLeft + bh.offsetWidth;
       BAR_END.y = bh.offsetTop + 6;
+      // feed box = the PROJEÇÃO DO MÊS column (strip is the offsetParent)
+      FEED_BOX.x = strip.offsetLeft + c3.offsetLeft;
+      FEED_BOX.y = strip.offsetTop + c3.offsetTop;
+      FEED_BOX.w = c3.offsetWidth;
+      FEED_BOX.h = c3.offsetHeight;
+      const th = (FEED_BOX.h - FEED_GAP) / 2;
+      for (const to of toasts) { to.el.style.width = `${FEED_BOX.w}px`; to.el.style.height = `${th}px`; }
     }
+    update(0);
 
     return { tl, update };
   },

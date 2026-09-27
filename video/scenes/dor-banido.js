@@ -31,8 +31,8 @@ GTR.scene({
     const cam = KIT.camera(whipWrap, { perspective: P });
     cam.world.style.transformStyle = 'flat';        // camera is 2D here (translate / rotateZ / scale)
 
-    // red rim light behind the phone (S1: r 520, a .26, breathing with sin(t·6))
-    const rim = GTR.glow(cam.world, { x: PX, y: PY, r: 520, color: '239,68,68', a: 0.26 });
+    // red rim light behind the phone (S1: r 560, a .3, breathing with sin(t·6)); drains to gray with the scan
+    const rim = GTR.glow(cam.world, { x: PX, y: PY, r: 560, color: '239,68,68', a: 0.3 });
     const ghostsBack = h('div', { style: { position: 'absolute', inset: '0' } }, cam.world);
     const persp = h('div', { style: { position: 'absolute', inset: '0', perspective: `${P}px`, perspectiveOrigin: '960px 540px' } }, cam.world);
     const rig = h('div', { style: { position: 'absolute', inset: '0', transformOrigin: `${PX}px ${PY}px`, transform: 'rotateY(16deg)' } }, persp);
@@ -56,8 +56,8 @@ GTR.scene({
       const body = phone.body;
       body.style.background = '#fff';
       body.style.fontFamily = FONT_UI;
-      // chat list — blurred 6 px behind the modal
-      const list = h('div', { style: { position: 'absolute', inset: '0', background: '#fff', filter: 'blur(6px)' } }, body);
+      // chat list — blurred 3 px behind the modal (light enough for the row deaths to read in the slivers)
+      const list = h('div', { style: { position: 'absolute', inset: '0', background: '#fff', filter: 'blur(3px)' } }, body);
       const hdr = h('div', { style: { position: 'absolute', left: '0', top: '0', width: '402px', height: '76px' } }, list);
       h('div', { style: { position: 'absolute', left: '22px', top: '16px', fontSize: '31px', lineHeight: '44px', fontWeight: 800, letterSpacing: '-0.025em', color: '#111' } }, hdr).textContent = 'Conversas';
       const pill99 = h('div', { style: { position: 'absolute', left: '305px', top: '20px', width: '70px', height: '36px', borderRadius: '18px', background: 'linear-gradient(180deg,#f87171,#dc2626)',
@@ -78,10 +78,11 @@ GTR.scene({
         h('div', { style: { position: 'absolute', left: '82px', top: '17px', width: '220px', fontSize: '17px', fontWeight: 700, color: '#111', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' } }, row).textContent = r.name;
         h('div', { style: { position: 'absolute', right: '18px', top: '20px', fontSize: '13px', fontWeight: 600, color: '#1daa61' } }, row).textContent = r.time;
         h('div', { style: { position: 'absolute', left: '82px', top: '46px', width: '252px', fontSize: '15px', color: '#667781', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' } }, row).textContent = r.msg;
-        h('div', { style: { position: 'absolute', right: '18px', top: '45px', minWidth: '24px', height: '24px', padding: '0 7px', borderRadius: '12px', background: '#25d366', color: '#fff',
-          fontSize: '13px', fontWeight: 800, display: 'grid', placeItems: 'center' } }, row).textContent = String(r.n);
+        const badge = h('div', { style: { position: 'absolute', right: '18px', top: '45px', minWidth: '24px', height: '24px', padding: '0 7px', borderRadius: '12px', background: '#25d366', color: '#fff',
+          fontSize: '13px', fontWeight: 800, display: 'grid', placeItems: 'center', transformOrigin: '50% 50%' } }, row);
+        badge.textContent = String(r.n);
         h('div', { style: { position: 'absolute', left: '82px', right: '0', bottom: '0', height: '1px', background: '#eef0f1' } }, row);
-        return row;
+        return { row, badge };
       });
       const nav = h('div', { style: { position: 'absolute', left: '0', right: '0', top: '738px', height: '80px', borderTop: '1px solid #eceff1', background: '#fff', display: 'flex', justifyContent: 'space-around', alignItems: 'flex-start', paddingTop: '10px' } }, list);
       [['message-circle', 'Conversas', true], ['circle-dot', 'Atualizações', false], ['users', 'Comunidades', false], ['phone', 'Ligações', false]].forEach(([ic, tx, on]) => {
@@ -89,7 +90,7 @@ GTR.scene({
         it.innerHTML = `<span style="display:grid;place-items:center;width:58px;height:32px;border-radius:16px;background:${on ? '#d9fdd3' : 'transparent'}">${GTR.iconSVG(ic, { size: 22, color: on ? '#0b7a4b' : '#54656f' })}</span><span>${tx}</span>`;
       });
       // ban modal
-      h('div', { style: { position: 'absolute', inset: '0', background: 'rgba(11,20,26,0.52)' } }, body);
+      h('div', { style: { position: 'absolute', inset: '0', background: 'rgba(11,20,26,0.35)' } }, body);
       const modal = h('div', { style: { position: 'absolute', left: '33px', top: '210px', width: '336px', padding: '34px 26px 24px', borderRadius: '20px', background: '#fff',
         textAlign: 'center', boxShadow: '0 24px 60px rgba(0,0,0,0.4)', transformOrigin: '50% 50%' } }, body);
       const banWrap = h('div', { style: { position: 'relative', width: '136px', height: '136px', margin: '0 auto' } }, modal);
@@ -127,34 +128,36 @@ GTR.scene({
     lockDisc.firstChild.style.filter = 'drop-shadow(0 0 14px rgba(239,68,68,0.75))';
 
     /* ---- ghosts: S1's swarm + hero bubble in their exact t = 4.0 state, then they drop dead ----
-       (S1 places them in a preserve-3d world; here the same perspective is projected in 2D) */
+       (S1 places them in a preserve-3d world; here the same perspective is projected in 2D).
+       SW is a VERBATIM copy of dor-caos.js's table (same order → same ctx.rand tilts / bob phases,
+       same sx/sy/z, same front/back layer). Keep the two in sync if S1 changes. */
     const SW = [
-      ['Oi, tem grade?', '23:12', 250, 250, 0, 0],
-      ['Qual o mínimo do atacado?', '22:47', 1330, 132, -380, -1],
-      ['Ainda tem o vestido midi?', '22:31', 1550, 905, -260, -1],
-      ['Faz entrega em SP?', '21:58', 225, 470, 90, 2],
-      ['Tem no preto?', '21:40', 940, 250, -90, 1],
-      ['Quanto fica a grade de 6?', '20:15', 1190, 968, -170, 4],
-      ['Aceita Pix?', '19:52', 180, 690, -40, 3],
-      ['Alguém aí?', '19:03', 950, 800, 30, 5],
-      ['Oi??', '18:47', 1690, 222, -520, -1],
-      ['Vocês têm catálogo?', '18:20', 720, 96, 150, -1],
-      ['Pode me mandar o link?', '17:34', 250, 930, -200, -1],
-      ['Chegou a saia plissada?', '16:08', 1100, 110, -620, -1],
+      // text, time, sx, sy, z(at 2.5), timer index, pop slot (0.75 + slot·0.125), front layer
+      ['Oi, tem grade?', '23:12', 285, 250, 0, 0, 0, 1],
+      ['Qual o mínimo do atacado?', '22:47', 1330, 132, -380, -1, 1, 0],
+      ['Ainda tem o vestido midi?', '22:31', 1540, 900, -260, -1, 2, 0],
+      ['Faz entrega em SP?', '21:58', 290, 470, 90, 2, 3, 1],
+      ['Pode me mandar o link?', '17:34', 275, 925, -200, -1, 4, 1],
+      ['Quanto fica a grade de 6?', '20:15', 1200, 945, -170, 4, 5, 0],
+      ['Aceita Pix?', '19:52', 240, 690, -40, 3, 6, 1],
+      ['Alguém aí?', '19:03', 950, 800, 30, 5, 7, 0],
+      ['Oi??', '18:47', 1805, 470, -460, -1, 8, 0],
+      ['Vocês têm catálogo?', '18:20', 720, 110, 150, -1, 9, 1],
+      ['Tem no preto?', '21:40', 940, 250, -90, 1, 10, 0],
+      ['Chegou a saia plissada?', '16:08', 1655, 118, -650, -1, 11, 0],
     ];
     const TIMERS = ['sem resposta · 13 min', '47 min', '2 h', '5 h', '1 dia', '2 dias'];
     const R1 = rng('scene:dor-caos');                  // S1's ctx.rand stream → same tilts / bob phases
-    const ghosts = SW.map(([text, time, sx, sy, zd, ti]) => {
+    const ghosts = SW.map(([text, time, sx, sy, zd, ti, , front]) => {
       const rot = (R1() - 0.5) * 7, ph = R1() * 10;
-      const zNow = zd + 120;                           // S1 drifts z +80 px/s from 2.5 → +120 at the cut
-      const wrap = h('div', { style: { position: 'absolute', left: '0', top: '0', width: 'max-content', transformOrigin: '50% 50%' } }, zNow < 0 ? ghostsBack : ghostsFront);
+      const wrap = h('div', { style: { position: 'absolute', left: '0', top: '0', width: 'max-content', transformOrigin: '50% 50%' } }, front ? ghostsFront : ghostsBack);
       const el = KIT.bubble(wrap, { side: 'in', text, time, size: 20, maxW: 'none' });
       el.style.boxShadow = '0 14px 34px rgba(0,0,0,.38), 0 1px 1.5px rgba(0,0,0,.13)';
       el.style.whiteSpace = 'nowrap';
       if (ti >= 0) {
         const pill = h('div', { style: { position: 'absolute', left: '10px', top: 'calc(100% + 8px)', display: 'inline-flex', alignItems: 'center', gap: '7px', padding: '6px 12px 6px 10px', borderRadius: '999px',
           background: 'linear-gradient(rgba(239,68,68,.2),rgba(239,68,68,.2)), #1a0c0d', border: '1px solid rgba(239,68,68,.6)', color: '#fca5a5', fontFamily: FONT_UI, fontSize: '15px', fontWeight: 700,
-          whiteSpace: 'nowrap', boxShadow: '0 8px 20px rgba(0,0,0,.4)', transformOrigin: '12% 0%', transform: 'rotate(-3deg)' } }, wrap);
+          whiteSpace: 'nowrap', boxShadow: '0 8px 20px rgba(0,0,0,.4)', transformOrigin: '12% 0%', transform: 'rotate(-3deg) scale(1)' } }, wrap);
         pill.innerHTML = GTR.iconSVG('clock', { size: 15, sw: 2.4 }) + `<span>${TIMERS[ti]}</span>`;
       }
       const f = (P - zd) / P;
@@ -162,12 +165,13 @@ GTR.scene({
     });
     // drop order: right → left, so the headline column is clear before the title lands (0.5)
     ghosts.slice().sort((a, b) => b.sx - a.sx).forEach((q, k) => { q.t0 = 0.03 + k * 0.035; q.spin = k % 2 ? 1 : -1; });
+    // hero bubble — S1's end state (t ≥ 3.8): grayscale 1, brightness .6, opaque, red ring faded out
     const heroWrap = h('div', { style: { position: 'absolute', left: '0', top: '0', width: 'max-content', transformOrigin: '50% 50%' } }, ghostsFront);
     const hero = KIT.bubble(heroWrap, { side: 'in', text: 'Vou comprar em outro lugar.', time: '23:51', size: 25, maxW: 'none' });
     hero.style.whiteSpace = 'nowrap';
     hero.style.padding = '13px 18px 10px';
     hero.style.borderRadius = '6px 22px 22px 22px';
-    hero.style.boxShadow = '0 30px 70px rgba(0,0,0,.55), 0 0 0 2px rgba(239,68,68,.55), 0 0 40px rgba(239,68,68,.35)';
+    hero.style.boxShadow = '0 30px 70px rgba(0,0,0,.55), 0 0 0 2px rgba(239,68,68,0), 0 0 40px rgba(239,68,68,0)';
     const HERO_Z = 150, heroF = (P - HERO_Z) / P;
     const HERO = { x: 960 + (380 - 960) * heroF, y: 540 + (820 - 540) * heroF, t0: 0.46 };
 
@@ -179,9 +183,30 @@ GTR.scene({
     // S1 scrim, carried over (same geometry) — darkens the headline column only
     const scrim = h('div', { style: { position: 'absolute', left: '820px', top: '0', width: '1100px', height: '1080px',
       background: 'linear-gradient(90deg, rgba(0,21,22,0) 0%, rgba(0,21,22,.62) 24%, rgba(0,21,22,.85) 48%, rgba(0,21,22,.85) 100%)' } }, hud);
+    // S1's headline block carried across the cut (same geometry as dor-caos), torn, then it drops dead (0.08–0.5)
+    const RED_GLOW = '0 0 30px rgba(239,68,68,0.5)';
+    const carry = h('div', { style: { position: 'absolute', inset: '0' } }, hud);
+    const cA = KIT.headline(carry, 'Cliente\nchamando.', { x: 1060, y: 360, size: 112, align: 'left', w: 760, split: 'chars', lh: 1.04 });
+    const cB = KIT.headline(carry, '*Ninguém*\nresponde.', { x: 1060, y: 660, size: 112, align: 'left', w: 760, split: 'chars', lh: 1.04 });
+    const cEm = cB.el.querySelector('.kit-em');
+    cEm.style.color = RED;
+    cEm.style.textShadow = RED_GLOW;
+    [cA.el, cB.el].forEach((el) => { el.style.transformOrigin = '0% 50%'; el.dataset.baseTransform = 'translateY(-50%)'; });
+    // per-unit drop: bottom line first (clears the way), top line last; small random lead per char
+    const RC = rng('dor-banido:carry');
+    const carryUnits = [];
+    [[cA, 0], [cB, 2]].forEach(([hd, base]) => {
+      const tops = hd.units.map((u) => u.offsetTop);                  // offsetParent = the headline block
+      const minTop = Math.min(...tops);
+      hd.units.forEach((u, i) => {
+        u.style.willChange = 'auto';
+        const line = base + (tops[i] - minTop > 20 ? 1 : 0);          // 0 Cliente · 1 chamando. · 2 Ninguém · 3 responde.
+        carryUnits.push({ u, t0: 0.08 + (3 - line) * 0.03 + RC() * 0.04, vx: (RC() - 0.5) * 160, spin: (RC() - 0.5) * 140, red: base === 2 && line === 2 });
+      });
+    });
     const hudText = h('div', { style: { position: 'absolute', inset: '0' } }, hud);
     const title = KIT.headline(hudText, 'O WhatsApp\n*bloqueia*.', { size: 112, x: 1060, y: 380, align: 'left', w: 760, split: 'chars', lh: 1.04 });
-    title.el.querySelectorAll('.kit-em').forEach((em) => { em.style.color = RED; em.style.textShadow = '0 0 30px rgba(239,68,68,0.5)'; });
+    title.el.querySelectorAll('.kit-em').forEach((em) => { em.style.color = RED; em.style.textShadow = RED_GLOW; });
     const sub = (txt, y) => {
       const el = h('div', { class: 'body', style: { position: 'absolute', left: '1060px', top: `${y}px`, transform: 'translateY(-50%)', fontSize: '40px', fontWeight: 700,
         color: 'rgba(255,255,255,0.8)', whiteSpace: 'nowrap' } }, hudText);
@@ -208,6 +233,9 @@ GTR.scene({
     s('feColorMatrix', { in: 'd', type: 'matrix', values: '0 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 1 0', result: 'gb' }, filt);
     const offGB = s('feOffset', { in: 'gb', dx: 0, dy: 0, result: 'gbo' }, filt);
     s('feBlend', { in: 'ro', in2: 'gbo', mode: 'screen' }, filt);
+    // whip motion blur: horizontal-led Gaussian that converges to the isotropic 24 px contract at 4.0 (S3's first frame)
+    const wf = s('filter', { id: 'db-whip', x: '-10%', y: '-10%', width: '120%', height: '120%', 'color-interpolation-filters': 'sRGB' }, fsvg);
+    const wBlur = s('feGaussianBlur', { in: 'SourceGraphic', stdDeviation: '0 0', edgeMode: 'none' }, wf);
     const { ctx: tc } = GTR.canvas(root, { z: 70, style: { pointerEvents: 'none' } });
     const TEAR_COLS = ['#000c0d', 'rgba(239,68,68,.5)', 'rgba(21,219,168,.35)'];
 
@@ -217,13 +245,7 @@ GTR.scene({
     const tl = ctx.tl({ defaults: { ease: 'power3.out', force3D: false } });
     [...title.units, ...sub1, ...sub2].forEach((u) => { u.style.willChange = 'auto'; });
     tl.fromTo(PHONES.map((q) => q.modal), { scale: 1.035 }, { scale: 1, duration: 0.45, ease: 'power3.out' }, 0);
-    // rows die bottom-up on 16ths (0.375 … 1.0): red flush, then collapse
-    for (let i = 0; i < ROWS.length; i++) {
-      const r = PHONES.map((q) => q.rows[ROWS.length - 1 - i]);
-      const at = 0.375 + i * 0.125;
-      tl.fromTo(r, { backgroundColor: '#ffffff' }, { backgroundColor: '#fecaca', duration: 0.07, ease: 'none' }, at);
-      tl.fromTo(r, { height: 88, opacity: 1 }, { height: 0, opacity: 0, duration: 0.3, ease: 'power2.in' }, at + 0.05);
-    }
+    // rows die bottom-up on 16ths (0.375 … 1.0) — driven in update() (flush, badge pop, slide + collapse)
     tl.fromTo(PHONES.map((q) => q.pill99), { scale: 1, opacity: 1 }, { scale: 0, opacity: 0, duration: 0.3, ease: 'back.in(2)' }, 1.05);
     // headline — DOR char cascade (y 90, rot ±8 alternating, stagger .025, back.out)
     tl.fromTo(title.units, { y: 90, opacity: 0, rotate: (i) => (i % 2 ? 8 : -8), scale: 0.9 },
@@ -255,10 +277,14 @@ GTR.scene({
     return {
       tl,
       update(t, g) {
-        /* ---- tear settle: amt 0.6 → 0 over 0–0.25 (S1's filter + bars, world only) ---- */
+        /* ---- tear settle: amt 0.6 → 0 over 0–0.25 (S1's filter + bars on the world and the carried HUD) ---- */
         const amt = t < 0.25 ? 0.6 * (1 - p(t, 0, 0.25, 'power1.out')) : 0;
         const gseed = Math.floor(g * 30);
         KIT.glitch(tearWrap, amt, g, 11);
+        KIT.glitch(cA.el, amt, g, 23);                                   // S1's per-headline seeds
+        KIT.glitch(cB.el, amt, g, 37);
+        cEm.style.textShadow = amt > 0.001 && cB.el.style.textShadow ? `${cB.el.style.textShadow}, ${RED_GLOW}` : RED_GLOW;
+        hud.style.filter = amt > 0.001 ? 'url(#db-tear)' : '';
         if (amt > 0.001) {
           const r = rng(gseed + 1);
           turb.setAttribute('seed', String((gseed % 997) + 1));

@@ -40,7 +40,7 @@ GTR.scene({
     const MAP = [3.00, 3.60], HB = 3.25;
     const ARC0 = 3.25, ARC_STEP = 0.125, ARC_DUR = 0.40;
     const EB = 4.00, LOGO = 4.10;
-    const OUT2 = [5.50, 6.00];
+    const OUT2 = [5.50, 5.95];
 
     /* =====================================================================
        PART 1 · Performance, não vaidade.
@@ -124,14 +124,14 @@ GTR.scene({
     // line 2 "não vaidade." + subline (tl)
     const l2 = KIT.headline(head1, 'não vaidade.', { size: L1S, y: 590, w: 1800, lh: 1.08 });
     const vai = l2.units[1];
-    vai.style.transformOrigin = '100% 60%';
+    vai.style.transformOrigin = '0% 100%';          // sags from its first letter, stays attached to "não"
     const sub = KIT.headline(head1, 'Medimos o que paga a conta.', { size: 36, y: 762, w: 1400, font: 'body', weight: 700, color: 'rgba(255,255,255,.84)', ls: '0' });
     sub.el.className = 'body';
 
     KIT.revealWords(tl, l2.units, L2, { y: 56, dur: 0.45, stagger: 0.08, blur: 12 });
     // THE GAG — "vaidade." deflates (0.6 s, power2.in)
     tl.fromTo(vai, { color: '#ffffff', filter: 'blur(0px)', rotate: 0, y: 0, scale: 1, opacity: 1 },
-      { color: '#6b7472', filter: 'blur(6px)', rotate: -8, y: 24, scale: 0.92, opacity: 0.35, duration: 0.6, ease: 'power2.in', immediateRender: false }, GAG);
+      { color: '#6b7472', filter: 'blur(6px)', rotate: 6, y: 24, scale: 0.92, opacity: 0.35, duration: 0.6, ease: 'power2.in', immediateRender: false }, GAG);
     KIT.revealWords(tl, sub.units, SUB, { y: 30, dur: 0.6, stagger: 0.06, blur: 8 });
 
     /* =====================================================================
@@ -142,7 +142,7 @@ GTR.scene({
 
     // map box (stage 160,190 · 700 wide) — viewBox 0 0 821 744
     const MX = 160, MY = 190, MW = 700, K = MW / 821, MH = 744 * K;
-    const CE = { x: 602, y: 205 };                                   // Ceará in viewBox units → stage (673, 365)
+    const CE = { x: 602, y: 205 };                                   // arc origin (landing, verbatim) → stage (673, 365)
     const CES = { x: MX + CE.x * K, y: MY + CE.y * K };
     const ceGlow = GTR.glow(P2, { x: CES.x, y: CES.y, r: 420, color: '21,219,168', a: 0.26 });
     const mapWrap = div(P2, { position: 'absolute', left: `${MX}px`, top: `${MY}px`, width: `${MW}px`, height: `${MH}px`, transformOrigin: `${CE.x * K}px ${CE.y * K}px`, opacity: 0 });
@@ -152,7 +152,8 @@ GTR.scene({
     Object.assign(mapSvg.style, { position: 'absolute', left: '0', top: '0', overflow: 'visible' });
     const paths = Array.from(mapSvg.querySelectorAll('path'));
     const MAXD = 640;
-    const cePt = new DOMPoint(CE.x, CE.y);
+    // the landing's origin sits on the Piauí/Ceará border; light Ceará itself via an interior point
+    const cePt = new DOMPoint(630, 188);
     const fills = [], strokes = [];
     for (const el of paths) {
       const bb = el.getBBox();
@@ -162,7 +163,10 @@ GTR.scene({
         el.setAttribute('stroke-width', 1.35);
         const len = el.getTotalLength();
         el.style.strokeDasharray = `${len} ${len}`;
-        el.style.stroke = 'rgba(21,219,168,.5)';
+        let ceS = false;
+        try { ceS = el.isPointInFill(cePt); } catch (e) { ceS = false; }
+        el.style.stroke = ceS ? 'rgba(120,255,214,.95)' : 'rgba(21,219,168,.5)';
+        if (ceS) el.setAttribute('stroke-width', 2.4);
         strokes.push({ el, len, d, t0: MAP[0] + (d / MAXD) * 0.45 });
       } else if ((el.getAttribute('fill') || 'none') !== 'none') {
         let isCE = false;
@@ -221,8 +225,9 @@ GTR.scene({
     mq.style.maskImage = edge;
     const PW = 170, PHT = 96, GAP = 20, STEP = PW + GAP, SPEED = 60;
     const ROWS = [
-      { files: ['clara-jeans', 'quids', 'moov', 'levoo', 'clara-plus', 'gl'], y: 24, dir: -1, phase: 0 },
-      { files: ['fornelle', 'uece', 'lb', 'chefclaudia', 'q'], y: 144, dir: 1, phase: STEP * 0.5 },
+      // phases chosen so each row holds 4 full plates at ~5.0 s and the glide shows the rest
+      { files: ['clara-jeans', 'quids', 'moov', 'levoo', 'clara-plus', 'gl'], y: 24, dir: -1, phase: STEP * 0.5 },
+      { files: ['fornelle', 'uece', 'lb', 'chefclaudia', 'q'], y: 144, dir: 1, phase: 175 },
     ];
     const plates = [];
     ROWS.forEach((row, r) => {
@@ -232,13 +237,23 @@ GTR.scene({
           const el = KIT.logoPlate(mq, `${f}.png`, { w: PW, h: PHT });
           Object.assign(el.style, { position: 'absolute', left: '0', top: `${row.y}px`, background: '#ffffff', isolation: 'isolate', transformOrigin: '50% 50%',
             border: '1px solid rgba(255,255,255,.85)', boxShadow: '0 14px 30px rgba(0,0,0,.42), 0 0 0 1px rgba(21,219,168,.10)', opacity: 0 });
-          if (el.firstChild) el.firstChild.style.mixBlendMode = 'multiply';
+          const im = el.firstChild;
+          if (im) {
+            im.style.mixBlendMode = 'multiply';
+            if (f === 'lb') {                                         // thin gold mark on a speckled field: crop in + boost
+              el.style.overflow = 'hidden';
+              Object.assign(im.style, { position: 'absolute', left: '50%', top: '50%', transform: 'translate(-50%, -54%)', maxWidth: 'none', maxHeight: 'none', height: '132px',
+                filter: 'contrast(1.35) saturate(1.5) brightness(.9)' });
+            }
+          }
           plates.push({ el, r, dir: row.dir, base: (i + k * n) * STEP + row.phase, span });
         });
       }
     });
+    // rows glide in (power3.out) and settle into the 60 px/s drift — the glide carries every logo through the window
+    const GLIDE = 260;
     const plateX = (q, t) => {
-      const shift = q.dir * SPEED * (t - LOGO) + q.dir * 90 * (1 - E('expo.out')(inv(t, LOGO - 0.1, LOGO + 0.9)));
+      const shift = q.dir * SPEED * (t - LOGO) - q.dir * GLIDE * (1 - E('power3.out')(inv(t, LOGO - 0.1, LOGO + 1.1)));
       let x = (q.base + shift) % q.span;
       if (x < 0) x += q.span;
       return x - STEP;
@@ -373,7 +388,7 @@ GTR.scene({
         for (const q of fills) {
           let a;
           if (q.isCE) {
-            a = 0.08 + 0.36 * p(t, 3.1, 3.4, 'power2.out') + 0.12 * beat * p(t, 3.25, 3.5);
+            a = 0.08 + 0.46 * p(t, 3.1, 3.4, 'power2.out') + 0.14 * beat * p(t, 3.25, 3.5);
           } else {
             const lit = p(t, q.tw, q.tw + 0.2, 'power2.out');
             const fl = t >= q.tw ? Math.exp(-(t - q.tw) * 3.2) : 0;

@@ -84,9 +84,11 @@ GTR.scene({
     const bandA = div(A, { position: 'absolute', left: '980px', top: '-420px', width: '560px', height: '1900px', transformOrigin: '50% 50%',
       background: 'linear-gradient(90deg, rgba(21,219,168,0), rgba(21,219,168,.075) 42%, rgba(21,219,168,.075) 58%, rgba(21,219,168,0))' });
     div(A, { position: 'absolute', inset: '0', background: 'radial-gradient(120% 100% at 45% 45%, rgba(11,43,41,0) 58%, rgba(11,43,41,.13) 100%)' });
-    // soft petrol shade bottom-left so fx's white "Imagens e dados ilustrativos" stays legible on the light stage
-    div(A, { position: 'absolute', left: '0', top: '760px', width: '1920px', height: '320px', background: 'linear-gradient(0deg, rgba(11,43,41,.17), rgba(11,43,41,.05) 45%, rgba(11,43,41,0))' });
-    div(A, { position: 'absolute', left: '-420px', top: '900px', width: '1300px', height: '360px', background: 'radial-gradient(closest-side, rgba(11,43,41,.16), rgba(11,43,41,0))' });
+    // local petrol patch ONLY behind fx's white "Imagens e dados ilustrativos" (x 28–235, y ≈ 1040–1058),
+    // plateau + soft falloff so the text sits on ≈ rgb(75,90,90) while the rest of the white stage stays clean
+    // (anchored on the corner so it reads as a soft corner shade, not a floating blob)
+    div(A, { position: 'absolute', left: '0', top: '760px', width: '1000px', height: '320px', zIndex: 1, pointerEvents: 'none',
+      background: 'radial-gradient(540px 170px at 0px 320px, rgba(0,21,22,.74) 0%, rgba(0,21,22,.68) 40%, rgba(0,21,22,.56) 55%, rgba(0,21,22,.3) 72%, rgba(0,21,22,.1) 87%, rgba(0,21,22,0) 100%)' });
     const floorA = div(A, { position: 'absolute', left: '1090px', top: '960px', width: '520px', height: '80px', borderRadius: '50%', zIndex: 2,
       background: 'radial-gradient(closest-side, rgba(11,43,41,.30), rgba(11,43,41,0))' });
     // floating product tiles (depth-of-field layers around the phone)
@@ -175,12 +177,16 @@ GTR.scene({
     const btnA = div(sheet, { position: 'absolute', left: '20px', right: '20px', top: '364px', height: '60px', borderRadius: '16px', background: '#25d366', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', fontSize: '18px', fontWeight: 800, overflow: 'hidden', boxShadow: '0 10px 24px rgba(37,211,102,.35)' },
       I('message-circle', { size: 23, sw: 2.3 }) + '<span>Finalizar pelo WhatsApp</span>');
     const ripA = div(btnA, { position: 'absolute', left: '0', top: '0', width: '40px', height: '40px', borderRadius: '50%', background: 'rgba(255,255,255,.5)', opacity: 0 });
+    // tap payoff: a white glint sweeping across the button + a 1–2 frame white flash
+    const glintA = div(btnA, { position: 'absolute', top: '-20px', left: '0', width: '80px', height: '100px', opacity: 0,
+      background: 'linear-gradient(90deg, rgba(255,255,255,0), rgba(255,255,255,.85) 50%, rgba(255,255,255,0))' });
+    const flashA = div(btnA, { position: 'absolute', inset: '0', background: '#fff', opacity: 0 });
     // touch indicator (iOS-simulator style)
     const touch = div(SA, { position: 'absolute', left: '0', top: '0', width: '54px', height: '54px', borderRadius: '50%', background: 'rgba(17,24,39,.2)', border: '2px solid rgba(255,255,255,.9)', boxShadow: '0 4px 14px rgba(0,0,0,.22)', opacity: 0, zIndex: 10 });
     const touchRing = div(SA, { position: 'absolute', left: '0', top: '0', width: '54px', height: '54px', borderRadius: '50%', border: '2.5px solid rgba(17,24,39,.35)', opacity: 0, zIndex: 10 });
     const TAPS = [
       { tIn: 0.38, tTap: TAP1, from: [196, 520], to: [100, 398] },
-      { tIn: 1.22, tTap: TAP2, from: [300, 690], to: [214, SHEET_TOP + 394] },
+      { tIn: 1.22, tTap: TAP2, from: [336, 690], to: [358, SHEET_TOP + 396] },   // right end of the button: never covers the label
     ];
 
     // WhatsApp reward badge next to the phone after the tap
@@ -281,10 +287,18 @@ GTR.scene({
       const dx = (e.b[0] - e.a[0]) * 0.5;
       return `M${e.a[0]},${e.a[1]} C${e.a[0] + dx},${e.a[1]} ${e.b[0] - dx},${e.b[1]} ${e.b[0]},${e.b[1]}`;
     };
-    // the Revenda Bella token path: through WhatsApp and "Comprou?", out on "sim", into "Fim"
-    const TOKEN_D = `M375,540 L805,540 L1015,540 C1070,540 1070,400 1125,400 L1250,400`;
+    // the Revenda Bella token path: through WhatsApp and "Comprou?", out on "sim", across "Fim" to its dock
+    // (the dock sits on Fim's top-right corner; the token rides ABOVE the nodes and ends exactly on it)
+    const DOCK = [1367, 368];
+    const TOKEN_D = `M375,540 L805,540 L1015,540 C1070,540 1070,400 1125,400 C1250,400 1300,${DOCK[1]} ${DOCK[0]},${DOCK[1]}`;
+    // gold trail = only the connector stretches of her route (nodes are 92 % opaque, a line under them would ghost through)
+    // s0 = distance along TOKEN_D where each stretch starts
+    const TRAIL = [{ d: 'M375,540 L465,540', s0: 0 }, { d: 'M715,540 L805,540', s0: 340 }, { d: 'M1015,540 C1070,540 1070,400 1125,400', s0: 640 }];
     const TOKEN_T = [4.30, 5.00];
     const FIM_OK = 5.02;
+    const TOKEN_ROUTE = [0, 1, 2];                           // edges she travels (lit gold behind her)
+    const RB_STYLE = { background: 'linear-gradient(135deg,#f3b315,#a16207)', color: '#fff', display: 'grid', placeItems: 'center', fontWeight: 800, fontSize: '15px', fontFamily: 'var(--font-ui)',
+      boxShadow: '0 0 0 3px #f3b315, 0 0 24px rgba(243,179,21,.65)' };
 
     const buildFlow = (parent, wire) => {
       const world = full(parent, 1, { transformOrigin: '960px 560px' });
@@ -306,13 +320,19 @@ GTR.scene({
         }
         return Object.assign({}, e, { path, len, ports, packets, label });
       });
-      let token = null, tokenPath = null, tokenLen = 0;
+      let token = null, tokenPath = null, tokenLen = 0, trail = [];
       if (!wire) {
         tokenPath = s('path', { d: TOKEN_D, fill: 'none', stroke: 'none' }, svg);
         tokenLen = tokenPath.getTotalLength();
-        token = div(world, { position: 'absolute', left: '-22px', top: '-22px', width: '44px', height: '44px', borderRadius: '50%', zIndex: 2,
-          background: 'linear-gradient(135deg,#f3b315,#a16207)', color: '#fff', display: 'grid', placeItems: 'center', fontWeight: 800, fontSize: '15px', fontFamily: 'var(--font-ui)',
-          boxShadow: '0 0 0 3px #f3b315, 0 0 24px rgba(243,179,21,.65)', opacity: 0 }, 'RB');
+        // gold trail: her route lights up behind her (only the connector stretches show; nodes cover the rest)
+        trail = TRAIL.map((tr) => {
+          const path = s('path', { d: tr.d, fill: 'none', stroke: '#f3b315', 'stroke-width': 3.5, 'stroke-linecap': 'round',
+            style: { opacity: 0, filter: 'drop-shadow(0 0 5px rgba(243,179,21,.75))' } }, svg);
+          const len = path.getTotalLength();
+          path.style.strokeDasharray = `${len} ${len + 10}`;
+          return { path, len, s0: tr.s0 };
+        });
+        token = div(world, Object.assign({ position: 'absolute', left: '-22px', top: '-22px', width: '44px', height: '44px', borderRadius: '50%', zIndex: 6, opacity: 0 }, RB_STYLE), 'RB');
       }
       const nodes = NODES.map((n) => {
         const el = KIT.flowNode(world, { x: n.x, y: n.y, w: n.w, title: n.title, sub: n.sub, icon: n.icon, color: n.color, dark: true });
@@ -327,13 +347,19 @@ GTR.scene({
         return Object.assign({}, n, { el, tile });
       });
       let dock = null, dockCheck = null, okRing = null;
+      const dockBox = { position: 'absolute', left: `${DOCK[0] - 22}px`, top: `${DOCK[1] - 22}px`, width: '44px', height: '44px', borderRadius: '50%', zIndex: 6 };
+      const checkBox = { position: 'absolute', right: '-8px', bottom: '-6px', width: '22px', height: '22px', borderRadius: '50%', display: 'grid', placeItems: 'center' };
       if (!wire) {
-        dock = div(world, { position: 'absolute', left: `${1375 - 30}px`, top: `${360 - 14}px`, width: '44px', height: '44px', borderRadius: '50%', zIndex: 5,
-          background: 'linear-gradient(135deg,#f3b315,#a16207)', color: '#fff', display: 'grid', placeItems: 'center', fontWeight: 800, fontSize: '15px', fontFamily: 'var(--font-ui)',
-          boxShadow: '0 0 0 3px #f3b315, 0 0 26px rgba(243,179,21,.7)', transform: 'scale(0)' }, 'RB');
-        dockCheck = div(dock, { position: 'absolute', right: '-8px', bottom: '-6px', width: '22px', height: '22px', borderRadius: '50%', background: '#16a34a', color: '#fff', display: 'grid', placeItems: 'center', boxShadow: '0 0 0 2.5px #04201b' }, I('check', { size: 14, sw: 3.2 }));
+        // the token hands off to the dock at TOKEN_T[1] (same pixels, same look) — no scale-from-0
+        dock = div(world, Object.assign({}, dockBox, RB_STYLE, { opacity: 0 }), 'RB');
+        dockCheck = div(dock, Object.assign({}, checkBox, { background: '#16a34a', color: '#fff', boxShadow: '0 0 0 2.5px #04201b', transform: 'scale(0)' }), I('check', { size: 14, sw: 3.2 }));
         okRing = KIT.pulse(world, { x: 1250, y: 400, r: 190, color: '#4ade80', sw: 3 });
         okRing.el.style.zIndex = 3;
+      } else {
+        // wireframe keeps the story payoff: RB + check as a gold/green outline once the scan has passed
+        dock = div(world, Object.assign({}, dockBox, { border: '1.5px solid rgba(243,179,21,.75)', boxShadow: '0 0 14px rgba(243,179,21,.25)', color: 'rgba(243,179,21,.85)',
+          display: 'grid', placeItems: 'center', fontWeight: 800, fontSize: '15px', fontFamily: 'var(--font-ui)', boxSizing: 'border-box', opacity: 0 }), 'RB');
+        dockCheck = div(dock, Object.assign({}, checkBox, { border: '1.5px solid rgba(74,222,128,.75)', color: 'rgba(74,222,128,.9)', background: '#03211e', boxSizing: 'border-box', right: '-9px', bottom: '-7px' }), I('check', { size: 13, sw: 2.6 }));
       }
       const set = (t) => {
         // camera: settle from a tilted plate, then a slow push
@@ -342,12 +368,29 @@ GTR.scene({
         const sc = lerp(1.07, 1, e) + 0.028 * p(t, 4.6, 6.0, 'sine.inOut');
         world.style.transform = `perspective(1800px) translateY(${lerp(40, 0, e)}px) rotateX(${rx}deg) scale(${sc})`;
         if (wire) {
-          // placeholders step aside while the live node/label pops over them; back for the scan
+          // placeholders cross-fade out only once the live node/label covers them (live is opaque by at+0.08 /
+          // t0+0.20), so a slot is never empty; they come back for the scan
           const back = t >= SCAN[0];
-          for (const n of nodes) n.el.style.opacity = back ? 1 : 1 - inv(t, n.at - 0.06, n.at);
-          for (const ed of edges) if (ed.label) ed.label.style.opacity = back ? 1 : 1 - inv(t, ed.t0 + 0.06, ed.t0 + 0.12);
+          for (const n of nodes) {
+            n.el.style.opacity = back ? 1 : 1 - inv(t, n.at + 0.06, n.at + 0.14);          // dashed frame holds the slot
+            const c = back ? 1 : 1 - inv(t, n.at, n.at + 0.05);                          // its text/icon dissolve into the live one
+            for (const ch of n.el.children) ch.style.opacity = c;
+          }
+          for (const ed of edges) if (ed.label) ed.label.style.opacity = back ? 1 : 1 - inv(t, ed.t0 + 0.18, ed.t0 + 0.26);
+          // her route stays gold in the wireframe
+          edges.forEach((ed, i) => {
+            if (!TOKEN_ROUTE.includes(i)) return;
+            const col = back ? 'rgba(243,179,21,.7)' : 'rgba(160,190,185,.45)';
+            ed.path.setAttribute('stroke', col);
+            ed.ports.forEach((c) => c.setAttribute('stroke', back ? 'rgba(243,179,21,.75)' : 'rgba(160,190,185,.5)'));
+          });
+          dock.style.opacity = back ? 1 : 0;
           return;
         }
+        // Revenda Bella's token position (drives the node pass-glow below)
+        const tp = p(t, TOKEN_T[0], TOKEN_T[1], 'power1.inOut');
+        const pt = tokenPath.getPointAtLength(tokenLen * tp);
+        const tokOn = t >= TOKEN_T[0] - 0.06 && t < TOKEN_T[1];
         for (const n of nodes) {
           const k = p(t, n.at, n.at + 0.42, 'back.out(1.7)');
           n.el.style.opacity = clamp(inv(t, n.at, n.at + 0.08));
@@ -360,7 +403,11 @@ GTR.scene({
             n.tile.style.color = ok > 0.5 ? '#4ade80' : '#15dba8';
           }
           const gl = Math.max(flash * 0.55, ok * 0.5);
-          n.el.style.boxShadow = `0 20px 50px rgba(0,0,0,0.45), 0 0 30px rgba(21,219,168,${0.12 + gl * 0.5})` + (ok > 0 ? `, 0 0 40px rgba(74,222,128,${ok * 0.45})` : '');
+          // gold rim-light while the token is crossing this node
+          const cx = n.x + n.w / 2, cy = n.y + NH / 2;
+          const pass = tokOn && Math.abs(pt.y - cy) < NH ? clamp(1 - Math.max(0, Math.abs(pt.x - cx) - n.w / 2 + 30) / 60) : 0;
+          n.el.style.boxShadow = `0 20px 50px rgba(0,0,0,0.45), 0 0 30px rgba(21,219,168,${0.12 + gl * 0.5})` + (ok > 0 ? `, 0 0 40px rgba(74,222,128,${ok * 0.45})` : '')
+            + (pass > 0 ? `, 0 0 0 1.5px rgba(243,179,21,${0.55 * pass}), 0 0 34px rgba(243,179,21,${0.3 * pass})` : '');
         }
         for (const ed of edges) {
           const d = p(t, ed.t0, ed.t1, 'power2.inOut');
@@ -381,15 +428,21 @@ GTR.scene({
             c.style.opacity = Math.sin(Math.PI * q) * clamp(inv(t, 5.0, 5.15));
           });
         }
-        // Revenda Bella's token: rides the flow (hidden while it passes behind each node)
-        const tp = p(t, TOKEN_T[0], TOKEN_T[1], 'power1.inOut');
-        const pt = tokenPath.getPointAtLength(tokenLen * tp);
+        // Revenda Bella's token: rides ABOVE the flow, leaves a gold trail, and becomes the dock at TOKEN_T[1]
         const tIn = p(t, TOKEN_T[0] - 0.06, TOKEN_T[0] + 0.2, 'back.out(2.4)');
-        token.style.opacity = t < TOKEN_T[0] - 0.06 || t > TOKEN_T[1] + 0.02 ? 0 : 1;
-        token.style.transform = `translate(${pt.x}px, ${pt.y}px) scale(${tIn})`;
-        const dk = p(t, FIM_OK, FIM_OK + 0.4, 'back.out(2.2)');
-        dock.style.transform = `scale(${Math.max(0, dk)})`;
-        dockCheck.style.transform = `scale(${Math.max(0, p(t, FIM_OK + 0.15, FIM_OK + 0.45, 'back.out(3)'))})`;
+        token.style.opacity = tokOn ? 1 : 0;
+        token.style.transform = `translate(${pt.x}px, ${pt.y}px) scale(${Math.max(0, tIn)})`;
+        for (const tr of trail) {
+          const k = clamp(tokenLen * tp - tr.s0, 0, tr.len);
+          tr.path.style.opacity = t >= TOKEN_T[0] && k > 0 ? 0.88 : 0;
+          tr.path.style.strokeDashoffset = `${tr.len - k}`;
+        }
+        const docked = t >= TOKEN_T[1];
+        const bump = docked ? Math.sin(Math.PI * inv(t, TOKEN_T[1], TOKEN_T[1] + 0.24)) : 0;
+        dock.style.opacity = docked ? 1 : 0;
+        dock.style.transform = `scale(${1 + 0.15 * bump})`;
+        dock.style.boxShadow = `0 0 0 3px #f3b315, 0 0 ${24 + 16 * bump}px rgba(243,179,21,${0.65 + 0.25 * bump})`;
+        dockCheck.style.transform = `scale(${Math.max(0, p(t, FIM_OK + 0.1, FIM_OK + 0.4, 'back.out(3)'))})`;
         okRing.set(inv(t, FIM_OK, FIM_OK + 0.6));
       };
       return { world, set };
@@ -445,7 +498,8 @@ GTR.scene({
     ctx.cue('whoosh', W2[0], { dur: 0.3 });
     NODES.filter((n, i) => i !== 4).forEach((n, i) => ctx.cue('blip', n.at, { freq: 1000 + i * 150, db: -6 }));
     ctx.cue('pop', 4.40);
-    ctx.cue('swoosh', 5.00);
+    ctx.cue('swoosh', TOKEN_T[1]);                                    // RB docks on "Fim"
+    ctx.cue('ping', FIM_OK + 0.12, { db: -9, pan: 0.42 });            // …and her check lands
     ctx.cue('glitch', SCAN[0], { dur: 0.1, db: -12 });
 
     /* ---------------- per-frame ---------------- */
@@ -505,13 +559,18 @@ GTR.scene({
       tot1.style.transform = `scale(${t >= MIN ? 1 + 0.25 * (1 - p(t, MIN, MIN + 0.3, 'power2.out')) : 1})`;
       const en = p(t, MIN, MIN + 0.18, 'power2.out');
       const press = Math.sin(Math.PI * inv(t, TAP2, TAP2 + 0.16));
+      const post = t >= TAP2 ? 1 - inv(t, TAP2 + 0.05, TAP2 + 0.45) : 0;
       btnA.style.opacity = lerp(0.45, 1, en);
-      btnA.style.filter = `saturate(${lerp(0.5, 1, en)}) brightness(${1 - press * 0.1})`;
-      btnA.style.transform = `scale(${1 - press * 0.035})`;
-      btnA.style.boxShadow = `0 10px 24px rgba(37,211,102,${0.1 + 0.3 * en}), 0 0 ${30 * en}px rgba(37,211,102,${0.35 * en})`;
+      btnA.style.filter = `saturate(${lerp(0.5, 1, en)}) brightness(${1 - press * 0.08})`;
+      btnA.style.transform = `scale(${1 - press * 0.03})`;
+      btnA.style.boxShadow = `0 10px 24px rgba(37,211,102,${0.1 + 0.3 * en}), 0 0 ${30 * en + 24 * post}px rgba(37,211,102,${0.35 * en + 0.3 * post})`;
       const rk = p(t, TAP2, TAP2 + 0.4, 'power2.out');
       ripA.style.opacity = t >= TAP2 ? 0.6 * (1 - rk) : 0;
-      ripA.style.transform = `translate(${214 - 20 - 20}px, ${30 - 20}px) scale(${1 + rk * 9})`;
+      ripA.style.transform = `translate(${TAPS[1].to[0] - 20 - 20}px, ${30 - 20}px) scale(${1 + rk * 9})`;
+      flashA.style.opacity = t >= TAP2 ? 0.55 * (1 - inv(t, TAP2, TAP2 + 0.035)) : 0;
+      const gk = inv(t, TAP2 + 0.01, TAP2 + 0.24);
+      glintA.style.opacity = gk > 0 && gk < 1 ? 1 : 0;
+      glintA.style.transform = `translateX(${lerp(-110, 440, E('power2.out')(gk))}px) skewX(-22deg)`;
       // touch indicator
       const tp = t < 1.0 ? TAPS[0] : TAPS[1];
       const mv = p(t, tp.tIn, tp.tTap - 0.04, 'power3.out');
@@ -540,11 +599,15 @@ GTR.scene({
       const k = Math.floor((t - LEADS[0].t0) / 0.25);
       const idx = ((k % 4) + 4) % 4;
       const tk = LEADS[0].t0 + k * 0.25;
+      // …and flashes teal the instant its lead leaves the button (rotation → lead → that consultant's card)
+      const fl = k >= 0 && k < LEADS.length ? 1 - inv(t, tk, tk + 0.24) : 0;
       stackB.forEach((el, i) => {
         const on = i === idx;
         const e = on ? p(t, tk, tk + 0.14, 'power3.out') : 0;
-        el.style.transform = `scale(${1 + 0.15 * e}) translateY(${-3 * e}px)`;
-        el.style.boxShadow = on ? `0 0 0 3px #fff, 0 0 0 ${3 + 3 * e}px #15dba8, 0 0 ${18 * e}px rgba(21,219,168,.8)` : '0 0 0 3px #fff';
+        const f = on ? fl : 0;
+        el.style.transform = `scale(${1 + 0.15 * e + 0.06 * f}) translateY(${-3 * e}px)`;
+        el.style.boxShadow = on ? `inset 0 0 0 26px rgba(21,219,168,${0.6 * f}), 0 0 0 3px #fff, 0 0 0 ${3 + 3 * e + 2 * f}px #15dba8, 0 0 ${18 * e + 26 * f}px rgba(21,219,168,${0.8 + 0.2 * f})` : '0 0 0 3px #fff';
+        el.style.filter = f > 0 ? `brightness(${1 + 0.35 * f})` : 'none';
         el.style.zIndex = on ? 9 : 1 + i;
       });
       // the button breathes on each departure

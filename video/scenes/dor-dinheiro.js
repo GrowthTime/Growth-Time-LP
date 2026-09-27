@@ -12,8 +12,8 @@
    S4 fades out.
    Structure (back → front):
      shakeWrap(rz) › whipWrap(blur, opacity) › world (2D camera, origin 0 0)
-        bokehBack · glows · path SVG · ad card · sale card · token canvas ·
-        WA node · eyebrows · counter · bokehFront
+        bokehBack (distant falling tokens, parallax .5) · glows · path SVG ·
+        ad card · sale card · token canvas · WA node · eyebrows · counter
      streaks canvas · HUD (bottom band, headline, subline) · overlay · chips
    Layout note: world coords are the storyboard's (S3 ↔ S8 contract); the
    camera frames them at scale 0.95 with the pipeline at screen y 520 so
@@ -71,12 +71,15 @@ GTR.scene({
       return { el, sc };
     };
     const bokehBack = layer();
-    const BACK = [
-      { x: 700, y: 236, sc: 0.8, blur: 4, a: 0.16 }, { x: 1210, y: 262, sc: 0.62, blur: 5, a: 0.13 },
-      { x: 1810, y: 206, sc: 1.0, blur: 3.5, a: 0.18 }, { x: 1470, y: 690, sc: 0.72, blur: 5, a: 0.13 },
-      { x: 700, y: 660, sc: 0.66, blur: 4.5, a: 0.12 }, { x: 1890, y: 560, sc: 0.85, blur: 6, a: 0.12 },
-      { x: 1020, y: 180, sc: 0.5, blur: 6, a: 0.1 },
-    ].map((b, i) => Object.assign(miniToken(bokehBack, Object.assign({ col: i % 3 === 1 ? '#56605e' : '#1f7f69' }, b)), { ph: i * 2.37 + 0.5 }));
+    const BACK = [];
+    {
+      const r = rng('dd-far');
+      [[650, 150], [1090, 215], [1380, 120], [1720, 230], [1900, 620], [700, 770], [1540, 800], [1180, 690], [2000, 90], [880, 330]].forEach(([x, y], i) => {
+        const sc = 0.62 + r() * 0.55;
+        const tk = miniToken(bokehBack, { x, y, sc, blur: 2.6 + r() * 2.6, a: 0.13 + r() * 0.13, col: i % 3 === 1 ? '#5b6664' : '#1f7f69' });
+        BACK.push(Object.assign(tk, { vy: 22 + r() * 50, vr: (r() - 0.5) * 50, r0: (r() - 0.5) * 70, ph: r() * 10 }));
+      });
+    }
 
     /* ---- glows (behind the pipeline) ---- */
     const glowLayer = layer();
@@ -175,7 +178,9 @@ GTR.scene({
     };
     eyebrow('Anúncio', AD.x + AD.w / 2, AD.y - 28);
     eyebrow('WhatsApp', WA.cx, WA.cy - WA.size / 2 - 28);
-    eyebrow('Venda', SALE.x + SALE.w / 2, SALE.y - 28);
+    const ebSale = eyebrow('Venda', SALE.x + SALE.w / 2, SALE.y - 28);
+    const breakPulse = KIT.pulse(world, { x: GAP_C, y: PY, r: 150, color: 'rgba(239,68,68,.8)', sw: 3 });
+    const breakPulse2 = KIT.pulse(world, { x: GAP_C, y: PY, r: 240, color: 'rgba(239,68,68,.45)', sw: 2 });
 
     /* ---- "Investido" counter ---- */
     const CNT = { x: S1[0] + 38, y: PY + 40 };
@@ -186,13 +191,6 @@ GTR.scene({
     const cIcon = h('div', { style: { width: '34px', height: '34px', borderRadius: '10px', display: 'grid', placeItems: 'center', background: 'rgba(239,68,68,.16)',
       border: '1px solid rgba(239,68,68,.4)', color: RED, transformOrigin: '50% 50%' } }, cRow);
     cIcon.innerHTML = GTR.iconSVG('trending-up', { size: 20, sw: 2.4 });
-
-    /* ---- near bokeh: two big out-of-focus tokens (parallax 1.6) ---- */
-    const bokehFront = layer();
-    const FRONT = [
-      { x: 96, y: 470, sc: 2.1, blur: 11, a: 0.3, col: '#1f7f69', ph: 3.3 },
-      { x: 1830, y: 900, sc: 2.6, blur: 13, a: 0.26, col: '#56605e', ph: 8.1 },
-    ].map((b) => Object.assign(miniToken(bokehFront, b), { ph: b.ph }));
 
     /* ============================================================ STREAKS (whip-in) */
     const { canvas: stCanvas, ctx: sc } = GTR.canvas(root, { z: 2 });
@@ -332,13 +330,10 @@ GTR.scene({
 
         /* ---------- parallax layers ---------- */
         bokehBack.style.transform = `translateX(${(-truck * 0.5).toFixed(2)}px)`;
-        bokehFront.style.transform = `translateX(${(truck * 0.6).toFixed(2)}px)`;
         for (const b of BACK) {
-          b.el.style.transform = `translate(${(noise(b.ph, g * 0.3) * 18).toFixed(2)}px, ${(noise(b.ph + 20, g * 0.3) * 14 + t * 10).toFixed(2)}px) rotate(${(noise(b.ph + 40, g * 0.25) * 18).toFixed(2)}deg) scale(${b.sc})`;
+          b.el.style.transform = `translate(${(noise(b.ph, g * 0.3) * 16).toFixed(2)}px, ${(t * b.vy).toFixed(2)}px) rotate(${(b.r0 + b.vr * t).toFixed(2)}deg) scale(${b.sc})`;
         }
-        for (const b of FRONT) {
-          b.el.style.transform = `translate(${(noise(b.ph, g * 0.35) * 26).toFixed(2)}px, ${(noise(b.ph + 20, g * 0.35) * 20).toFixed(2)}px) rotate(${(noise(b.ph + 40, g * 0.3) * 24 - 12).toFixed(2)}deg) scale(${b.sc})`;
-        }
+
 
         /* ---------- the break: gap edges, droop, glow ---------- */
         const bt = t - BREAK;
@@ -366,8 +361,12 @@ GTR.scene({
         seg2b.setAttribute('stroke', `rgba(${Math.round(lerp(255, 239, dead))},${Math.round(lerp(255, 68, dead))},${Math.round(lerp(255, 68, dead))},${lerp(0.35, 0.42, dead).toFixed(3)})`);
         rail1.style.opacity = rail2.style.opacity = 0.7 + 0.3 * Math.sin(g * Math.PI * 4);
 
-        gapGlow.style.opacity = bt < 0 ? 0 : clamp(0.55 + 0.25 * noise(g * 6 + 2) + 0.9 * burst(t, BREAK, 0.18));
-        gapGlow.style.transform = `scale(${(0.85 + 0.2 * open).toFixed(3)})`;
+        gapGlow.style.opacity = bt < 0 ? 0 : clamp(0.55 + 0.25 * noise(g * 6 + 2) + 0.9 * burst(t, BREAK, 0.18) + 0.5 * zp);
+        gapGlow.style.transform = `scale(${(0.85 + 0.2 * open + 1.6 * p(t, 3.3, 4.0, 'power2.in')).toFixed(3)})`;
+        breakPulse.set(inv(t, BREAK, BREAK + 0.45));
+        breakPulse2.set(inv(t, BREAK + 0.05, BREAK + 0.65));
+        const redE = p(t, BREAK, BREAK + 0.3);
+        ebSale.style.color = `rgba(${Math.round(lerp(255, 252, redE))},${Math.round(lerp(255, 165, redE))},${Math.round(lerp(255, 165, redE))},${lerp(0.6, 0.85, redE).toFixed(3)})`;
         well.style.opacity = p(t, BREAK, BREAK + 0.6, 'power2.out');
         saleGlow.style.opacity = p(t, BREAK, BREAK + 0.3) * (0.75 + 0.25 * Math.exp(-fract(g * 2) * 4));
         waHalo.style.opacity = 0.8 + 0.2 * Math.sin(g * 4);
@@ -485,6 +484,28 @@ GTR.scene({
         const sa = 0.6 * (1 - p(t, 0, 0.4, 'power2.out'));
         stCanvas.style.display = sa > 0.004 ? 'block' : 'none';
         if (sa > 0.004) KIT.streaks(sc, g, { dir: -1, alpha: sa, n: 54, seed: 21, speed: 2600, len: 460, color: '255,176,166' });
+        // zoom-through: radial speed lines rushing out of the gap
+        const zs = p(t, 3.42, 3.8, 'power2.out') * (1 - p(t, 3.72, 3.98, 'power1.in'));
+        if (zs > 0.004) {
+          stCanvas.style.display = 'block';
+          const cx = tx + k * GAP_C, cy = ty + k * PY;
+          const zt = t - 3.42;
+          sc.lineCap = 'round';
+          for (let i = 0; i < 64; i++) {
+            const r = rng(4200 + i);
+            const ang = r() * Math.PI * 2, sp = 900 + r() * 2200, len = (70 + r() * 260) * (0.4 + zs);
+            const rr = ((r() * 1200 + zt * sp) % 1250) + 40;
+            const x0 = cx + Math.cos(ang) * rr, y0 = cy + Math.sin(ang) * rr;
+            const x1 = cx + Math.cos(ang) * (rr + len), y1 = cy + Math.sin(ang) * (rr + len);
+            const gr = sc.createLinearGradient(x0, y0, x1, y1);
+            const al = 0.42 * zs * (0.35 + r() * 0.65);
+            gr.addColorStop(0, 'rgba(255,176,166,0)');
+            gr.addColorStop(1, `rgba(255,176,166,${al.toFixed(3)})`);
+            sc.strokeStyle = gr;
+            sc.lineWidth = 1 + r() * 2;
+            sc.beginPath(); sc.moveTo(x0, y0); sc.lineTo(x1, y1); sc.stroke();
+          }
+        }
 
         /* ---------- HUD: band, exit 3.4–3.7 ---------- */
         const hx = p(t, 3.4, 3.7, 'power2.in');

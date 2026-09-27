@@ -34,7 +34,7 @@ GTR.scene({
     const cam = KIT.camera(tearWrap, { perspective: PERSP });
     cam.world.style.transformStyle = 'flat';                        // 2D camera (translate / rotateZ / scale)
     const rig = h('div', { style: { position: 'absolute', left: '0', top: '0', width: '1920px', height: '1080px', transformOrigin: `${CX}px ${CY}px` } }, cam.world);
-    const glowGold = GTR.glow(rig, { x: CX, y: CY, r: 600, color: '243,179,21', a: 0.2 });
+    const glowGold = GTR.glow(rig, { x: CX, y: CY, r: 560, color: '243,179,21', a: 0.15 });
     const glowRed = GTR.glow(rig, { x: CX, y: CY + 40, r: 700, color: '239,68,68', a: 0.3 });
     const { canvas: dustC, ctx: dc } = GTR.canvas(rig);
 
@@ -101,15 +101,14 @@ GTR.scene({
 
     /* ---- "há 4 meses sem comprar" sticker on the card's top-right corner ---- */
     const PILL = { x: CARD.x + CARD.w - 64, y: CARD.y + 4 };
-    const pillPulse = KIT.pulse(rig, { x: PILL.x, y: PILL.y, r: 240, color: RED, sw: 3 });
+    const pillPulse = KIT.pulse(rig, { x: PILL.x, y: PILL.y, r: 180, color: RED, sw: 3 });
+    // heartbeat (2.0 / 2.18): the client's last pulse rings off the draining avatar
+    const hbPulse = [0, 1].map(() => KIT.pulse(rig, { x: AV.x, y: AV.y, r: 170, color: 'rgba(248,113,113,.9)', sw: 2 }));
     const pill = h('div', { style: { position: 'absolute', left: `${PILL.x}px`, top: `${PILL.y}px`, display: 'inline-flex', alignItems: 'center', gap: '10px',
       padding: '0 20px 0 16px', height: '50px', borderRadius: '999px', whiteSpace: 'nowrap', fontFamily: FONT_UI, fontSize: '20px', fontWeight: 700, letterSpacing: '0.005em',
       background: 'linear-gradient(rgba(239,68,68,.16),rgba(239,68,68,.16)), #170b0c', border: '1.5px solid rgba(239,68,68,.7)', color: '#fca5a5',
       boxShadow: '0 16px 40px rgba(0,0,0,.5), 0 0 34px rgba(239,68,68,.35)', opacity: 0, transformOrigin: '50% 50%' } }, rig);
     pill.innerHTML = GTR.iconSVG('clock', { size: 21, sw: 2.4 }) + '<span>há 4 meses sem comprar</span>';
-
-    /* ============================================================ DIM ("everything else to 20 %") */
-    const dim = h('div', { style: { position: 'absolute', inset: '0', background: '#000c0d', opacity: 0 } }, tearWrap);
 
     /* ============================================================ HUD: headline */
     const hud = h('div', { style: { position: 'absolute', inset: '0' } }, tearWrap);
@@ -122,6 +121,9 @@ GTR.scene({
     em.style.textShadow = RED_GLOW;
     title.el.dataset.baseTransform = 'translateY(-50%)';
     title.units.forEach((u) => { u.style.willChange = 'auto'; });
+
+    /* ============================================================ DIM ("everything else to 20 %": world + headline) */
+    const dim = h('div', { style: { position: 'absolute', inset: '0', background: '#000c0d', opacity: 0 } }, tearWrap);
 
     /* ============================================================ STACK FX (above the dim) */
     const stackFx = h('div', { style: { position: 'absolute', inset: '0' } }, tearWrap);
@@ -145,7 +147,7 @@ GTR.scene({
       const wrap = h('div', { style: { position: 'absolute', inset: '0' } }, chipLayer);
       const c = KIT.diagChip(wrap, { n, err, ok, x: 120, y: 96 + i * 58 });
       const w = c.el.offsetWidth;                                     // measured once (fonts are loaded before build)
-      return { c, wrap, w, y0: 96 + i * 58, x1: 960 - (w * SC) / 2, y1: STACK_Y[i] - 23, t0: 3.0 + i * 0.06 };
+      return { c, wrap, w, y0: 96 + i * 58, x1: 960 - (w * SC) / 2, y1: STACK_Y[i] - 23, t0: 3.0 + (3 - i) * 0.06 };   // 04 leads: no chip crosses another
     });
     const maxW = Math.max(...chips.map((q) => q.w)) * SC;
     const BR = { x0: 960 - maxW / 2 - 56, x1: 960 + maxW / 2 + 56, y0: STACK_Y[0] - 37 - 42, y1: STACK_Y[3] + 37 + 42, arm: 54 };
@@ -169,15 +171,30 @@ GTR.scene({
 
     /* ============================================================ GOLD MOTES (the client leaking away) */
     const DR = rng('dor-sumiu:dust');
-    const MOTES = Array.from({ length: 80 }, () => {
+    // soft glow sprites (gold and ash gray), cross-faded per mote as it ages
+    const sprite = (rgb) => {
+      const cv = document.createElement('canvas');
+      cv.width = cv.height = 64;
+      const g2 = cv.getContext('2d');
+      const gr = g2.createRadialGradient(32, 32, 0, 32, 32, 32);
+      gr.addColorStop(0, `rgba(${rgb},1)`);
+      gr.addColorStop(0.16, `rgba(${rgb},.95)`);
+      gr.addColorStop(0.34, `rgba(${rgb},.28)`);
+      gr.addColorStop(1, `rgba(${rgb},0)`);
+      g2.fillStyle = gr;
+      g2.fillRect(0, 0, 64, 64);
+      return cv;
+    };
+    const SPR_GOLD = sprite('253,214,90'), SPR_ASH = sprite('170,176,186');
+    const MOTES = Array.from({ length: 110 }, () => {
       const a = DR() * Math.PI * 2;
-      return { te: 1.45 + DR() * 1.0, a, sp: 26 + DR() * 70, up: 40 + DR() * 80, life: 0.9 + DR() * 0.9, r: 1 + DR() * 2.3, ph: DR() * 50 };
+      return { te: 1.45 + DR() * 1.0, a, sp: 26 + DR() * 70, up: 40 + DR() * 80, life: 0.9 + DR() * 0.9, r: 1.3 + DR() * 2.4, ph: DR() * 50 };
     });
 
     /* ============================================================ TIMELINE (DOM reveals only) */
     const tl = ctx.tl({ defaults: { ease: 'power3.out', force3D: false } });
     KIT.revealWords(tl, title.units, 1.0, { y: 64, blur: 14, dur: 0.6, stagger: 0.09 });
-    KIT.hideUnits(tl, title.units, 3.0, { y: -30, dur: 0.3, stagger: 0.03, blur: 10 });
+    KIT.hideUnits(tl, title.units, 3.0, { y: -30, dur: 0.24, stagger: 0.025, blur: 10, ease: 'power1.in' });
     tl.set({}, {}, 4.0);
 
     /* ============================================================ SFX */
@@ -262,7 +279,9 @@ GTR.scene({
         const ps = p(t, 1.5, 1.74, 'back.out(2.2)');
         pill.style.opacity = clamp(inv(t, 1.5, 1.54));
         pill.style.transform = `translate(-50%, -50%) rotate(${lerp(-12, -4, ps).toFixed(2)}deg) scale(${(t < 1.5 ? 1.7 : lerp(1.7, 1, ps)).toFixed(4)})`;
-        pillPulse.set(inv(t, 1.52, 2.1));
+        pillPulse.set(inv(t, 1.52, 1.95));
+        hbPulse[0].set(inv(t, 2.0, 2.45));
+        hbPulse[1].set(inv(t, 2.18, 2.63));
         const dr = p(t, 1.5, 2.3, 'power1.inOut');
         avRing.style.filter = dr > 0.001 ? `grayscale(${dr.toFixed(3)}) brightness(${lerp(1, 0.72, dr).toFixed(3)})` : 'none';
         avRing.style.boxShadow = `0 0 24px rgba(243,179,21,${(0.55 * (1 - dr)).toFixed(3)})`;
@@ -277,6 +296,7 @@ GTR.scene({
         glowRed.style.transform = `scale(${breathe * (1 + 0.12 * hb)})`;
 
         /* ---- gold motes leak off the ring (1.45 → ~3.4) ---- */
+        dc.globalAlpha = 1;
         dc.clearRect(0, 0, 1920, 1080);
         if (t > 1.45 && t < 3.6) {
           for (const m of MOTES) {
@@ -287,11 +307,12 @@ GTR.scene({
             const x = AV.x + Math.cos(m.a) * d + noise(m.ph, g * 0.9) * 22 * u + 18 * age;
             const y = AV.y + Math.sin(m.a) * d - m.up * age - 30 * age * age + noise(m.ph + 7, g * 0.9) * 14 * u;
             const al = clamp(u / 0.12) * Math.pow(1 - u, 1.3) * 0.95;
-            const c = mix([252, 211, 77], [156, 163, 175], clamp(u * 1.4));
-            dc.fillStyle = `rgba(${c},${(al * 0.22).toFixed(3)})`;
-            dc.beginPath(); dc.arc(x, y, m.r * 3.2, 0, Math.PI * 2); dc.fill();
-            dc.fillStyle = `rgba(${c},${al.toFixed(3)})`;
-            dc.beginPath(); dc.arc(x, y, m.r, 0, Math.PI * 2); dc.fill();
+            const ash = clamp(u * 1.4);
+            const sz = m.r * 7;
+            dc.globalAlpha = al * (1 - ash);
+            dc.drawImage(SPR_GOLD, x - sz / 2, y - sz / 2, sz, sz);
+            dc.globalAlpha = al * ash * 0.8;
+            dc.drawImage(SPR_ASH, x - sz / 2, y - sz / 2, sz, sz);
           }
         }
 

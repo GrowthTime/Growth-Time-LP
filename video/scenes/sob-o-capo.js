@@ -270,6 +270,12 @@ GTR.scene({
       const pill = KIT.pill(w, { text, icon, size: 18, pad: '11px 20px 11px 16px', bg: 'linear-gradient(rgba(21,219,168,.12),rgba(21,219,168,.12)), rgba(0,21,22,.55)' });
       pill.style.boxShadow = '0 10px 30px rgba(0,0,0,.35), 0 0 22px rgba(21,219,168,.12)';
       pill.style.transformOrigin = '0% 50%';
+      pill.style.position = 'relative';
+      pill.style.overflow = 'hidden';
+      const sheen = h('div', { style: { position: 'absolute', top: '-4px', bottom: '-4px', left: '0', width: '56px', pointerEvents: 'none',
+        background: 'linear-gradient(90deg, rgba(255,255,255,0), rgba(200,255,238,.38), rgba(255,255,255,0))', transform: 'translateX(-90px) skewX(-20deg)' } }, pill);
+      pill.__sheen = sheen;
+      pill.__w = pill.offsetWidth;
       return pill;
     };
     const chipA = chipAt(120, 'Criptografia AES-256', 'lock');
@@ -370,7 +376,6 @@ GTR.scene({
       const ay = angY(t), ca = Math.cos(ay), sa = Math.sin(ay);
       const pulse = pulseAt(t);
       const pulseN = pulseAt(t, true);
-      const collapse = inv(t, COLL0, COLL0 + 0.2);
       const structA = p(t, 0.9, 1.8, 'power2.out') * (1 - p(t, COLL0, COLL0 + 0.14, 'power2.in'));
 
       // ---- node positions ----
@@ -476,15 +481,17 @@ GTR.scene({
       for (const T of TS) {
         if (T < 1 || t < T || t > T + 0.8) continue;
         const q = (t - T) / 0.8;
-        const rad = R * (1.02 + 0.4 * E('power2.out')(q));
+        const rad = R * (1.04 + 0.3 * E('power2.out')(q));
         const al = 0.6 * (1 - q) * (1 - q);
         g.lineWidth = 2;
         g.strokeStyle = `rgba(120,255,215,${al.toFixed(3)})`;
         g.beginPath();
         for (let s2 = 0; s2 <= 72; s2++) {
           const u = (s2 / 72) * Math.PI * 2;
-          const v = [Math.cos(u) * rad, 0, Math.sin(u) * rad];
-          const P = proj([v[0], v[1] * COS_T - v[2] * SIN_T, v[1] * SIN_T + v[2] * COS_T], c);
+          const x = Math.cos(u) * rad, z0 = Math.sin(u) * rad;
+          // flatter perspective than the sphere so the wave hugs it and never reaches the HUD column
+          const y = -z0 * SIN_T, z = z0 * COS_T, k = 1500 / (1500 + z);
+          const P = [c.x + x * k * c.z, c.y + y * k * c.z];
           if (s2 === 0) g.moveTo(P[0], P[1]); else g.lineTo(P[0], P[1]);
         }
         g.stroke();
@@ -567,6 +574,11 @@ GTR.scene({
         segs.forEach((el, k) => {
           const endK = k < 3 ? TS[k + 1] : STAT4_OUT;
           st(el, 'transform', `scaleX(${inv(t, TS[k], endK).toFixed(4)})`);
+        });
+        // one sheen pass across each chip right after it pops
+        [[chipA, CHIP1], [chipB, CHIP2]].forEach(([pl, at]) => {
+          const q = p(t, at + 0.25, at + 0.9, 'power2.inOut');
+          st(pl.__sheen, 'transform', `translateX(${lerp(-90, pl.__w + 40, q).toFixed(1)}px) skewX(-20deg)`);
         });
         // caption dot breathes
         st(capDot, 'opacity', (0.55 + 0.45 * Math.sin(t * Math.PI * 2)).toFixed(3));

@@ -168,7 +168,7 @@ GTR.scene({
       let label = null;
       if (d.badge) {
         label = h('div', { style: { position: 'absolute', left: '72px', top: '72px', height: '22px', display: 'inline-flex', alignItems: 'center', gap: '5px', padding: '0 8px', borderRadius: '6px', background: '#fef3c7', color: '#a16207', fontSize: '12px', fontWeight: 700, whiteSpace: 'nowrap', opacity: 0 } }, msgBox);
-        label.innerHTML = I('trophy', { size: 13, sw: 2.3 }) + '<span>Pedido fechado pela IA</span>';
+        label.innerHTML = I('trophy', { size: 13, sw: 2.3 }) + '<span>Pedido fechado pela IA · R$ 1.167</span>';
         inner.appendChild(label);
       }
       const row = { d, wrap, inner, sel, selBar, ring, emo, bLead, bQual, msg, label };
@@ -189,6 +189,12 @@ GTR.scene({
     const oldRows = OLD.map((d) => makeRow(d, false));
     // size the flip boxes to their widest face (measured once; fonts are loaded)
     for (const r of rows) r.flip.style.width = `${Math.max(r.fRed.offsetWidth, r.fOk.offsetWidth)}px`;
+    // Coexistência micro-pill: bounds in list coords (measured once) → pill-shaped pulse rings
+    const coexL = 16 + mpApi.offsetWidth + 6, coexW = mpCoex.offsetWidth;
+    const coexRings = [0, 0.14].map(() => h('div', { style: {
+      position: 'absolute', left: `${coexL - 2}px`, top: '104px', width: `${coexW + 4}px`, height: '28px', borderRadius: '999px',
+      border: `2px solid ${C.vibrant}`, boxShadow: '0 0 14px rgba(21,219,168,.7)', opacity: 0, pointerEvents: 'none', visibility: 'hidden',
+    } }, list));
 
     /* ---------- chat column ---------- */
     const chat = h('div', { style: { position: 'absolute', left: `${LIST}px`, top: '0', width: `${CHAT}px`, height: '100%', background: C.bg } }, app.content);
@@ -225,20 +231,31 @@ GTR.scene({
     const knob = h('div', { style: { position: 'absolute', left: '3px', top: '3px', width: '16px', height: '16px', borderRadius: '50%', background: '#fff', boxShadow: '0 1px 3px rgba(0,0,0,.25)' } }, track);
 
     const thread = h('div', { style: { position: 'absolute', left: '0', top: `${HEAD + TOOL}px`, right: '0', bottom: '0', overflow: 'hidden', background: C.bg } }, chat);
-    const wall = h('div', { style: { position: 'absolute', inset: '0', backgroundImage: 'radial-gradient(rgba(0,0,0,.035) 1.2px, transparent 1.2px)', backgroundSize: '22px 22px', opacity: 0 } }, thread);
+    // WhatsApp wallpaper: flat #efeae2 + its own dot layer (the dots fade before the dive lands so the
+    // magnified pattern never double-exposes with the hand-off plate's fine 22 px dots)
+    const waWall = h('div', { style: { position: 'absolute', inset: '0', background: C.waBg, visibility: 'hidden' } }, thread);
+    const wall = h('div', { style: { position: 'absolute', inset: '0', backgroundImage: 'radial-gradient(rgba(0,0,0,.035) 1.2px, transparent 1.2px)', backgroundSize: '22px 22px' } }, waWall);
+    const ripple = h('div', { style: { position: 'absolute', left: '0', top: '0', width: '200px', height: '200px', borderRadius: '50%', border: `3px solid ${C.vibrant}`, boxShadow: '0 0 24px rgba(21,219,168,.55), inset 0 0 24px rgba(21,219,168,.35)', visibility: 'hidden', pointerEvents: 'none' } }, thread);
     // empty state until a conversation is selected
     const empty = h('div', { style: { position: 'absolute', left: '0', right: '0', top: '200px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px', textAlign: 'center' } }, thread);
     empty.innerHTML = `<div style="width:76px;height:76px;border-radius:50%;background:#eef8f4;display:grid;place-items:center;color:${C.teal}">${I('messages-square', { size: 34, sw: 1.8 })}</div>`
       + `<div style="font-size:17px;font-weight:700;color:#404040">Selecione uma conversa</div>`
       + `<div style="font-size:13.5px;color:#a3a3a3;max-width:300px;line-height:1.45">WhatsApp, Instagram e Messenger<br>na mesma caixa de entrada</div>`;
 
-    const PAD = 24, GAP = 14;
+    // top of the thread: date chip + system line (fill the wallpaper; cleared before the portal)
+    const topBox = h('div', { style: { position: 'absolute', left: '0', right: '0', top: '22px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '10px' } }, thread);
+    const dateChip = h('div', { style: { height: '30px', padding: '0 16px', borderRadius: '9px', background: '#fff', boxShadow: '0 1px 1.5px rgba(0,0,0,.12)', display: 'grid', placeItems: 'center', fontSize: '14px', fontWeight: 600, color: '#54656f', letterSpacing: '0.02em' } }, topBox);
+    dateChip.textContent = 'Hoje';
+    const e2e = h('div', { style: { display: 'inline-flex', alignItems: 'center', gap: '8px', height: '32px', padding: '0 15px 0 13px', borderRadius: '9px', background: '#fdf4c5', color: '#5c5438', fontSize: '13.5px', fontWeight: 600, boxShadow: '0 1px 1.5px rgba(0,0,0,.1)', whiteSpace: 'nowrap' } }, topBox);
+    e2e.innerHTML = I('lock', { size: 14, sw: 2.4, color: '#8a7a3a' }) + '<span>Conversa via API Oficial · Coexistência</span>';
+
+    const PAD = 24, GAP = 14, BSZ = 20; // bubble text +12% (18 → 20)
     const item = (side) => h('div', { style: {
       position: 'absolute', left: '20px', right: '20px', bottom: `${PAD}px`, display: 'flex', flexDirection: 'column',
       alignItems: side === 'out' ? 'flex-end' : 'flex-start', gap: '6px', transformOrigin: side === 'out' ? '100% 100%' : '0% 100%',
     } }, thread);
     const itIn1 = item('in');
-    KIT.bubble(itIn1, { side: 'in', text: 'Oi! Vi o anúncio da coleção verão. Tem a grade do vestido midi?', time: '23:47', tag: { icon: 'megaphone', text: 'Veio do anúncio', color: '#2563eb' } });
+    KIT.bubble(itIn1, { side: 'in', size: BSZ, text: 'Oi! Vi o anúncio da coleção verão. Tem a grade do vestido midi?', time: '23:47', tag: { icon: 'megaphone', text: 'Veio do anúncio', color: '#2563eb' } });
     // system notice when the AI takes over (WhatsApp-style centred chip)
     const itSys = item('in');
     itSys.style.alignItems = 'center';
@@ -251,7 +268,7 @@ GTR.scene({
     const typing = KIT.typing(itTyp, 'out');
     const itAi = item('out');
     itAi.style.paddingTop = '20px'; // room for the proof stamp on the bubble's top-left corner
-    const aiB = KIT.bubble(itAi, { side: 'out', html: 'Tem sim! Grade P ao GG, 6 peças, R$ 389 a grade. Monto com as 3 cores? <span class="emoji">😊</span>', time: '23:47', ticks: 'blue', tag: { icon: 'bot', text: 'IA', color: C.tealDark } });
+    const aiB = KIT.bubble(itAi, { side: 'out', size: BSZ, html: 'Tem sim! Grade P ao GG, 6 peças, R$ 389 a grade. Monto com as 3 cores? <span class="emoji">😊</span>', time: '23:47', ticks: 'blue', tag: { icon: 'bot', text: 'IA', color: C.tealDark } });
     const stamp = h('div', { style: {
       position: 'absolute', left: '-16px', top: '-19px', display: 'inline-flex', alignItems: 'center', gap: '6px', height: '30px', padding: '0 12px 0 10px',
       borderRadius: '999px', background: C.vibrant, color: C.petroleo, fontSize: '15px', fontWeight: 800, whiteSpace: 'nowrap',
@@ -259,7 +276,7 @@ GTR.scene({
     } }, aiB);
     stamp.innerHTML = I('zap', { size: 15, sw: 2.5, color: C.petroleo }) + '<span>Respondido pela IA em 4s</span>';
     const itIn2 = item('in');
-    KIT.bubble(itIn2, { side: 'in', html: 'Fechei! Manda as 3 cores <span class="emoji">🙌</span>', time: '23:48' });
+    KIT.bubble(itIn2, { side: 'in', size: BSZ, html: 'Fechei! Manda as 3 cores <span class="emoji">🙌</span>', time: '23:48' });
     // measure once (layout sizes are transform-independent)
     const hIn1 = itIn1.offsetHeight, hSys = itSys.offsetHeight, hTyp = itTyp.offsetHeight, hAi = itAi.offsetHeight, hIn2 = itIn2.offsetHeight;
     const aiW = aiB.offsetWidth, aiH = aiB.offsetHeight;
@@ -268,15 +285,22 @@ GTR.scene({
     PORTAL.y = Math.round((THY + stackTop) / 2);
     // AI bubble centre in world coords while it sits at the bottom (4.3–5.75)
     const AIC = { x: CHX + CHAT - 20 - aiW / 2, y: WIN.y + WIN.h - PAD - aiH / 2 };
+    // wallpaper wipe origin = Coexistência pill centre, in thread-local coords
+    const COEX_T = { x: coexL + coexW / 2 - LIST, y: 106 + 12 - (HEAD + TOOL) };
+    const WIPE_R0 = Math.max(0, -COEX_T.x - 40);
+    const WIPE_R1 = Math.hypot(CHAT - COEX_T.x, THH - COEX_T.y) + 80;
+    // list-column centre: the S5 gate dive's vanishing point (960,540) lands on it during pre-roll
+    const LISTC = { x: LX + LIST / 2, y: CY + (WIN.h - BAR) / 2 };
+    console.warn('FIXIA-DBG', JSON.stringify({ hIn1, hSys, hTyp, hAi, hIn2, aiW, stackTop, PORTAL, topBox: topBox.offsetHeight, e2e: e2e.offsetWidth, label: rows[0].label.offsetWidth, COEX_T, WIPE_R0, WIPE_R1 }));
 
     /* ---------- flying channel badges (world layer, above the window) ---------- */
     const fly = h('div', { style: { position: 'absolute', left: '0', top: '0', width: '1920px', height: '1080px', pointerEvents: 'none' } }, world);
     const trailSvg = GTR.s('svg', { width: 1920, height: 1080, viewBox: '0 0 1920 1080', style: { position: 'absolute', left: '0', top: '0', overflow: 'visible' } }, fly);
     const defs = GTR.s('defs', {}, trailSvg);
     const FLY = [
-      { kind: 'wa', col: '37,211,102', from: [-260, 640], ctrl: [420, 250], t0: 0.20, t1: 0.50, slot: 0 },
-      { kind: 'ig', col: '221,42,123', from: [1060, -260], ctrl: [1000, 60], t0: 0.42, t1: 0.75, slot: 1 },
-      { kind: 'fb', col: '0,122,255', from: [1500, 1340], ctrl: [1480, 520], t0: 0.62, t1: 1.00, slot: 2 },
+      { kind: 'wa', col: '37,211,102', from: [-190, 780], ctrl: [360, 300], t0: 0.00, t1: 0.50, slot: 0, ease: 'power1.in' },
+      { kind: 'ig', col: '221,42,123', from: [1060, -260], ctrl: [1000, 60], t0: 0.42, t1: 0.75, slot: 1, ease: 'power2.in' },
+      { kind: 'fb', col: '0,122,255', from: [1500, 1340], ctrl: [1480, 520], t0: 0.62, t1: 1.00, slot: 2, ease: 'power2.in' },
     ].map((f, i) => {
       const to = [LX + slotX[f.slot], CY + SLOT_Y];
       const grad = GTR.s('linearGradient', { id: `fixia-tr${i}`, gradientUnits: 'userSpaceOnUse' }, defs);
@@ -319,6 +343,13 @@ GTR.scene({
     const sub = h('div', { class: 'body', style: { position: 'absolute', left: '120px', top: '612px', fontSize: '36px', fontWeight: 600, color: 'rgba(255,255,255,.82)', whiteSpace: 'nowrap' } }, root);
     sub.textContent = 'Até com a loja fechada.';
     const subUnits = GTR.split(sub, 'words');
+    // the actual sale, echoed on the HUD (6.3)
+    const salePill = h('div', { style: {
+      position: 'absolute', left: '120px', top: '690px', display: 'inline-flex', alignItems: 'center', gap: '10px', height: '46px', padding: '0 20px 0 15px',
+      borderRadius: '999px', background: 'rgba(21,219,168,.13)', border: '1px solid rgba(21,219,168,.5)', color: C.vibrant, fontFamily: 'var(--font-ui)',
+      fontSize: '19px', fontWeight: 700, whiteSpace: 'nowrap', transformOrigin: '0% 50%', visibility: 'hidden',
+    } }, root);
+    salePill.innerHTML = I('trophy', { size: 20, sw: 2.2 }) + '<span>Pedido fechado · <span style="color:#fff;font-weight:800;font-variant-numeric:tabular-nums">R$ 1.167</span></span>';
 
     // diagnostic chip (own wrapper so the portal can fade it without touching the stamp)
     const chipWrap = h('div', { style: { position: 'absolute', inset: '0', pointerEvents: 'none' } }, root);
@@ -354,23 +385,35 @@ GTR.scene({
     ctx.cue('notify', 5.75, { db: -6 });
     [6.0, 6.125, 6.25, 6.375, 6.5].forEach((t, i) => ctx.cue('pop', t, { db: -6, pan: -0.4 + i * 0.2 }));
     ctx.cue('shimmer', 6.25, { db: -6 });
+    ctx.cue('blip', 6.95, { freq: 1500, db: -10 });
     ctx.cue('whoosh', 7.1, { dur: 0.9, up: true });
 
     /* ================= per-frame ================= */
     const RES0 = 6.0, RES_STEP = 0.125;
+    // world point → offset from the transform origin after scale/rotY/rotX (CSS order), before translate
+    const D2R = Math.PI / 180;
+    const rot = (P, s, rx, ry) => {
+      const vx = (P.x - O.x) * s, vy = (P.y - O.y) * s;
+      const x1 = vx * Math.cos(ry * D2R), z1 = -vx * Math.sin(ry * D2R);
+      return { x: x1, y: vy * Math.cos(rx * D2R) - z1 * Math.sin(rx * D2R) };
+    };
+    const PRE0 = rot(LISTC, 0.86, 14, -12);
     const camAt = (t) => {
-      let s, rx, ry, op = 1;
+      let s, rx, ry, op = 1, aim;
       if (t < 0) {
         const k = inv(t, -0.5, 0);
         s = lerp(0.62, 0.86, k); rx = lerp(20, 14, k); ry = lerp(-18, -12, k); op = lerp(0.5, 1, p(t, -0.5, 0, 'power1.in'));
+        aim = rot(LISTC, s, rx, ry);           // list column centred on the dive's vanishing point
       } else if (t < 1.2) {
         const k = p(t, 0, 1.2, 'power3.out');
-        s = lerp(0.86, 1, k); rx = lerp(14, 4, k); ry = lerp(-12, -6, k);
+        s = lerp(0.86, 1, p(t, 0, 1.2, 'back.out(1.7)')); // .86 → ~1.015 → 1
+        rx = lerp(14, 4, k); ry = lerp(-12, -6, k);
+        aim = { x: PRE0.x * (1 - k), y: PRE0.y * (1 - k) }; // glide to the final x 800 layout
       } else {
         const k = p(t, 1.2, 7.0, 'sine.inOut');
         s = lerp(1, 1.04, k); rx = 4; ry = lerp(-6, -3, k);
       }
-      let x = 0, y = 0;
+      let x = aim ? -aim.x : 0, y = aim ? -aim.y : 0;
       // slow float so no frame is ever dead
       y += noise(3.3, t * 0.35) * 5;
       x += noise(9.1, t * 0.3) * 4;
@@ -411,7 +454,7 @@ GTR.scene({
           const flying = t >= f.t0 - 0.001;
           if (!flying) { f.badge.style.visibility = 'hidden'; f.trail.style.visibility = 'hidden'; }
           else {
-            const e = GTR.E('power2.in')(u);
+            const e = GTR.E(f.ease)(u);
             const [bx, by] = bez(f.from, f.ctrl, f.to, e);
             let size = lerp(96, SLOT_S, GTR.E('power1.in')(u));
             if (t > f.t1) size = SLOT_S * (1 + 0.32 * Math.sin(Math.PI * inv(t, f.t1, f.t1 + 0.28)) * (1 - inv(t, f.t1, f.t1 + 0.28)));
@@ -425,7 +468,7 @@ GTR.scene({
               const N = 12;
               for (let k = 0; k <= N; k++) {
                 const tt = lerp(ta, Math.min(t, f.t1), k / N);
-                pts.push(bez(f.from, f.ctrl, f.to, GTR.E('power2.in')(inv(tt, f.t0, f.t1))));
+                pts.push(bez(f.from, f.ctrl, f.to, GTR.E(f.ease)(inv(tt, f.t0, f.t1))));
               }
               // tapered ribbon: 0 at the tail → ~40% of the badge at the head
               const wHead = Math.max(4, size * 0.4);
@@ -511,21 +554,33 @@ GTR.scene({
         r1.label.style.opacity = clamp(lp * 2);
         r1.label.style.transform = `translateX(${(1 - clamp(lp)) * -10}px) scale(${lerp(0.8, 1, lp)})`;
 
-        // sidebar unread counter
+        // sidebar unread counter: +1 per arrival, −1 when row 1 is opened (2.3), then −1 per resolve
+        const readAt = (k) => (k === 0 ? 2.3 : RES0 + k * RES_STEP) + 0.1;
         const arrived = rows.filter((r) => t >= r.d.at + 0.05).length;
-        const solved = rows.filter((r, k) => t >= RES0 + k * RES_STEP + 0.1).length;
+        const solved = rows.filter((r, k) => t >= readAt(k)).length;
         const nUn = arrived - solved;
         navBadge.textContent = nUn;
         const nb = nUn > 0 ? 1 : 0;
         navBadge.style.visibility = nb ? 'visible' : 'hidden';
-        const lastArr = rows.reduce((m, r) => (t >= r.d.at ? Math.max(m, r.d.at) : m), -9);
-        navBadge.style.transform = `scale(${1 + 0.35 * Math.max(0, 1 - (t - lastArr) / 0.2) * (t >= lastArr ? 1 : 0)})`;
+        const evts = rows.map((r) => r.d.at + 0.05).concat(rows.map((r, k) => readAt(k)));
+        const lastEv = evts.reduce((m, e) => (t >= e ? Math.max(m, e) : m), -9);
+        navBadge.style.transform = `scale(${1 + 0.35 * Math.max(0, 1 - (t - lastEv) / 0.2)})`;
 
         /* list header micro-pills (2.0) */
         [mpApi, mpCoex].forEach((e, i) => {
           const k = pop(t, 2.0 + i * 0.08, 0.4, 'back.out(2)');
           vis(e, clamp(k * 2));
-          e.style.transform = `scale(${lerp(0.5, 1, k)})`;
+          const bump = i === 1 ? 1 + 0.14 * Math.sin(Math.PI * inv(t, 6.95, 7.3)) : 1;
+          e.style.transform = `scale(${lerp(0.5, 1, k) * bump})`;
+        });
+        // 6.95: Coexistência pulses — the wallpaper wipe starts from it
+        mpCoex.style.boxShadow = `0 0 ${18 * Math.sin(Math.PI * inv(t, 6.95, 7.45))}px rgba(21,219,168,.8)`;
+        coexRings.forEach((rg, i) => {
+          const e = GTR.E('power2.out')(inv(t, 6.95 + i * 0.14, 6.95 + i * 0.14 + 0.6));
+          const on = e > 0 && e < 1;
+          rg.style.visibility = on ? 'visible' : 'hidden';
+          rg.style.opacity = on ? (1 - e) * 0.95 : 0;
+          rg.style.transform = `scale(${1 + 0.35 * e}, ${1 + 1.3 * e})`;
         });
 
         /* chat: empty state → Patrícia */
@@ -534,6 +589,13 @@ GTR.scene({
         vis(headIn, chatIn);
         headIn.style.transform = `translateY(${(1 - chatIn) * 10}px)`;
         vis(toolIn, p(t, 2.3, 2.6, 'power3.out'));
+        // date chip + system line (2.35 / 2.45), cleared before the portal (6.9–7.15)
+        const topOut = 1 - p(t, 6.9, 7.15, 'power2.in');
+        [dateChip, e2e].forEach((e, i) => {
+          const k = pop(t, 2.35 + i * 0.1, 0.4, 'back.out(1.6)');
+          vis(e, clamp(k * 2) * topOut);
+          e.style.transform = `translateY(${(1 - clamp(k)) * 8 - (1 - topOut) * 10}px) scale(${lerp(0.7, 1, k)})`;
+        });
         plant.style.transform = `scaleX(${p(t, 2.75, 3.0, 'power2.out')})`;
         digits.style.color = t >= 2.75 ? mix('404040', '0f8f6f', inv(t, 2.75, 3.0)) : '#404040';
 
@@ -582,14 +644,33 @@ GTR.scene({
         stamp.style.transform = `scale(${t < 4.45 ? 1.3 : lerp(1.3, 1, sp)}) rotate(${lerp(-4, 0, clamp(sp))}deg)`;
         aiPulses.forEach((pl, i) => pl.set(inv(t, 4.3 + i * 0.14, 4.3 + i * 0.14 + 0.7)));
 
-        /* portal: wallpaper becomes WhatsApp */
+        /* portal: wallpaper becomes WhatsApp, spreading out from the Coexistência pill (7.0–7.4) */
         const wp2 = p(t, 7.0, 7.4, 'power2.inOut');
-        thread.style.background = mix('fafafa', 'efeae2', wp2);
-        wall.style.opacity = wp2;
+        const R = lerp(WIPE_R0, WIPE_R1, wp2);
+        waWall.style.visibility = wp2 > 0 ? 'visible' : 'hidden';
+        const mask = wp2 >= 1 ? 'none' : `radial-gradient(circle at ${COEX_T.x}px ${COEX_T.y}px, #000 ${Math.max(0, R - 70)}px, transparent ${R}px)`;
+        waWall.style.maskImage = mask;
+        waWall.style.webkitMaskImage = mask;
+        const rr = R - 36;
+        const ron = wp2 > 0 && wp2 < 1;
+        ripple.style.visibility = ron ? 'visible' : 'hidden';
+        if (ron) {
+          ripple.style.left = `${COEX_T.x - rr}px`;
+          ripple.style.top = `${COEX_T.y - rr}px`;
+          ripple.style.width = ripple.style.height = `${2 * rr}px`;
+          ripple.style.opacity = 0.85 * (1 - GTR.E('power2.in')(wp2));
+        }
+        // the dive lands on flat #efeae2: dots out 7.55–7.75 (camera ≈ ×2 → ×3.5)
+        wall.style.opacity = 1 - p(t, 7.55, 7.75, 'power1.inOut');
 
         /* HUD */
         const hudOut = 1 - p(t, 7.0, 7.3, 'power2.in');
         scrim.style.opacity = p(t, 0.6, 1.4, 'power2.out') * hudOut;
+        const sk = pop(t, 6.3, 0.45, 'back.out(1.7)');
+        vis(salePill, clamp(sk * 2) * hudOut);
+        salePill.style.transform = `translate(${(1 - hudOut) * -30}px, ${(1 - clamp(sk)) * 14}px) scale(${lerp(0.75, 1, sk)})`;
+        const sg = Math.sin(Math.PI * inv(t, 6.3, 7.0));
+        salePill.style.boxShadow = `0 10px 30px rgba(0,0,0,.3), 0 0 ${10 + 22 * sg}px rgba(21,219,168,${0.15 + 0.3 * sg})`;
         const nIn = p(t, 2.5, 3.0, 'power3.out');
         vis(night, nIn * hudOut);
         night.style.transform = `translateY(-50%) translateX(${(1 - nIn) * -40 + (1 - hudOut) * -30}px)`;
@@ -603,7 +684,7 @@ GTR.scene({
         chipWrap.style.opacity = 1 - p(t, 7.1, 7.4, 'power2.in');
 
         /* hand-off plate */
-        const pl = inv(t, 7.8, 7.96);
+        const pl = p(t, 7.72, 7.96, 'power1.inOut');
         plate.style.opacity = pl;
         plate.style.display = pl > 0 ? 'block' : 'none';
       },

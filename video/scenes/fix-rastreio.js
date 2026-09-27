@@ -46,7 +46,7 @@ GTR.scene({
     const EYE_Y = 700;
     const EYES = [[350, '01 · CLIQUE', 0.9], [960, '02 · CONVERSA', 1.5], [1640, '03 · VENDA', 2.0]];
     // push-in (3.5–4.1): world point F lands on screen point S at scale s
-    const PUSH = { s: 1.3, F: [549, 435], S: [940, 432] };
+    const PUSH = { s: 1.26, F: [549, 435], S: [940, 436] };
     // pull-back (5.5–6.2): the pipeline becomes a strip at y ≈ 130–360
     const PULL = { s: 0.55, x: -16, y: -250 };
     const TOP3 = { x: 510, y: 405, w: 900, h: 320 };
@@ -144,8 +144,9 @@ GTR.scene({
     h('div', { style: { width: '48px', height: '48px', borderRadius: '11px', background: 'linear-gradient(135deg,#fb7185,#c2410c)', display: 'grid', placeItems: 'center', color: '#fff', flex: 'none' } }, bHead, I('shirt', { size: 26, sw: 1.8 }));
     h('div', { style: { lineHeight: 1.2, whiteSpace: 'nowrap' } }, bHead, '<div style="font-weight:700;font-size:17px;color:#171717">Coleção Verão</div><div style="font-weight:500;font-size:14px;color:#737373">Carrossel · Meta Ads</div>');
     h('div', { style: { position: 'absolute', left: '18px', right: '18px', top: '80px', height: '1px', background: '#ececec' } }, adBack);
-    const bBody = h('div', { style: { position: 'absolute', left: '0', right: '0', top: '104px', display: 'flex', flexDirection: 'column', alignItems: 'center' } }, adBack);
-    h('div', { style: { fontSize: '15px', fontWeight: 800, letterSpacing: '0.24em', color: C.tealDark, paddingLeft: '0.24em' } }, bBody, 'ROAS');
+    const bBody = h('div', { style: { position: 'absolute', left: '0', right: '0', top: '81px', bottom: '0', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', paddingBottom: '6px' } }, adBack);
+    h('div', { style: { display: 'inline-flex', alignItems: 'center', gap: '8px', fontSize: '15px', fontWeight: 800, letterSpacing: '0.24em', color: C.tealDark } }, bBody,
+      I('trending-up', { size: 18, sw: 2.6 }) + '<span>ROAS</span>');
     const bigBox = h('div', { style: { position: 'relative', height: '118px', width: '100%', marginTop: '4px' } }, bBody);
     const bigSkel = h('div', { style: { position: 'absolute', left: '50%', top: '26px', width: '190px', height: '70px', marginLeft: '-95px', borderRadius: '14px', background: 'linear-gradient(90deg,#eef2f1 0%,#f7faf9 50%,#eef2f1 100%)', backgroundSize: '200% 100%' } }, bigBox);
     const big = h('div', { class: 'display', style: {
@@ -154,7 +155,7 @@ GTR.scene({
       transformOrigin: '50% 55%', opacity: 0,
     } }, bigBox, '5,6x');
     const invest = h('div', { style: { marginTop: '10px', fontSize: '16px', fontWeight: 600, color: '#525252', whiteSpace: 'nowrap', opacity: 0 } }, bBody, 'Invest. R$ 8.200 · Leads 720');
-    const capi = h('div', { style: { position: 'absolute', left: '50%', bottom: '28px', transform: 'translateX(-50%)', opacity: 0 } }, adBack);
+    const capi = h('div', { style: { marginTop: '26px', opacity: 0 } }, bBody);
     const capiIn = h('div', { style: { display: 'inline-flex', alignItems: 'center', gap: '9px', padding: '9px 16px 9px 13px', borderRadius: '999px', whiteSpace: 'nowrap',
       background: '#ecfdf5', border: '1px solid rgba(21,219,168,.5)', color: '#0f766e', fontSize: '15px', fontWeight: 700, transformOrigin: '50% 50%' } }, capi);
     const capiIc = h('span', { style: { display: 'inline-grid', placeItems: 'center' } }, capiIn, I('send', { size: 17, sw: 2.3 }));
@@ -210,10 +211,11 @@ GTR.scene({
     h('span', { style: { padding: '4px 10px', borderRadius: '999px', background: C.bgAlt, border: `1px solid ${C.border}`, fontSize: '13px', fontWeight: 600, color: '#525252', whiteSpace: 'nowrap' } }, sFoot, '3 × R$ 389');
 
     /* ---------- ports on the card edges ---------- */
-    const ports = [[S1[0], 0.0], [S1[1], 0.25], [S2[0], 0.25], [S2[1], 0.5]].map(([x, at]) => {
+    // [x, pop time, token hit times]
+    const ports = [[S1[0], 0.0, [1.0, 3.4]], [S1[1], 0.25, [1.5, 2.95]], [S2[0], 0.25, [1.5, 2.95]], [S2[1], 0.5, [2.0, 2.5]]].map(([x, at, hits]) => {
       const el = h('div', { style: { position: 'absolute', left: px(x - 8), top: px(LINE_Y - 8), width: '16px', height: '16px', borderRadius: '50%', background: '#04201b',
         border: `3px solid ${C.vibrant}`, boxShadow: '0 0 12px rgba(21,219,168,.8)', transformOrigin: '50% 50%' } }, world);
-      return { el, at: at + 0.3, x };
+      return { el, at: at + 0.3, x, hits };
     });
 
     /* ---------- eyebrows under the nodes ---------- */
@@ -244,11 +246,13 @@ GTR.scene({
     } }, world);
     const boxL = mkBox(LB, 6, 3), boxC = mkBox(CB, 5, 3);
 
-    // laser arc: chip box top-centre → label box top-centre, apex −120
-    const LA = [CB.cx, CB.y - 3], LBp = [LB.cx, LB.y - 3];
-    const LC = [(LA[0] + LBp[0]) / 2, (LA[1] + LBp[1]) / 2 - 240];
+    // laser arc: leaves the chip box on its right (clear of the contact name), arcs over
+    // the pipeline and drops onto the label box from above. Cubic P0 → P1 → P2 → P3.
+    const LP0 = [CB.x + CB.w + 7, CB.cy], LP1 = [CB.x + CB.w + 167, CB.cy - 40];
+    const LP2 = [LB.cx + 70, LB.y - 170], LP3 = [LB.cx, LB.y - 4];
+    const cub = (a, b, c, d, u) => { const v = 1 - u; return v * v * v * a + 3 * v * v * u * b + 3 * v * u * u * c + u * u * u * d; };
     const svgUp = s('svg', { width: 1920, height: 1080, viewBox: '0 0 1920 1080', style: { position: 'absolute', left: '0', top: '0', overflow: 'visible', pointerEvents: 'none' } }, world);
-    const laserD = `M${LA[0]},${LA[1]} Q${LC[0]},${LC[1]} ${LBp[0]},${LBp[1]}`;
+    const laserD = `M${LP0[0]},${LP0[1]} C${LP1[0]},${LP1[1]} ${LP2[0]},${LP2[1]} ${LP3[0]},${LP3[1]}`;
     const laserGlow = s('path', { d: laserD, fill: 'none', stroke: 'rgba(21,219,168,0.35)', 'stroke-width': 8, 'stroke-linecap': 'round' }, svgUp);
     const laser = s('path', { d: laserD, fill: 'none', stroke: '#9ff5dd', 'stroke-width': 2.2, 'stroke-linecap': 'round' }, svgUp);
     laserGlow.style.filter = 'blur(3px)';
@@ -256,20 +260,27 @@ GTR.scene({
     [laser, laserGlow].forEach((q) => { q.style.strokeDasharray = `${LLEN}`; q.style.strokeDashoffset = `${LLEN}`; });
     const laserDot = s('circle', { r: 4, fill: '#eafff8', cx: -99, cy: -99 }, svgUp);
     laserDot.style.filter = 'drop-shadow(0 0 6px rgba(21,219,168,1))';
-    const EQ = [qb(LA[0], LC[0], LBp[0], 0.5), qb(LA[1], LC[1], LBp[1], 0.5)];
+    const EQu = 0.5;
+    const EQ = [cub(LP0[0], LP1[0], LP2[0], LP3[0], EQu), cub(LP0[1], LP1[1], LP2[1], LP3[1], EQu)];
     const eq = h('div', { style: { position: 'absolute', left: px(EQ[0] - 15), top: px(EQ[1] - 15), width: '30px', height: '30px', borderRadius: '50%', background: C.vibrant,
       color: '#04201b', display: 'grid', placeItems: 'center', fontFamily: 'var(--font-ui)', fontWeight: 800, fontSize: '22px', lineHeight: 1,
       boxShadow: '0 0 0 4px rgba(4,32,27,.85), 0 0 22px rgba(21,219,168,.9)', opacity: 0, transformOrigin: '50% 50%' } }, world, '=');
 
-    // flying digit clones (+2 ghost echoes each)
+    // flying digit clones: each rides its own copy of the laser curve, with a light trail.
+    // lift-offs 3.80 + i·0.06, landings on 16ths 4.125 / 4.25 / 4.375 / 4.5
+    const TRAIL_N = 9;
+    const trailG = s('g', {}, svgUp);
+    trailG.style.filter = 'drop-shadow(0 0 5px rgba(21,219,168,.9))';
     const clones = [...'4321'].map((ch, i) => {
-      const layers = [1, 0.45, 0.2].map((a) => {
-        const el = h('div', { class: 'display', style: { position: 'absolute', left: '0', top: '0', fontSize: '40px', lineHeight: 1, color: C.vibrant,
-          textShadow: '0 0 14px rgba(21,219,168,.85), 0 0 34px rgba(21,219,168,.45)', transformOrigin: '50% 50%', opacity: 0, whiteSpace: 'nowrap' } }, world, ch);
-        return { el, a };
-      });
-      const w = layers[0].el.offsetWidth, hh = layers[0].el.offsetHeight;
-      return { layers, w, h: hh, from: CB.pts[i], to: LB.pts[i], t0: 3.8 + i * 0.125 };
+      const el = h('div', { class: 'display', style: { position: 'absolute', left: '0', top: '0', fontSize: '40px', lineHeight: 1, color: C.vibrant,
+        textShadow: '0 0 14px rgba(21,219,168,.85), 0 0 34px rgba(21,219,168,.45)', transformOrigin: '50% 50%', opacity: 0, whiteSpace: 'nowrap' } }, world, ch);
+      const from = CB.pts[i], to = LB.pts[i];
+      const dx = to[0] - LB.cx;
+      const P = [from, [LP1[0] + (from[0] - CB.cx) * 0.4, LP1[1]], [LP2[0] + dx, LP2[1]], to];
+      const at = (u) => [cub(P[0][0], P[1][0], P[2][0], P[3][0], u), cub(P[0][1], P[1][1], P[2][1], P[3][1], u)];
+      const segs = Array.from({ length: TRAIL_N }, (_, k) => s('line', { stroke: k < 2 ? '#e8fff8' : C.vibrant, 'stroke-linecap': 'round', 'stroke-width': Math.max(1, 5 - k * 0.45), opacity: 0 }, trailG));
+      const t0 = 3.8 + i * 0.06, t1 = 4.125 + i * 0.125;
+      return { el, w: el.offsetWidth, h: el.offsetHeight, at, segs, t0, t1 };
     });
 
     /* ---------- click: pulse + cursor ---------- */
@@ -308,7 +319,7 @@ GTR.scene({
     const tRows = h('div', { style: { marginTop: '14px', display: 'flex', flexDirection: 'column', gap: '8px' } }, top3);
     const BAR_W = 250;
     const CREAT = [
-      { name: 'Coleção Verão · Carrossel', sub: 'Invest. R$ 8.200 · Leads 720', v: 5.6, grad: 'linear-gradient(135deg,#fb7185,#c2410c)', icon: 'gallery-horizontal', at: 5.75 },
+      { name: 'Coleção Verão · Carrossel', sub: 'Invest. R$ 8.200 · Leads 720', v: 5.6, grad: 'linear-gradient(135deg,#fb7185,#c2410c)', icon: 'play', at: 5.75 },
       { name: 'Grade Atacado · Vídeo 15s', v: 5.1, grad: 'linear-gradient(135deg,#38bdf8,#1d4ed8)', icon: 'play', at: 6.0 },
       { name: 'Depoimento Lojista · Reels', v: 3.7, grad: 'linear-gradient(135deg,#a78bfa,#6d28d9)', icon: 'play', at: 6.25 },
     ];
@@ -381,13 +392,15 @@ GTR.scene({
     const camAt = (t) => {
       const amp = p(t, 0.3, 1.6, 'sine.inOut');
       const k1 = p(t, 3.5, 4.1, 'power3.inOut');
-      const k2 = p(t, 5.5, 6.2, 'power3.inOut');
+      const k2 = p(t, 5.4, 6.1, 'power3.inOut');
       const drift = amp * (1 - 0.6 * k1 * (1 - k2));
       const nx = noise(t * 0.27, 3.1) * 12 * drift, ny = noise(t * 0.27, 7.7) * 7 * drift;
       const b = { x: 0, y: 0, s: 1 + 0.03 * p(t, 0.3, 3.5, 'sine.inOut') };
       const sP = PUSH.s + 0.035 * p(t, 4.1, 5.5, 'sine.inOut');
       const P = pushXY(sP);
       const sQ = PULL.s + 0.02 * p(t, 6.2, 8.0, 'sine.inOut');
+      const rwPan = Math.sin(Math.PI * p(t, 2.45, 3.55, 'sine.inOut'));   // 0 → 1 → 0 over the rewind
+      b.x += 34 * rwPan;
       const x = lerp(lerp(b.x, P.x, k1), PULL.x, k2) + nx;
       const y = lerp(lerp(b.y, P.y, k1), PULL.y, k2) + ny;
       const sc = lerp(lerp(b.s, sP, k1), sQ, k2);
@@ -492,7 +505,7 @@ GTR.scene({
         const [x0, x1] = onA ? S1 : S2;
         const x = lerp(x0, x1, q);
         const a = onA ? clamp(inv(t, 1.0, 1.06)) : clamp(1 - inv(t, 1.98, 2.06));
-        comet(x, LINE_Y, Math.max(x0, x - 150), a);
+        comet(x, LINE_Y, Math.max(x0, x - 170), a, 11);
       }
       burst(t, 1.5, S1[1], LINE_Y, 14, 31, 0.45);
       burst(t, 2.0, S2[1], LINE_Y, 16, 32, 0.5);
@@ -539,11 +552,12 @@ GTR.scene({
         /* ---------- camera + parallax plane ---------- */
         const cm = camAt(t);
         cam.set(cm);
-        const ex = p(t, 7.5, 7.95, 'power2.in');
+        const ex = p(t, 7.5, 7.95, 'power2.in');            // drift up
+        const exA = p(t, 7.5, 7.95, 'sine.inOut');          // fade
         cam.view.style.transform = `translateY(${-60 * ex}px)`;
-        cam.view.style.opacity = 1 - ex;
+        cam.view.style.opacity = 1 - exA;
         plane.style.transform = `translate(${cm.x * 0.45}px, ${cm.y * 0.45 - 30 * ex}px) scale(${1 + (cm.s - 1) * 0.45})`;
-        plane.style.opacity = 0.55 * p(t, 0.1, 0.9, 'power2.out') * (1 - ex);
+        plane.style.opacity = 0.55 * p(t, 0.1, 0.9, 'power2.out') * (1 - exA);
 
         /* ---------- the S7 line contracts into the two connectors ---------- */
         const e0 = p(t, 0, 0.42, 'power3.inOut');
@@ -590,9 +604,8 @@ GTR.scene({
         gConv.style.opacity = p(t, 0.25, 0.85) * (0.8 + 0.2 * Math.sin(t * 2.1 + 1)) + 0.6 * decay(t, 1.5, 3);
         gSale.style.opacity = p(t, 0.5, 1.1) * (0.8 + 0.2 * Math.sin(t * 2.1 + 2)) + 0.6 * decay(t, 2.0, 3);
         ports.forEach((q) => {
-          const k = pop(q.at > 0.5 ? t : t, q.at, 0.4, 'back.out(3)');
-          const hit = Math.max(decay(t, q.x === S1[1] ? 1.5 : q.x === S2[1] ? 2.0 : q.x === S1[0] ? 3.4 : 2.95, 5),
-            q.x === S2[1] ? decay(t, 2.5, 5) : 0, q.x === S1[0] ? decay(t, 1.0, 5) : 0, q.x === S2[0] ? decay(t, 1.5, 5) : 0);
+          const k = pop(t, q.at, 0.4, 'back.out(3)');
+          const hit = Math.max(...q.hits.map((ht) => decay(t, ht, 5)));
           q.el.style.opacity = clamp(inv(t, q.at, q.at + 0.1));
           q.el.style.transform = `scale(${Math.max(0, k) * (1 + 0.5 * hit)})`;
           q.el.style.boxShadow = `0 0 ${12 + 20 * hit}px rgba(21,219,168,${0.8})`;
@@ -686,20 +699,29 @@ GTR.scene({
 
         /* ---------- the 4 digits ---------- */
         clones.forEach((cl, i) => {
-          cl.layers.forEach((ly, gi) => {
-            const tt = t - gi * 0.035;
-            const u0 = inv(tt, cl.t0, cl.t0 + 0.325);
-            if (tt <= cl.t0 || tt >= cl.t0 + 0.325) { ly.el.style.opacity = 0; ly.el.style.visibility = 'hidden'; return; }
-            const u = GTR.E('power2.inOut')(u0);
-            const mx = (cl.from[0] + cl.to[0]) / 2, my = (cl.from[1] + cl.to[1]) / 2 - 240;
-            const x = qb(cl.from[0], mx, cl.to[0], u), y = qb(cl.from[1], my, cl.to[1], u);
+          const uAt = (tt) => GTR.E('power2.inOut')(inv(tt, cl.t0, cl.t1));
+          const flying = t > cl.t0 && t < cl.t1;
+          if (!flying) { cl.el.style.visibility = 'hidden'; cl.el.style.opacity = 0; }
+          else {
+            const u0 = inv(t, cl.t0, cl.t1);
+            const u = uAt(t);
+            const [x, y] = cl.at(u);
             const scl = lerp(lerp(0.34, 0.46, u), 1, Math.sin(Math.PI * u));
-            ly.el.style.visibility = 'visible';
-            ly.el.style.opacity = ly.a * clamp(Math.min(u0 / 0.1, (1 - u0) / 0.12));
-            ly.el.style.transform = `translate(${x - cl.w / 2}px, ${y - cl.h / 2}px) scale(${scl})`;
+            cl.el.style.visibility = 'visible';
+            cl.el.style.opacity = clamp(Math.min(u0 / 0.08, (1 - u0) / 0.1));
+            cl.el.style.transform = `translate(${x - cl.w / 2}px, ${y - cl.h / 2}px) scale(${scl})`;
+          }
+          // light trail: the last ~0.1 s of the path
+          cl.segs.forEach((sgm, k) => {
+            const ta = t - k * 0.011, tb = t - (k + 1) * 0.011;
+            if (ta <= cl.t0 || tb >= cl.t1 + 0.02) { sgm.setAttribute('opacity', 0); return; }
+            const [x0, y0] = cl.at(uAt(Math.min(ta, cl.t1))), [x1, y1] = cl.at(uAt(Math.max(tb, cl.t0)));
+            sgm.setAttribute('x1', x0); sgm.setAttribute('y1', y0);
+            sgm.setAttribute('x2', x1); sgm.setAttribute('y2', y1);
+            sgm.setAttribute('opacity', (1 - k / TRAIL_N) * 0.9 * (t < cl.t1 ? 1 : 1 - inv(t, cl.t1, cl.t1 + 0.1)));
           });
           // landed digit brightens
-          const land = cl.t0 + 0.325;
+          const land = cl.t1;
           const lk = p(t, land - 0.03, land + 0.15, 'power2.out');
           const lp = t >= land - 0.03 && t < land + 0.3 ? Math.sin(Math.PI * inv(t, land - 0.03, land + 0.3)) : 0;
           const d = lDigits[i];
@@ -714,11 +736,12 @@ GTR.scene({
         boxL.style.opacity = clamp(inv(t, 4.45, 4.55));
         boxL.style.transform = `scale(${lerp(1.5, 1, bl)})`;
         const ld = p(t, 4.5, 4.75, 'power2.inOut');
-        laser.style.strokeDashoffset = `${LLEN * (1 - ld)}`;
-        laserGlow.style.strokeDashoffset = `${LLEN * (1 - ld)}`;
+        // draws from the label back to the chip, closing the loop
+        laser.style.strokeDashoffset = `${-LLEN * (1 - ld)}`;
+        laserGlow.style.strokeDashoffset = `${-LLEN * (1 - ld)}`;
         const lpulse = 0.75 + 0.25 * Math.sin(t * 6);
         laserGlow.style.opacity = ld > 0 ? lpulse : 0;
-        // a light packet shuttles along the arc (label → chip), once per beat
+        // a light packet shuttles along the arc (label → chip), once per bar half
         if (t > 4.8) {
           const u = fract((t - 4.8) / 1.0);
           const pt = laser.getPointAtLength(LLEN * (1 - GTR.E('power1.inOut')(u)));
@@ -732,9 +755,9 @@ GTR.scene({
 
         /* ---------- HUD ---------- */
         hud.style.transform = `translateY(${-60 * ex}px)`;
-        hud.style.opacity = 1 - ex;
+        hud.style.opacity = 1 - exA;
         chipWrap.style.transform = `translateY(${-60 * ex}px)`;
-        chipWrap.style.opacity = 1 - ex;
+        chipWrap.style.opacity = 1 - exA;
         band.style.opacity = p(t, 0.85, 1.4, 'power2.out');
         const hx = noise(t * 0.22, 40) * 6, hy = noise(t * 0.22, 41) * 3;
         hA.el.style.transform = `translateY(-50%) translate(${hx}px, ${hy}px)`;
@@ -762,9 +785,9 @@ GTR.scene({
         KIT.glitch(pill, gl, t, 83);
 
         // Top 3 Criativos
-        const tk = p(t, 5.6, 6.2, 'power3.out');
-        vis(top3, clamp(inv(t, 5.6, 5.85)));
-        top3.style.transform = `translateY(${50 * (1 - tk)}px) scale(${lerp(0.95, 1, tk)})`;
+        const tk = pop(t, 5.68, 0.55, 'back.out(1.4)');
+        vis(top3, clamp(inv(t, 5.68, 5.8)));
+        top3.style.transform = `translateY(${36 * (1 - tk)}px) scale(${lerp(0.9, 1, tk)})`;
         rows.forEach((r) => {
           const at = r.c.at;
           const rk = p(t, at, at + 0.5, 'power3.out');
