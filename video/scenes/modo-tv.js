@@ -345,7 +345,7 @@ GTR.scene({
     tl.to(bandA.wrap, { x: -(bandA.bw + 90), duration: 0.32, ease: 'power2.in' }, 2.75);
     tl.fromTo(bandB.wrap, { x: -(bandB.bw + 90) }, { x: 0, duration: 0.35, ease: 'power3.out' }, 6.0);
     tl.fromTo(bandB.inner, { x: -140, opacity: 0 }, { x: 0, opacity: 1, duration: 0.45, ease: 'power3.out' }, 6.04);
-    tl.to(bandB.wrap, { x: -(bandB.bw + 90), duration: 0.38, ease: 'power2.in' }, 7.6);
+    tl.to(bandB.wrap, { x: -(bandB.bw + 90), duration: 0.33, ease: 'power2.in' }, 7.6);
 
     /* =====================================================================
        HUD — PARABÉNS overlay (4.0–6.3) + confetti
@@ -458,7 +458,7 @@ GTR.scene({
       const c = camAt(t);
       cam.set({ x: c.x, y: c.y, s: c.s, rx: c.rx, ry: c.ry });
       st(cam.view, 'filter', c.kD > 0.001 ? `blur(${f2(10 * c.kD)}px)` : 'none');
-      st(cam.view, 'opacity', f2(1 - c.kD));
+      st(cam.view, 'opacity', f2(1 - p(t, 7.6, 7.93, 'power1.in'))); // fully gone before the cut → empty stage
 
       /* ---- power-on ---- */
       const lineX = p(t, 0, 0.12, 'power2.out');
@@ -671,11 +671,12 @@ GTR.scene({
       const pOn = t >= 4.0 && t < 6.35;
       st(party, 'display', pOn ? 'block' : 'none');
       if (pOn) {
-        const out = p(t, 6.0, 6.3, 'power2.in');
-        st(scrim, 'opacity', f2(p(t, 4.0, 4.2, 'power2.out') * (1 - out)));
+        const out = p(t, 6.0, 6.22, 'power2.in');           // content leaves first (scale-up + blur)…
+        const outS = p(t, 6.02, 6.3, 'power1.inOut');       // …then the scrim lifts
+        st(scrim, 'opacity', f2(p(t, 4.0, 4.2, 'power2.out') * (1 - outS)));
         st(pc, 'opacity', f2(1 - out));
-        st(pc, 'transform', `scale(${(1 + 0.05 * out).toFixed(4)})`);
-        st(pc, 'filter', out > 0.001 ? `blur(${f2(6 * out)}px)` : 'none');
+        st(pc, 'transform', `scale(${(1 + 0.08 * out).toFixed(4)})`);
+        st(pc, 'filter', out > 0.001 ? `blur(${f2(10 * out)}px)` : 'none');
         const ta = t - 4.0;
         const ts = ta < 0.3 ? lerp(0, 1.15, E('power3.out')(ta / 0.3)) : lerp(1.15, 1, E('power2.inOut')(inv(ta, 0.3, 0.5)));
         const fy = Math.sin(ta * 2.4) * 6 * p(ta, 0.4, 1.0, 'sine.inOut');
@@ -706,7 +707,7 @@ GTR.scene({
     {
       const nm = cards.ana.nameEl, bh = cards.ana.barHold;
       PLUS.x = nm.offsetLeft + nm.offsetWidth + 12;
-      PLUS.y = nm.offsetTop + nm.offsetHeight / 2 - 13;
+      PLUS.y = nm.offsetTop + nm.offsetHeight / 2 - 16;
       BAR_END.x = bh.offsetLeft + bh.offsetWidth;
       BAR_END.y = bh.offsetTop + 6;
     }

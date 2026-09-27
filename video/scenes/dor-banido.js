@@ -23,7 +23,7 @@ GTR.scene({
     const P = 1400;                                 // camera perspective (S1 contract)
     const PX = 620, PY = 580, PW = 420;             // S1 hand-off phone
     const FONT_UI = "'Inter', system-ui, sans-serif";
-    const LOCK = { x: 215, y: 366 };                // lock centre in phone-local px (ban icon centre is y 380)
+    const LOCK = { x: 215, y: 352 };                // lock centre in phone-local px (ban icon centre is y 380)
 
     /* ============================================================ WORLD */
     const tearWrap = h('div', { style: { position: 'absolute', inset: '0', zIndex: 1 } }, root);
@@ -232,7 +232,7 @@ GTR.scene({
     slam(sub2, 2.0);
     // lock slam (scale 2 → 1, back.out)
     tl.fromTo(lockWrap, { scale: 2 }, { scale: 1, duration: 0.45, ease: 'back.out(1.7)' }, 2.5);
-    tl.fromTo(lockWrap, { opacity: 0 }, { opacity: 1, duration: 0.1, ease: 'none' }, 2.5);
+    tl.fromTo(lockWrap, { opacity: 0 }, { opacity: 1, duration: 0.05, ease: 'none' }, 2.5);
     tl.set({}, {}, 4.0);
 
     /* ============================================================ SFX */
@@ -293,13 +293,12 @@ GTR.scene({
         const wp = p(t, 3.5, 4.0, 'power2.in');
         const wx = 130 * truck + 22 * p(t, 3.3, 3.5, 'sine.out') - 922 * wp;
         const push = 1 + 0.05 * p(t, 0, 3.5, 'sine.inOut') + 0.02 * wp;
-        cam.set({ x: shx + wx, y: shy + 70 * truck, rz: shr, s: push });
+        cam.set({ x: shx + wx, y: shy + 12 * truck, rz: shr, s: push });
         const blur = 24 * wp;
         whipWrap.style.filter = blur > 0.05 ? `blur(${blur.toFixed(2)}px)` : 'none';
 
-        /* ---- rim light breathes (S1 continuity) and flares on the lock ---- */
-        rim.style.transform = `scale(${1 + 0.06 * Math.sin(g * 6)})`;
-        rim.style.opacity = Math.min(1.6, 1 + 0.6 * burst(t, 2.5, 0.35));
+        /* ---- rim light breathes (S1 continuity) and swells on the lock slam ---- */
+        rim.style.transform = `scale(${(1 + 0.06 * Math.sin(g * 6)) * (1 + 0.28 * burst(t, 2.5, 0.3))})`;
 
         /* ---- ghosts: continue S1's drift, then fall, tilt, gray out, blur, fade ---- */
         for (const q of ghosts) {
@@ -365,9 +364,9 @@ GTR.scene({
         chip1.set(g, 1, 0);
         chip2.set(g, inv(t, 2.75, 2.93), 0);
 
-        /* ---- HUD text: slow drift, exit −600 + fade 3.5–3.85; scrim fades with the whip ---- */
+        /* ---- HUD text: slow drift right (anticipation), exit −600 + fade 3.5–3.85; scrim fades with the whip ---- */
         const ex = p(t, 3.5, 3.85, 'power2.in');
-        hudText.style.transform = `translateX(${-14 * p(t, 1.0, 3.5, 'none') - 600 * ex}px)`;
+        hudText.style.transform = `translateX(${10 * p(t, 1.0, 3.5, 'sine.inOut') - 600 * ex}px)`;
         hudText.style.opacity = 1 - p(t, 3.5, 3.76, 'power1.in');
         hudText.style.filter = ex > 0.01 ? `blur(${(14 * ex).toFixed(2)}px)` : 'none';
         scrim.style.opacity = 1 - p(t, 3.5, 3.95, 'power1.in');

@@ -127,6 +127,15 @@ GTR.scene({
       h('span', {}, row).textContent = txt;
       return { row, ic };
     });
+    // skeleton placeholders (shimmer) that each real line replaces when it pops
+    const skel = lines.map(({ row }, i) => {
+      const wrap = h('div', { style: { position: 'absolute', left: '28px', top: px(row.offsetTop + 6), height: '22px', display: 'flex', alignItems: 'center', gap: '12px', pointerEvents: 'none' } });
+      card.insertBefore(wrap, lines[0].row);
+      h('div', { style: { width: '22px', height: '22px', borderRadius: '50%', background: 'rgba(255,255,255,0.07)', flex: 'none' } }, wrap);
+      const bar = h('div', { style: { width: px([200, 262, 128][i]), height: '12px', borderRadius: '6px', flex: 'none',
+        background: 'linear-gradient(90deg, rgba(255,255,255,0.05) 20%, rgba(255,255,255,0.15) 50%, rgba(255,255,255,0.05) 80%)', backgroundSize: '300% 100%' } }, wrap);
+      return { wrap, bar, at: 2.5 + i * 0.25 };
+    });
     const sheen = h('div', { style: { position: 'absolute', inset: '0', pointerEvents: 'none', opacity: 0,
       background: 'linear-gradient(105deg, rgba(255,255,255,0) 38%, rgba(255,255,255,0.16) 50%, rgba(255,255,255,0) 62%)', backgroundSize: '250% 100%' } }, card);
 
@@ -194,9 +203,9 @@ GTR.scene({
       tl.fromTo(row, { opacity: 0, x: -18 }, { opacity: 1, x: 0, duration: 0.5, ease: 'power3.out' }, at);
       tl.fromTo(ic, { scale: 0, rotate: -90 }, { scale: 1, rotate: 0, duration: 0.5, ease: 'back.out(2.4)' }, at);
     });
-    KIT.hideUnits(tl, head.units, 5.0, { dur: 0.3, stagger: 0.025, y: -30 });
-    KIT.hideUnits(tl, subUnits, 5.04, { dur: 0.26, stagger: 0.02, y: -20 });
-    tl.to(scrim, { opacity: 0, duration: 0.35, ease: 'power2.in' }, 5.0);
+    KIT.hideUnits(tl, head.units, 4.98, { dur: 0.26, stagger: 0.02, y: -30 });
+    KIT.hideUnits(tl, subUnits, 5.0, { dur: 0.24, stagger: 0.015, y: -20 });
+    tl.to(scrim, { opacity: 0, duration: 0.3, ease: 'power2.in' }, 5.0);
     tl.to(coex, { opacity: 0, y: -12, duration: 0.28, ease: 'power2.in' }, 5.0);
 
     /* ================= SFX ================= */
@@ -307,8 +316,8 @@ GTR.scene({
         cam.set({ ry: lerp(lerp(-6, 4, orb), 0, back), s: lerp(lerp(1, 1.06, orb), 1, back) });
         cam.view.style.opacity = 1 - p(t, 5.9, 5.98, 'power1.in');
         /* ---- light-speed exit: phone and cloud split apart, the bridge stretches into the y-460 line ---- */
-        const rise = p(t, 5.0, 5.6, 'power2.inOut');
-        const split = p(t, 5.15, 5.8, 'power3.in');
+        const rise = p(t, 5.15, 5.65, 'power2.inOut');
+        const split = p(t, 5.2, 5.8, 'power3.in');
         const calm = 1 - rise;                        // idle floats die out so the wire lands exactly on y 460
         const dyP = (LINE_Y - A[1]) * rise, dyC = (LINE_Y - B[1]) * rise;
         const dxP = -1050 * split, dxC = 1150 * split;
@@ -351,6 +360,10 @@ GTR.scene({
         card.style.filter = exitFilter;
         const ring = t < 1.5 ? 0 : 0.25 + 0.75 * Math.exp(-(t - 1.5) * 3.2);
         card.style.boxShadow = `0 30px 80px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.08), 0 0 0 ${1 + ring}px rgba(21,219,168,${0.1 + 0.7 * ring}), 0 0 ${24 + 40 * ring}px rgba(21,219,168,${0.3 * ring})`;
+        for (const sk of skel) {
+          sk.wrap.style.opacity = 1 - p(t, sk.at, sk.at + 0.22, 'power1.out');
+          sk.bar.style.backgroundPosition = `${100 - 100 * fract(t / 1.1 + sk.at)}% 0`;
+        }
         const shp = p(t, 1.5, 2.2, 'power2.inOut');
         sheen.style.opacity = t > 1.5 && t < 2.2 ? 1 : 0;
         sheen.style.backgroundPosition = `${lerp(100, 0, shp)}% 0`;
@@ -396,7 +409,7 @@ GTR.scene({
         sub.style.transform = `translateY(-50%) translate(${hx * 0.8}px, ${hy}px)`;
 
         chip.set(t, GTR.inv(t, 0.25, 0.43), GTR.inv(t, 1.5, 2.0));
-        chipWrap.style.opacity = 1 - p(t, 5.3, 5.6, 'power2.in');
+        chipWrap.style.opacity = 1 - p(t, 5.0, 5.25, 'power2.in');
 
         /* ---- light-speed streaks → converge into the y-460 line ---- */
         sg.clearRect(0, 0, 1920, 1080);

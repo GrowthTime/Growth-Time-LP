@@ -35,10 +35,10 @@ GTR.scene({
     const pose = (t) => {
       const e = p(t, 0, 0.9, 'expo.out');
       return {
-        dx: lerp(70, 0, e) - t * 4 + noise(t * 0.5, 2.2) * 4,
-        dy: lerp(80, 0, e) + noise(t * 0.45, 8.1) * 6,
-        ry: lerp(-30, -14, e) + map(t, 0.9, 4.1, 0, 5, 'sine.inOut') + noise(t * 0.35, 4.4) * 1.2,
-        rx: lerp(9, 2, e) + noise(t * 0.3, 6.6) * 1.2,
+        dx: lerp(46, 0, e) - t * 4 + noise(t * 0.5, 2.2) * 4,
+        dy: lerp(36, 0, e) + noise(t * 0.45, 8.1) * 6,
+        ry: lerp(-24, -14, e) + map(t, 0.9, 4.1, 0, 5, 'sine.inOut') + noise(t * 0.35, 4.4) * 1.2,
+        rx: lerp(6, 2, e) + noise(t * 0.3, 6.6) * 1.2,
       };
     };
     const phoneTf = (q) => `translate(${q.dx}px, ${q.dy}px) rotateY(${q.ry}deg) rotateX(${q.rx}deg) scale(${PSC})`;
@@ -84,6 +84,9 @@ GTR.scene({
     const bandA = div(A, { position: 'absolute', left: '980px', top: '-420px', width: '560px', height: '1900px', transformOrigin: '50% 50%',
       background: 'linear-gradient(90deg, rgba(21,219,168,0), rgba(21,219,168,.075) 42%, rgba(21,219,168,.075) 58%, rgba(21,219,168,0))' });
     div(A, { position: 'absolute', inset: '0', background: 'radial-gradient(120% 100% at 45% 45%, rgba(11,43,41,0) 58%, rgba(11,43,41,.13) 100%)' });
+    // soft petrol shade bottom-left so fx's white "Imagens e dados ilustrativos" stays legible on the light stage
+    div(A, { position: 'absolute', left: '0', top: '760px', width: '1920px', height: '320px', background: 'linear-gradient(0deg, rgba(11,43,41,.17), rgba(11,43,41,.05) 45%, rgba(11,43,41,0))' });
+    div(A, { position: 'absolute', left: '-420px', top: '900px', width: '1300px', height: '360px', background: 'radial-gradient(closest-side, rgba(11,43,41,.16), rgba(11,43,41,0))' });
     const floorA = div(A, { position: 'absolute', left: '1090px', top: '960px', width: '520px', height: '80px', borderRadius: '50%', zIndex: 2,
       background: 'radial-gradient(closest-side, rgba(11,43,41,.30), rgba(11,43,41,0))' });
     // floating product tiles (depth-of-field layers around the phone)
@@ -207,22 +210,22 @@ GTR.scene({
     const phB = KIT.phone(rigB, { x: PH.x, y: PH.y, w: PH.w });
     const SB = phB.body;
     SB.style.background = '#ffffff';
-    const cover = div(SB, { position: 'absolute', left: '0', right: '0', top: '0', height: '150px', overflow: 'hidden', background: 'linear-gradient(135deg,#0b2b29 0%,#12574d 55%,#27ae8f 100%)' });
+    const cover = div(SB, { position: 'absolute', left: '0', right: '0', top: '0', height: '168px', overflow: 'hidden', background: 'linear-gradient(135deg,#0b2b29 0%,#12574d 55%,#27ae8f 100%)' });
     div(cover, { position: 'absolute', inset: '0', backgroundImage: 'radial-gradient(rgba(255,255,255,.14) 1.2px, transparent 1.2px)', backgroundSize: '16px 16px' });
-    div(SB, { position: 'absolute', left: '149px', top: '96px', width: '104px', height: '104px', borderRadius: '50%', background: 'linear-gradient(135deg,#38cc9c,#066767)', border: '5px solid #fff', boxShadow: '0 10px 24px rgba(0,0,0,.18)', display: 'grid', placeItems: 'center', color: '#fff', fontWeight: 800, fontSize: '34px' }, 'MF');
-    div(SB, { position: 'absolute', left: '0', right: '0', top: '210px', textAlign: 'center', fontWeight: 800, fontSize: '25px', color: '#111' }, 'Moda Fashion');
-    div(SB, { position: 'absolute', left: '0', right: '0', top: '244px', textAlign: 'center', fontWeight: 500, fontSize: '16px', color: '#737373' }, '@modafashion');
-    const stackB = CONS.map((c, i) => div(SB, { position: 'absolute', left: `${123 + i * 36}px`, top: '288px', width: '48px', height: '48px', borderRadius: '50%', background: c.g, color: '#fff', display: 'grid', placeItems: 'center', fontWeight: 800, fontSize: '15px', boxShadow: '0 0 0 3px #fff', zIndex: 1 + i }, c.ini));
-    const BTN_B = { top: 358, h: 64 };
+    div(SB, { position: 'absolute', left: '147px', top: '114px', width: '108px', height: '108px', borderRadius: '50%', background: 'linear-gradient(135deg,#38cc9c,#066767)', border: '5px solid #fff', boxShadow: '0 10px 24px rgba(0,0,0,.18)', display: 'grid', placeItems: 'center', color: '#fff', fontWeight: 800, fontSize: '34px' }, 'MF');
+    div(SB, { position: 'absolute', left: '0', right: '0', top: '234px', textAlign: 'center', fontWeight: 800, fontSize: '26px', color: '#111' }, 'Moda Fashion');
+    div(SB, { position: 'absolute', left: '0', right: '0', top: '270px', textAlign: 'center', fontWeight: 500, fontSize: '16px', color: '#737373' }, '@modafashion');
+    const stackB = CONS.map((c, i) => div(SB, { position: 'absolute', left: `${112 + i * 43}px`, top: '314px', width: '48px', height: '48px', borderRadius: '50%', background: c.g, color: '#fff', display: 'grid', placeItems: 'center', fontWeight: 800, fontSize: '15px', boxShadow: '0 0 0 3px #fff', zIndex: 1 + i }, c.ini));
+    const BTN_B = { top: 386, h: 66 };
     const btnB = div(SB, { position: 'absolute', left: '20px', right: '20px', top: `${BTN_B.top}px`, height: `${BTN_B.h}px`, borderRadius: '18px', background: '#25d366', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', fontSize: '19px', fontWeight: 800, boxShadow: '0 12px 26px rgba(37,211,102,.4)' },
       I('message-circle', { size: 24, sw: 2.3 }) + '<span>Falar com consultora</span>');
-    const stB = div(SB, { position: 'absolute', left: '0', right: '0', top: '436px', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px', fontSize: '14.5px', fontWeight: 600, color: '#525252' });
+    const stB = div(SB, { position: 'absolute', left: '0', right: '0', top: '468px', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px', fontSize: '14.5px', fontWeight: 600, color: '#525252' });
     const onDot = div(stB, { width: '9px', height: '9px', borderRadius: '50%', background: '#22c55e', boxShadow: '0 0 0 3px rgba(34,197,94,.22)', flex: 'none' });
     div(stB, {}, 'online agora · responde em minutos');
-    [['store', 'Loja online'], ['shirt', 'Catálogo Coleção Verão']].forEach(([ic, label], i) => div(SB, { position: 'absolute', left: '20px', right: '20px', top: `${484 + i * 68}px`, height: '56px', borderRadius: '16px', border: '1.5px solid #e5e5e5', display: 'flex', alignItems: 'center', gap: '12px', padding: '0 16px', fontSize: '16px', fontWeight: 700, color: '#111' },
+    [['store', 'Loja online'], ['shirt', 'Catálogo Coleção Verão'], ['map-pin', 'Onde estamos']].forEach(([ic, label], i) => div(SB, { position: 'absolute', left: '20px', right: '20px', top: `${516 + i * 68}px`, height: '56px', borderRadius: '16px', border: '1.5px solid #e5e5e5', display: 'flex', alignItems: 'center', gap: '12px', padding: '0 16px', fontSize: '16px', fontWeight: 700, color: '#111' },
       `<span style="color:#27ae8f;display:flex">${I(ic, { size: 20 })}</span><span style="flex:1">${label}</span><span style="color:#a3a3a3;display:flex">${I('chevron-right', { size: 18 })}</span>`));
-    div(SB, { position: 'absolute', left: '0', right: '0', top: '640px', display: 'flex', justifyContent: 'center', gap: '24px', color: '#a3a3a3' }, I('instagram', { size: 22 }) + I('globe', { size: 22 }) + I('map-pin', { size: 22 }));
-    const BTN_LOCAL = bodyToLocal(201, BTN_B.top + BTN_B.h / 2);
+    div(SB, { position: 'absolute', left: '0', right: '0', top: '742px', display: 'flex', justifyContent: 'center', gap: '26px', color: '#a3a3a3' }, I('instagram', { size: 22 }) + I('globe', { size: 22 }) + I('mail', { size: 22 }));
+    const BTN_LOCAL = bodyToLocal(46, BTN_B.top + BTN_B.h / 2);   // leads leave from the button's leading edge
 
     /* ---------- consultant cards ---------- */
     const CARD = { y: 700, w: 200, h: 90 };
@@ -245,9 +248,9 @@ GTR.scene({
     ebB.el.style.zIndex = 6;
     const hB = KIT.headline(B, 'Botão de WhatsApp\nem *rodízio*.', { size: 88, x: 120, y: 400, w: 1040, align: 'left', glow: true });
     hB.el.style.zIndex = 6;
-    tl.fromTo(ebB.line, { scaleX: 0 }, { scaleX: 1, duration: 0.5, ease: 'expo.out' }, 2.0);
-    tl.fromTo(ebB.label, { opacity: 0, x: -18 }, { opacity: 1, x: 0, duration: 0.45, ease: 'power3.out' }, 2.03);
-    KIT.revealWords(tl, hB.units, 2.20, { dur: 0.6, stagger: 0.07 });
+    tl.fromTo(ebB.line, { scaleX: 0 }, { scaleX: 1, duration: 0.5, ease: 'expo.out' }, 1.96);
+    tl.fromTo(ebB.label, { opacity: 0, x: -18 }, { opacity: 1, x: 0, duration: 0.45, ease: 'power3.out' }, 1.99);
+    KIT.revealWords(tl, hB.units, 2.06, { dur: 0.5, stagger: 0.06 });
 
     /* =====================================================================
        PANEL C · fluxos (Beta) — dark flow canvas
@@ -338,7 +341,13 @@ GTR.scene({
         const rx = lerp(14, 0, e) + noise(t * 0.4, 12.5) * 0.6;
         const sc = lerp(1.07, 1, e) + 0.028 * p(t, 4.6, 6.0, 'sine.inOut');
         world.style.transform = `perspective(1800px) translateY(${lerp(40, 0, e)}px) rotateX(${rx}deg) scale(${sc})`;
-        if (wire) return;
+        if (wire) {
+          // placeholders step aside while the live node/label pops over them; back for the scan
+          const back = t >= SCAN[0];
+          for (const n of nodes) n.el.style.opacity = back ? 1 : 1 - inv(t, n.at, n.at + 0.1);
+          for (const ed of edges) if (ed.label) ed.label.style.opacity = back ? 1 : 1 - inv(t, ed.t0 + 0.12, ed.t0 + 0.2);
+          return;
+        }
         for (const n of nodes) {
           const k = p(t, n.at, n.at + 0.42, 'back.out(1.7)');
           n.el.style.opacity = clamp(inv(t, n.at, n.at + 0.14));
@@ -451,16 +460,16 @@ GTR.scene({
       for (const f of FLOAT) {
         const e = p(t, 0, 1.0, 'expo.out');
         const dx = noise(t * 0.4 + f.i * 3, 1.7) * 10 - t * 10 * f.depth;
-        const dy = noise(t * 0.4 + f.i * 5, 9.3) * 12 + (1 - e) * 90 * f.depth;
+        const dy = noise(t * 0.4 + f.i * 5, 9.3) * 12 + (1 - e) * 60 * f.depth;
         f.el.style.transform = `translate(${dx}px, ${dy}px) rotate(${f.rot + noise(t * 0.3, f.i) * 5}deg)`;
-        f.el.style.opacity = clamp(inv(t, 0, 0.25)) * 0.95;
+        f.el.style.opacity = 0.95;
       }
       // banner sheen + tiles stagger in
       sheenA.style.transform = `translateX(${map(t, 0.2, 0.9, -160, 460, 'power2.inOut')}px) skewX(-20deg)`;
       tilesA.forEach((tt, i) => {
-        const k = p(t, 0.04 + i * 0.06, 0.44 + i * 0.06, 'back.out(1.6)');
-        tt.el.style.opacity = clamp(inv(t, 0.04 + i * 0.06, 0.16 + i * 0.06));
-        tt.el.style.transform = `translateY(${(1 - k) * 22}px) scale(${0.94 + 0.06 * k})`;
+        const k = p(t, -0.25 + i * 0.07, 0.3 + i * 0.07, 'power3.out');
+        tt.el.style.opacity = 0.55 + 0.45 * clamp(inv(t, -0.1 + i * 0.07, 0.12 + i * 0.07));
+        tt.el.style.transform = `translateY(${(1 - k) * 18}px)`;
       });
       const sel = p(t, TAP1, TAP1 + 0.15, 'power2.out');
       tilesA[0].img.style.boxShadow = sel > 0 ? `0 0 0 ${3 * sel}px #15dba8, 0 8px 22px rgba(21,219,168,${0.35 * sel})` : 'none';
@@ -569,7 +578,7 @@ GTR.scene({
         if (rp > 0 && rp < 1) {
           lx.strokeStyle = `rgba(21,219,168,${0.85 * (1 - rp)})`;
           lx.lineWidth = 2.5;
-          lx.beginPath(); lx.arc(sx, sy, 12 + 70 * E('power2.out')(rp), 0, Math.PI * 2); lx.stroke();
+          lx.beginPath(); lx.arc(sx, sy, 10 + 48 * E('power2.out')(rp), 0, Math.PI * 2); lx.stroke();
         }
         // arrival flash on the card badge
         const fa = inv(t, L.t1, L.t1 + 0.35);
@@ -583,21 +592,26 @@ GTR.scene({
         const cx = (sx + ex) / 2, cy = Math.min(sy, ey) - 240;
         const bz = (kk) => { const a = 1 - kk; return [a * a * sx + 2 * a * kk * cx + kk * kk * ex, a * a * sy + 2 * a * kk * cy + kk * kk * ey]; };
         const kq = E('sine.inOut')(u);
-        for (let i = 16; i >= 1; i--) {
-          const kk = kq - i * 0.018;
-          if (kk < 0) continue;
-          const [x, y] = bz(kk);
-          lx.fillStyle = `rgba(21,219,168,${0.5 * (1 - i / 17)})`;
-          lx.beginPath(); lx.arc(x, y, 6 * (1 - i / 20), 0, Math.PI * 2); lx.fill();
+        // comet trail (tapered polyline) + glowing head
+        const N = 22;
+        for (let i = N; i >= 1; i--) {
+          const k0 = kq - i * 0.016, k1 = kq - (i - 1) * 0.016;
+          if (k1 < 0) continue;
+          const [x0, y0] = bz(Math.max(0, k0)), [x1, y1] = bz(k1);
+          lx.strokeStyle = `rgba(21,219,168,${0.7 * (1 - i / (N + 1))})`;
+          lx.lineWidth = 10 * (1 - i / (N + 2));
+          lx.lineCap = 'round';
+          lx.beginPath(); lx.moveTo(x0, y0); lx.lineTo(x1, y1); lx.stroke();
         }
         const [x, y] = bz(kq);
-        const g = lx.createRadialGradient(x, y, 0, x, y, 30);
-        g.addColorStop(0, 'rgba(21,219,168,0.75)');
+        const g = lx.createRadialGradient(x, y, 0, x, y, 44);
+        g.addColorStop(0, 'rgba(21,219,168,0.8)');
+        g.addColorStop(0.35, 'rgba(21,219,168,0.3)');
         g.addColorStop(1, 'rgba(21,219,168,0)');
         lx.fillStyle = g;
-        lx.beginPath(); lx.arc(x, y, 30, 0, Math.PI * 2); lx.fill();
-        lx.fillStyle = '#eafff8';
-        lx.beginPath(); lx.arc(x, y, 7, 0, Math.PI * 2); lx.fill();
+        lx.beginPath(); lx.arc(x, y, 44, 0, Math.PI * 2); lx.fill();
+        lx.fillStyle = '#f0fffa';
+        lx.beginPath(); lx.arc(x, y, 8.5, 0, Math.PI * 2); lx.fill();
       }
       hB.el.style.transform = `translate(${-(t - 2) * 5}px, -50%)`;
       ebB.el.style.transform = `translateX(${-(t - 2) * 5}px)`;
