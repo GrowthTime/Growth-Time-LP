@@ -9,9 +9,12 @@
    First frame: solid #000c0d. Last frame: backdrop 0, mark on a canvas
    at ~×40 around the gap with parts faded out.
    Gate dive (5.5–6.0): the SVG mark swaps (pixel-matched) to a canvas; the
-   backdrop gets an even-odd clip-path hole shaped like the arrow/stem gap
-   (opened like a blade, lit, rim-lit), so S6 is seen THROUGH the gap until
-   ×40 fills the frame; then backdrop and parts fade into the 22.0 flash.
+   backdrop (opacity 1 until 5.93) gets an even-odd clip-path hole = a real
+   matte: the slit inside the green stroke opens 0→1 (5.5–5.62, brief glint),
+   then widens 1→3.5 and reaches into the channels (5.62–5.92), so S6 is only
+   ever seen THROUGH the mark. Gray parts sink to dark silhouettes (×3–×6) and
+   go 5.86–5.94; the rim-lit green gate holds to 5.90 and goes by 5.98, with
+   a zoom blur and 45° speed streaks off the rims.
    Everything is a pure function of `local` (computed in update()).
    ============================================================ */
 GTR.scene({
@@ -171,7 +174,7 @@ GTR.scene({
       o2.textBaseline = 'alphabetic';
       for (const ci of charInfo) if (!ci.space) o2.fillText(ci.sp.textContent, PADX + ci.x, PADY);
       const img = o2.getImageData(0, 0, cw, chh).data;
-      const STEP = 3;
+      const STEP = 5;
       for (let y = 0; y < chh; y += STEP) {
         for (let x = 0; x < cw; x += STEP) {
           if (img[(y * cw + x) * 4 + 3] < 110) continue;
@@ -184,8 +187,8 @@ GTR.scene({
           const t0 = ci.td + ((ci.x + ci.w - lx) / Math.max(1, ci.w)) * 0.06 + R() * 0.04;
           dust.push({
             x0: TX_X + lx + (R() - 0.5) * 2, y0: TX_BASE - PADY + y + (R() - 0.5) * 2, t0,
-            v: linger ? 150 + R() * 70 : 200 + R() * 240,
-            acc: linger ? 30 : 200 + R() * 320,
+            v: linger ? 120 + R() * 60 : 90 + R() * 80,
+            acc: linger ? 160 : 520 + R() * 380,
             ang: -Math.PI / 4 + (R() - 0.5) * (40 * Math.PI / 180),
             // everything is gone by local 3.4 [19.4], before the wordmark rises
             life: Math.min(linger ? 0.95 + R() * 0.25 : 0.65 + R() * 0.35, DUST_END - t0),
@@ -259,12 +262,23 @@ GTR.scene({
     const cgrad = (c0, c1) => { const g = vc.createLinearGradient(0, 30, 0, 273); g.addColorStop(0, c0); g.addColorStop(1, c1); return g; };
     const CG_GRAY = cgrad('#b3bac5', '#939aa6');
     const CG_GREEN = cgrad('#3ddcaa', '#2fbf8e');
+    const zCv = document.createElement('canvas');                // offscreen zoom-blur buffer
+    zCv.width = 1920; zCv.height = 1080;
+    const zc = zCv.getContext('2d');
+    const ZG_GREEN = (() => { const g = zc.createLinearGradient(0, 30, 0, 273); g.addColorStop(0, '#3ddcaa'); g.addColorStop(1, '#2fbf8e'); return g; })();
     // portal = the 45° gap between the green arrow and the stem (viewBox), with pointed tips
     // running into the neighbouring channels; opened like a blade (across-axis scaled by w)
     const PORTAL = [[497.04, 127.13], [523.04, 123.14], [497.04, 171.15], [448.82, 219.37], [417.82, 228.36], [448.82, 175.35]];
     const RIMS = [[[497.04, 127.13], [448.82, 175.35]], [[497.04, 171.15], [448.82, 219.37]]];
     const SQ = Math.SQRT1_2;
-    const portalVB = (w) => PORTAL.map(([x, y]) => {
+    // kt = how far the pointed tips reach into the neighbouring channels (0 = the pure slit,
+    // clipped at the stem's own vertical edges, so early on S6 shows only inside the green stroke)
+    const PORTAL_SLIT = PORTAL.map(([x, y], i) => {
+      if (i === 1) return [(PORTAL[0][0] + PORTAL[2][0]) / 2, (PORTAL[0][1] + PORTAL[2][1]) / 2];
+      if (i === 4) return [(PORTAL[3][0] + PORTAL[5][0]) / 2, (PORTAL[3][1] + PORTAL[5][1]) / 2];
+      return [x, y];
+    });
+    const portalVB = (w, kt = 1) => PORTAL.map(([x1, y1], i) => [lerp(PORTAL_SLIT[i][0], x1, kt), lerp(PORTAL_SLIT[i][1], y1, kt)]).map(([x, y]) => {
       const rx = x - G_VB[0], ry = y - G_VB[1];
       const al = (rx - ry) * SQ, ac = (rx + ry) * SQ * w;   // along (1,−1), across (1,1)
       return [G_VB[0] + (al + ac) * SQ, G_VB[1] + (-al + ac) * SQ];
@@ -279,7 +293,7 @@ GTR.scene({
     ctx.cue('swoosh', 3.0, { pan: 0.6 });
     ctx.cue('swell', 2.8, { dur: 1.2 });
     ctx.cue('blip', 3.5, { freq: 1600 });
-    ctx.cue('blip', 3.75, { freq: 2000 });
+    ctx.cue('blip', 3.625, { freq: 2000 });
     ctx.cue('ping', 4.0, { freq: 1760 });
     ctx.cue('shimmer', 4.0);
     ctx.cue('whoosh', 5.4, { dur: 0.6, up: true });
@@ -301,6 +315,31 @@ GTR.scene({
     };
     const sheenC = (t) => lerp(MX0 + 285 - 180, MX1 + WM_Y + 40 + 200, p(t, T_LOCK, T_LOCK + 0.5, 'power2.inOut'));
 
+    /* gate dive (5.5–6.0): G (the arrow/stem gap) → frame centre, ×1 → ×40, −12° roll */
+    const T_FULL = 5.95;
+    const GS5 = gsAt(T_DIVE);
+    const Gs0x = O.x + GS5 * (GX - O.x), Gs0y = O.y + GS5 * (GY - O.y);
+    const diveXf = (t) => {
+      const e = t >= T_DIVE ? E('expo.in')(inv(t, T_DIVE, T_FULL)) : 0;
+      const over = Math.max(0, t - T_FULL) * 600;          // keep diving past ×40 until the cut
+      const th = (-12 * Math.PI / 180) * e;
+      return { e, Gsx: lerp(Gs0x, 960, e), Gsy: lerp(Gs0y, 540, e), th, cosT: Math.cos(th), sinT: Math.sin(th),
+        SD: K * GS5 * (lerp(1, 40, e) + over) };
+    };
+    const xfPt = (X, x, y) => {
+      const dx = (x - G_VB[0]) * X.SD, dy = (y - G_VB[1]) * X.SD;
+      return [X.Gsx + X.cosT * dx - X.sinT * dy, X.Gsy + X.sinT * dx + X.cosT * dy];
+    };
+    const applyXf = (X) => { vc.translate(X.Gsx, X.Gsy); vc.rotate(X.th); vc.scale(X.SD, X.SD); vc.translate(-G_VB[0], -G_VB[1]); };
+    // the matte: blade opens 0 → 1 (5.5–5.62), then keeps widening 1 → 3.5 so the opening frames
+    // the window before the backdrop goes (5.93–5.98)
+    const portalAt = (t) => (t < 5.62 ? p(t, T_DIVE, 5.62, 'power2.out') : 1 + 2.5 * p(t, 5.62, 5.92, 'power3.in'));
+    const mixHex = (a, b, k) => {
+      const A = parseInt(a.slice(1), 16), B = parseInt(b.slice(1), 16);
+      const ch = (sh) => Math.round(lerp((A >> sh) & 255, (B >> sh) & 255, k));
+      return `rgb(${ch(16)},${ch(8)},${ch(0)})`;
+    };
+
     return {
       update(local) {
         const t = local;
@@ -308,27 +347,18 @@ GTR.scene({
         group.style.transform = `scale(${gsRaw})`;
 
         /* gate-dive transform (vb → screen), shared by the canvas, the portal clip and the dust */
-        const T_FULL = 5.95;
-        const e = t >= T_DIVE ? E('expo.in')(inv(t, T_DIVE, T_FULL)) : 0;
-        const over = Math.max(0, t - T_FULL) * 600;          // keep diving past ×40 until the cut
-        const gs5 = gsAt(T_DIVE);
-        const Gs0x = O.x + gs5 * (GX - O.x), Gs0y = O.y + gs5 * (GY - O.y);
-        const Gsx = lerp(Gs0x, 960, e), Gsy = lerp(Gs0y, 540, e);
-        const th = (-12 * Math.PI / 180) * e;
-        const cosT = Math.cos(th), sinT = Math.sin(th);
-        const SD = K * gs5 * (lerp(1, 40, e) + over);
-        const vb2s = (x, y) => {
-          const dx = (x - G_VB[0]) * SD, dy = (y - G_VB[1]) * SD;
-          return [Gsx + cosT * dx - sinT * dy, Gsy + sinT * dx + cosT * dy];
-        };
+        const X = diveXf(t);
+        const { e, Gsx, Gsy, th, cosT, sinT, SD } = X;
+        const vb2s = (x, y) => xfPt(X, x, y);
         const diveOn = t >= T_DIVE;
-        const portalW = p(t, T_DIVE, 5.72, 'power2.out');
+        const portalW = portalAt(t);
 
         /* backdrop + pads (portal cut out during the dive) */
-        const bOp = 1 - p(t, 5.8, 5.95, 'power1.in');
+        // the backdrop stays a solid matte (only the gap is cut) until the opening frames S6
+        const bOp = 1 - p(t, 5.93, 5.98, 'power1.in');
         vis(bgWrap, bOp);
         if (diveOn && portalW > 0.001) {
-          const pts = portalVB(portalW).map(([x, y]) => vb2s(x, y));
+          const pts = portalVB(portalW, p(t, 5.74, 5.86, 'power2.in')).map(([x, y]) => vb2s(x, y));
           const hole = pts.map(([x, y]) => `${x.toFixed(1)}px ${y.toFixed(1)}px`).join(', ');
           bgWrap.style.clipPath = `polygon(evenodd, -20px -20px, 1940px -20px, 1940px 1100px, -20px 1100px, -20px -20px, ${hole}, ${pts[0][0].toFixed(1)}px ${pts[0][1].toFixed(1)}px)`;
         } else bgWrap.style.clipPath = '';
@@ -440,13 +470,14 @@ GTR.scene({
           wm.style.letterSpacing = `${ls.toFixed(2)}px`;
           wm.style.left = `${(LCX - wmW(ls) / 2).toFixed(2)}px`;
           wmLetters.forEach((sp, j) => {
-            const t0 = 3.5 + j * 0.022;
+            const t0 = 3.5 + j * 0.018;
             const q = p(t, t0, t0 + 0.3, 'power3.out');
             vis(sp, p(t, t0, t0 + 0.18, 'power1.out'));
             sp.style.transform = `translateY(${((1 - q) * 34).toFixed(2)}px)`;
             sp.style.filter = q < 0.999 ? `blur(${((1 - q) * 6).toFixed(2)}px)` : '';
           });
-          const w = p(t, 3.75, 4.05, 'power2.inOut');
+          // RESULTS wipe completes by 3.95, so the 4.0 LOCK flash lands on the whole lockup
+          const w = p(t, 3.64, 3.95, 'power2.inOut');
           resWrap.style.clipPath = `inset(-40% ${((1 - w) * 100).toFixed(2)}% -40% -4%)`;
           vis(resWrap, w > 0 ? 1 : 0);
           const resL = RES_L0 + wmA.length * ls, resW = RES_W0 + (wmB.length - 1) * ls;
@@ -463,20 +494,21 @@ GTR.scene({
         vc.clearRect(0, 0, 1920, 1080);
         diveCv.style.display = diveOn ? 'block' : 'none';
         if (diveOn) {
-          const pa = 1 - p(t, 5.82, 5.98, 'power1.in');
-          vc.save();
-          vc.translate(Gsx, Gsy);
-          vc.rotate(th);
-          vc.scale(SD, SD);
-          vc.translate(-G_VB[0], -G_VB[1]);
-          // light spilling through the opening gap (under the parts)
-          const lA = p(t, T_DIVE, 5.6, 'power2.out') * (1 - p(t, 5.66, 5.9, 'power1.in'));
+          const pa = 1 - p(t, 5.90, 5.98, 'power1.in');          // the green gate holds, then goes
+          // the gray parts fall away first: they sink into shadow as they pass ×3–×6 (depth cue),
+          // staying opaque so S6 is only ever seen THROUGH the mark's openings, then go before the gate
+          const ga = 1 - p(t, 5.86, 5.94, 'power1.in');
+          const dk = p(t, 5.58, 5.78, 'power1.in');
+          // 1) a brief glint as the blade opens; by 5.62 the gap is a clean matte onto S6
+          const lA = 0.8 * p(t, T_DIVE, 5.54, 'power2.out') * (1 - p(t, 5.55, 5.62, 'power1.in'));
           if (lA > 0.003 && portalW > 0.001) {
-            const pv = portalVB(portalW);
+            vc.save();
+            applyXf(X);
+            const pv = portalVB(Math.min(1, portalW), 0);
             vc.beginPath();
             pv.forEach(([x, y], i) => (i ? vc.lineTo(x, y) : vc.moveTo(x, y)));
             vc.closePath();
-            const hw = 22.01 * portalW;
+            const hw = 22.01 * Math.min(1, portalW);
             const lg = vc.createLinearGradient(G_VB[0] - hw * SQ, G_VB[1] - hw * SQ, G_VB[0] + hw * SQ, G_VB[1] + hw * SQ);
             lg.addColorStop(0, 'rgba(21,219,168,0.75)');
             lg.addColorStop(0.5, 'rgba(236,255,249,1)');
@@ -484,12 +516,76 @@ GTR.scene({
             vc.globalAlpha = lA;
             vc.fillStyle = lg;
             vc.fill();
+            vc.restore();
+          }
+          // 2) zoom blur: where the green gate was a moment ago (smaller), under the sharp copy.
+          // 8 sub-frames drawn offscreen, then composited once with a Gaussian blur (no steps)
+          const Xp = diveXf(t - 0.012);
+          const zv = 1 - Xp.SD / SD;                               // relative zoom over the shutter
+          const zbA = pa * clamp((zv - 0.02) / 0.06);
+          if (zbA > 0.003) {
+            zc.setTransform(1, 0, 0, 1, 0, 0);
+            zc.clearRect(0, 0, 1920, 1080);
+            const ZN = 8;
+            for (let j = 1; j <= ZN; j++) {
+              const f = j / ZN;
+              const Xf = { Gsx: lerp(Gsx, Xp.Gsx, f), Gsy: lerp(Gsy, Xp.Gsy, f), th: lerp(th, Xp.th, f), SD: SD * Math.pow(Xp.SD / SD, f) };
+              zc.setTransform(1, 0, 0, 1, 0, 0);
+              zc.translate(Xf.Gsx, Xf.Gsy); zc.rotate(Xf.th); zc.scale(Xf.SD, Xf.SD); zc.translate(-G_VB[0], -G_VB[1]);
+              zc.globalAlpha = 0.16 * Math.pow(1 - f + 1 / ZN, 1.2);
+              zc.fillStyle = ZG_GREEN;
+              zc.fill(P2D.arrow);
+              zc.fill(P2D.stem);
+            }
+            vc.save();
+            vc.globalAlpha = zbA;
+            vc.filter = `blur(${(2 + 10 * clamp(zv / 0.16)).toFixed(1)}px)`;
+            vc.drawImage(zCv, 0, 0);
+            vc.restore();
+          }
+          // 2b) the rims stretch into 45° speed streaks with the zoom rate: light shooting out of
+          // the gap BEHIND the mark (hidden by the parts, seen only through openings / past the mark)
+          const rA = p(t, T_DIVE, 5.6, 'power2.out') * (1 - p(t, 5.90, 5.96, 'power1.in'));
+          const rimS = RIMS.map(([a, b]) => [vb2s(a[0], a[1]), vb2s(b[0], b[1])]);
+          const L = clamp(zv - 0.03, 0, 0.17) * 6500;
+          if (rA > 0.003 && L > 4) {
+            vc.save();
+            vc.lineCap = 'round';
+            vc.shadowColor = 'rgba(21,219,168,0.9)';
+            vc.shadowBlur = 14;
+            for (const [A, B] of rimS) {
+              const len = Math.hypot(B[0] - A[0], B[1] - A[1]);
+              const ux = (B[0] - A[0]) / len, uy = (B[1] - A[1]) / len;
+              for (const [P, sg] of [[A, -1], [B, 1]]) {
+                const Q = [P[0] + sg * ux * L, P[1] + sg * uy * L];
+                const gr = vc.createLinearGradient(P[0], P[1], Q[0], Q[1]);
+                gr.addColorStop(0, 'rgba(200,255,240,0.9)');
+                gr.addColorStop(1, 'rgba(200,255,240,0)');
+                vc.globalAlpha = rA;
+                vc.strokeStyle = gr;
+                vc.lineWidth = 2 + 2 * clamp(zv / 0.15);
+                vc.beginPath();
+                vc.moveTo(P[0], P[1]);
+                vc.lineTo(Q[0], Q[1]);
+                vc.stroke();
+              }
+            }
+            vc.restore();
+          }
+          // 3) the mark
+          vc.save();
+          applyXf(X);
+          if (ga > 0.003) {
+            vc.globalAlpha = ga;
+            vc.fillStyle = dk > 0 ? cgrad(mixHex('#b3bac5', '#16272b', dk), mixHex('#939aa6', '#0b181a', dk)) : CG_GRAY;
+            vc.fill(P2D.g1);
+            vc.fill(P2D.g2);
+            vc.fill(P2D.t);
           }
           vc.globalAlpha = pa;
-          for (const k of KEYS) {
-            vc.fillStyle = k === 'arrow' || k === 'stem' ? CG_GREEN : CG_GRAY;
-            vc.fill(P2D[k]);
-          }
+          vc.fillStyle = CG_GREEN;
+          vc.fill(P2D.arrow);
+          vc.fill(P2D.stem);
           // the dot, matching the DOM dot (gradient + halo) so the 5.5 swap is invisible
           const HR = 130 * Math.SQRT2 * 1.25 * (1 + 0.06 * Math.sin((t - 0.5) * Math.PI * 1.6)) / K; // DOM halo: farthest-corner
           const hg = vc.createRadialGradient(DOT_VB[0], DOT_VB[1], 0, DOT_VB[0], DOT_VB[1], HR);
@@ -511,18 +607,16 @@ GTR.scene({
             vc.fill();
           }
           vc.restore();
-          // rim light on the two gap edges
-          const rA = p(t, T_DIVE, 5.6, 'power2.out') * (1 - p(t, 5.7, 5.88, 'power1.in'));
+          // 4) rim light on the two gap edges (crisp, over the parts)
           if (rA > 0.003) {
             vc.save();
-            vc.globalAlpha = rA;
-            vc.strokeStyle = '#c8fff0';
-            vc.lineWidth = 2.5;
             vc.lineCap = 'round';
             vc.shadowColor = 'rgba(21,219,168,0.95)';
             vc.shadowBlur = 18;
-            for (const [a, b] of RIMS) {
-              const A = vb2s(a[0], a[1]), B = vb2s(b[0], b[1]);
+            vc.globalAlpha = rA;
+            vc.strokeStyle = '#c8fff0';
+            vc.lineWidth = 2.5 + 2 * clamp(zv / 0.15);
+            for (const [A, B] of rimS) {
               vc.beginPath();
               vc.moveTo(A[0], A[1]);
               vc.lineTo(B[0], B[1]);
@@ -577,9 +671,9 @@ GTR.scene({
               const y = q.y0 + Math.sin(q.ang) * dd + noise(q.seed + 50, age * 1.2) * sw;
               let al;
               if (q.linger) al = Math.min(1, age / 0.2) * (1 - inv(age, q.life * 0.45, q.life)) * 0.55 * (0.65 + 0.35 * Math.sin(t * 3 + q.seed));
-              else al = Math.pow(1 - age / q.life, 1.4);
-              const white = 1 - clamp(age / 0.3);
-              al *= pass === 0 ? 1 - white * 0.6 : white;
+              else al = Math.min(1, age / 0.05) * (1 - E('power1.in')(inv(age, q.life * 0.35, q.life)));
+              const white = 1 - clamp(age / 0.18);
+              al *= pass === 0 ? 0.85 * (1 - white * 0.6) : white;
               al *= fadeDive * dustOut;
               if (al <= 0.004) continue;
               const [X, Y] = place(x, y, q.z);
@@ -587,9 +681,9 @@ GTR.scene({
               dc.globalAlpha = clamp(al);
               const r = q.size * (1 + 2.5 * e);
               // motion-blurred along the 45° lift: streak length ∝ current speed
-              const len = q.linger ? 0 : clamp((q.v + q.acc * age) * 0.03, 0, 24) * (0.6 + 0.4 * q.z);
+              const len = q.linger ? 0 : clamp((q.v + q.acc * age) * 0.028, 0, 18) * (0.55 + 0.35 * q.z);
               if (len < 2) { dc.fillRect(X - r / 2, Y - r / 2, r, r); continue; }
-              dc.lineWidth = r * 0.85;
+              dc.lineWidth = r * 0.75;
               dc.beginPath();
               dc.moveTo(X, Y);
               dc.lineTo(X - Math.cos(q.ang) * len, Y - Math.sin(q.ang) * len);

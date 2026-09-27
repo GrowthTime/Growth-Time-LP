@@ -43,10 +43,14 @@ GTR.scene({
     const B1 = { x: 1700, y: 960, d: 90 };                     // button rest
     const BE = { x: 1758, y: 958, d: 56 };                     // hand-off button (S10)
     const SX = 1440, SW = 360, SH = 130, SY = [300, 470, 640]; // source cards
-    const VX = [1428, 1416, 1404];                             // trace risers (nested → no crossings)
+    // trace risers: trace 0 runs straight into card 0; 1 and 2 drop down on risers 22 px apart
+    // (trace 2's riser sits left of trace 1's → the routes nest without crossing)
+    const VX = [0, 1418, 1396];
     const HX = 120, HY = 440, HW = 540;                        // headline column
-    const T_VER = [4.0, 4.25, 4.5];                            // verification beats
-    const ARR = T_VER.map((v) => v + 0.2);                     // trace arrival on the source card
+    const T_VER = [4.0, 4.25, 4.5];                            // verification beats (bracket draws)
+    const T_LNK = T_VER.map((v) => v + 0.03);                  // bracket → port glint
+    const T_GO = T_VER.map((v) => v + 0.09);                   // trace launches from the bubble edge
+    const ARR = T_VER.map((v) => v + 0.3);                     // trace arrival on the source card (stamp)
     const ASK = 'Alguma cliente ouro sumiu?';
 
     const btnRect = (c) => ({ x: c.x - c.d / 2, y: c.y - c.d / 2, w: c.d, h: c.d, r: c.d / 2 });
@@ -66,8 +70,9 @@ GTR.scene({
     const hB = KIT.headline(root, 'Ele não\ninventa\n*número*.', { x: HX, y: HY, w: HW, align: 'left', size: 92, glow: true });
 
     /* ================= SOURCE COLUMN ================= */
-    // right-hand group gets a slow push-in; back to scale 1 before the hand-off button lands
-    const world = h('div', { style: { position: 'absolute', inset: '0', transformOrigin: '1600px 540px' } }, root);
+    // world camera: a slow push-in (1.025 around (1600, 540)) plus a brief push onto the answer bubble
+    // while the brackets draw; back to identity before the hand-off button lands
+    const world = h('div', { style: { position: 'absolute', inset: '0', transformOrigin: '0 0' } }, root);
     const srcCol = h('div', { style: { position: 'absolute', left: '0', top: '0', width: '1920px', height: '1080px', pointerEvents: 'none' } }, world);
     const eyebrow = KIT.eyebrow(srcCol, 'Fontes · sua base', { x: SX, y: 216, align: 'left', size: 18, line: false });
     eyebrow.el.style.gap = '10px';
@@ -139,8 +144,11 @@ GTR.scene({
     const input = h('div', { style: { position: 'absolute', left: '24px', right: '24px', top: `${FOOT_Y}px`, height: '48px', borderRadius: '12px', border: '1px solid #e5e5e5', background: '#fafafa', display: 'flex', alignItems: 'center', padding: '0 6px 0 16px', fontSize: '15px', color: '#a3a3a3' } }, content);
     h('span', {}, input).textContent = 'Pergunte sobre seus números…';
     h('div', { style: { marginLeft: 'auto', width: '36px', height: '36px', borderRadius: '10px', background: GUTO_BG, display: 'grid', placeItems: 'center', color: '#fff' } }, input, I('send', { size: 17, sw: 2.2 }));
-    const note = h('div', { style: { position: 'absolute', left: '0', right: '0', top: `${FOOT_Y + 58}px`, textAlign: 'center', fontSize: '13px', fontWeight: 400, color: C.muted } }, content);
+    const noteRow = h('div', { style: { position: 'absolute', left: '0', right: '0', top: `${FOOT_Y + 58}px`, textAlign: 'center' } }, content);
+    const note = h('span', { style: { position: 'relative', display: 'inline-block', fontSize: '13px', fontWeight: 400, color: C.muted, lineHeight: '18px' } }, noteRow);
     note.textContent = 'O Guto responde com base nos números desta tela.';
+    const noteLine = h('div', { style: { position: 'absolute', left: '-6px', right: '-6px', bottom: '-4px', height: '2px', borderRadius: '2px', transformOrigin: '50% 50%',
+      background: 'linear-gradient(90deg, rgba(21,219,168,0), #15dba8 18%, #0fb487 50%, #15dba8 82%, rgba(21,219,168,0))', boxShadow: '0 0 8px rgba(21,219,168,.6)' } }, note);
     const badgeRow = h('div', { style: { position: 'absolute', left: '0', right: '0', top: `${FOOT_Y - 56}px`, display: 'flex', justifyContent: 'center' } }, content);
     const badge = h('div', { style: {
       position: 'relative', overflow: 'hidden', display: 'inline-flex', alignItems: 'center', gap: '8px', height: '38px', padding: '0 18px 0 14px', borderRadius: '999px',
@@ -224,6 +232,17 @@ GTR.scene({
     const T_TYPE0 = 2.0, T_TYPE1 = 3.0;
     const typeN = (t) => Math.floor(clamp(inv(t, T_TYPE0, T_TYPE1)) * NCH + 1e-6);
     const lineAt = lineStart.map((i) => T_TYPE0 + (i / NCH) * (T_TYPE1 - T_TYPE0));
+    // the bubble grows with the typed text: prefix max of the right edge of the first n chars
+    const prefR = [0];
+    for (let i = 0; i < NCH; i++) prefR.push(Math.max(prefR[i], cpos[i].x + cpos[i].w));
+    const ANS_PX = ANS_W - prefR[NCH];                    // horizontal padding (both sides)
+    // "Guto is typing…" dots that fill the bubble before the answer arrives (1.66–2.0)
+    const DOT_D = 9, DOT_G = 6;
+    const DOTS_W = Math.round(ANS_PX + 3 * DOT_D + 2 * DOT_G + 4);
+    const dotsBox = h('div', { style: { position: 'absolute', left: `${ANS_PX / 2}px`, top: `${ANS_PAD / 2}px`, height: '32px', display: 'flex', alignItems: 'center', gap: `${DOT_G}px` } }, ans);
+    const dots = [0, 1, 2].map(() => h('div', { style: { width: `${DOT_D}px`, height: `${DOT_D}px`, borderRadius: '50%', background: '#9aa3a1' } }, dotsBox));
+    const T_BUB = 1.66;                                   // bubble (with dots) pops in
+    let ansW = ANS_W;                                     // current bubble width (read by the traces)
     ans.style.width = `${ANS_W}px`;
 
     /* ---------- verification brackets (content coords) ---------- */
@@ -285,21 +304,33 @@ GTR.scene({
     /* ================= TRACES (canvas, above the panel) ================= */
     const { canvas: cv, ctx: g2 } = GTR.canvas(world);
     cv.style.pointerEvents = 'none';
-    // polyline for trace i: bracket bottom-right → right (underline) → rounded riser → into the card
-    const tracePts = (i, t) => {
+    // port i: the bubble's right edge, at the vertical middle of the answer line holding value i
+    // (screen coords of the un-pushed world; the canvas lives in the same world)
+    const LINE_OF = BR.map((b) => lineTops.indexOf(cpos[chars.findIndex((c) => b.g.contains(c))].y));
+    const port = (i, t) => {
       const o = panOff(t);
-      const b = BR[i];
-      const sx = P.x + o.x + b.x + b.m + b.w, sy = P.y + o.y + b.y + b.h;
-      const vx = VX[i], ty = SY[i] + SH / 2 + srcOff(t), ex = SX - 1;
-      const dir = ty >= sy ? 1 : -1;
-      const r = Math.min(10, Math.abs(ty - sy) / 2);
+      return { x: P.x + o.x + 70 + ansW, y: P.y + o.y + ANS_Y + ANS_PAD / 2 + lineTops[LINE_OF[i]] + 16 };
+    };
+    // bracket right edge (screen), for the bracket → port glint
+    const brRight = (i, t) => { const o = panOff(t), b = BR[i]; return P.x + o.x + b.x + b.m + b.w; };
+    // polyline for trace i: port → right (clear of all copy) → rounded riser → into the card
+    const tracePts = (i, t) => {
+      const q = port(i, t);
+      const sx = q.x + 6, sy = q.y, ex = SX - 1;
       const pts = [[sx, sy]];
-      const corner = (ax, ay, cx, cy, bx, by) => { for (let k = 1; k <= 6; k++) { const u = k / 6; pts.push([(1 - u) * (1 - u) * ax + 2 * (1 - u) * u * cx + u * u * bx, (1 - u) * (1 - u) * ay + 2 * (1 - u) * u * cy + u * u * by]); } };
-      pts.push([vx - r, sy]);
-      corner(vx - r, sy, vx, sy, vx, sy + dir * r);
-      pts.push([vx, ty - dir * r]);
-      corner(vx, ty - dir * r, vx, ty, vx + r, ty);
-      pts.push([ex, ty]);
+      if (i === 0) {
+        pts.push([ex, sy]);                                   // straight into card 0 (its middle band)
+      } else {
+        const vx = VX[i], ty = SY[i] + SH / 2 + srcOff(t);
+        const dir = ty >= sy ? 1 : -1;
+        const r = Math.min(12, Math.abs(ty - sy) / 2);
+        const corner = (ax, ay, cx, cy, bx, by) => { for (let k = 1; k <= 6; k++) { const u = k / 6; pts.push([(1 - u) * (1 - u) * ax + 2 * (1 - u) * u * cx + u * u * bx, (1 - u) * (1 - u) * ay + 2 * (1 - u) * u * cy + u * u * by]); } };
+        pts.push([vx - r, sy]);
+        corner(vx - r, sy, vx, sy, vx, sy + dir * r);
+        pts.push([vx, ty - dir * r]);
+        corner(vx, ty - dir * r, vx, ty, vx + r, ty);
+        pts.push([ex, ty]);
+      }
       const cum = [0];
       for (let k = 1; k < pts.length; k++) cum.push(cum[k - 1] + Math.hypot(pts[k][0] - pts[k - 1][0], pts[k][1] - pts[k - 1][1]));
       return { pts, cum, len: cum[cum.length - 1] };
@@ -331,6 +362,54 @@ GTR.scene({
       g2.arc(x, y, r * 3.2, 0, Math.PI * 2);
       g2.fill();
     };
+    // connector port on the bubble edge: teal ring + white core, with an ignition pulse
+    const portNode = (x, y, a, ig) => {
+      g2.globalAlpha = a;
+      if (ig > 0 && ig < 1) {
+        g2.strokeStyle = `rgba(21,219,168,${0.7 * (1 - ig)})`;
+        g2.lineWidth = 2;
+        g2.beginPath();
+        g2.arc(x, y, 5 + 13 * E('power2.out')(ig), 0, Math.PI * 2);
+        g2.stroke();
+      }
+      g2.fillStyle = '#15dba8';
+      g2.beginPath();
+      g2.arc(x, y, 5.5, 0, Math.PI * 2);
+      g2.fill();
+      g2.fillStyle = '#ffffff';
+      g2.beginPath();
+      g2.arc(x, y, 2.3, 0, Math.PI * 2);
+      g2.fill();
+      g2.globalAlpha = 1;
+    };
+    // bracket → port glint: a short 30%-alpha comet along the line's middle (transient, never a solid trace)
+    const glint = (x0, x1, y, u, a) => {
+      if (u <= 0 || u >= 1) return;
+      const hx = lerp(x0, x1, E('power2.inOut')(u));
+      const tail = Math.min(46, hx - x0);
+      const gr = g2.createLinearGradient(hx - tail, y, hx, y);
+      gr.addColorStop(0, 'rgba(21,219,168,0)');
+      gr.addColorStop(1, `rgba(21,219,168,${0.3 * a * Math.sin(Math.PI * u)})`);
+      g2.strokeStyle = gr;
+      g2.lineWidth = 3;
+      g2.beginPath();
+      g2.moveTo(hx - tail, y);
+      g2.lineTo(hx, y);
+      g2.stroke();
+    };
+
+    /* ---------- value packets: each trace's head carries the value it fetches ---------- */
+    const PK = SRC.map((s, i) => {
+      const e = h('div', { style: {
+        position: 'absolute', left: '0', top: '0', height: '24px', padding: '0 10px', display: 'inline-flex', alignItems: 'center', borderRadius: '999px',
+        background: '#062624', border: '1px solid rgba(21,219,168,.85)', color: i === 0 ? '#ffd24a' : '#eafff7', fontFamily: 'var(--font-ui)',
+        fontSize: '13px', fontWeight: 700, letterSpacing: '0.01em', whiteSpace: 'nowrap', fontVariantNumeric: 'tabular-nums', transformOrigin: '50% 50%',
+        boxShadow: '0 0 16px rgba(21,219,168,.55), 0 6px 14px rgba(0,0,0,.4)', pointerEvents: 'none', visibility: 'hidden',
+      } }, world);
+      e.textContent = s.d.value;
+      const vw = s.val.offsetWidth;
+      return { e, w: e.offsetWidth, hh: e.offsetHeight, vx: SX + 22 + vw / 2, vy: SY[i] + 56 + 20 }; // value centre in its card
+    });
 
     /* ================= CURSOR + CHIP ================= */
     const cursor = KIT.cursor(root);
@@ -359,8 +438,10 @@ GTR.scene({
     ctx.cue('pop', 3.0);
     ctx.cue('shimmer', 3.2);
     T_VER.forEach((t, i) => ctx.cue('blip', t, { freq: 2000 + i * 200, pan: 0.2 + i * 0.2 }));
+    ARR.forEach((t, i) => ctx.cue('tick', t, { db: -8, pan: 0.55 + i * 0.05 }));   // check stamps land
     ctx.cue('ping', 5.0);
-    ctx.cue('swoosh', 7.0, { up: false });
+    ctx.cue('swoosh', 7.2, { up: false, dur: 0.42 });                               // panel folds into Guto
+    ctx.cue('pop', 7.62, { db: -6, pan: 0.6 });                                      // red dot lands (hand-off)
 
     /* ================= per-frame ================= */
     const shadowFor = (k) => `0 ${lerp(14, 40, k)}px ${lerp(34, 120, k)}px rgba(0,0,0,${lerp(0.4, 0.55, k)}), 0 0 0 1px rgba(255,255,255,${lerp(0.14, 0.08, k)}), 0 0 ${lerp(46, 80, k)}px rgba(21,219,168,${lerp(0.55, 0.12, k)})`;
@@ -370,8 +451,14 @@ GTR.scene({
       update(local) {
         const t = local;
         const o = panOff(t);
-        const push = 1 + 0.025 * p(t, 1.0, 7.0, 'sine.inOut') * (1 - p(t, 7.0, 7.6, 'power2.inOut'));
-        world.style.transform = `scale(${push})`;
+        // camera: s1 = slow push around (1600, 540); s2 = push onto the answer bubble while the
+        // brackets draw (3.85–4.8), released 5.2–6.6. Composite: p' = S·p + T (origin 0 0).
+        const s1 = 1 + 0.025 * p(t, 1.0, 7.0, 'sine.inOut') * (1 - p(t, 7.0, 7.6, 'power2.inOut'));
+        const s2 = 1 + 0.038 * p(t, 3.85, 4.8, 'sine.inOut') * (1 - p(t, 5.2, 6.6, 'sine.inOut'));
+        const FX = 950, FY = 400;
+        const camS = s1 * s2;
+        const camX = FX * (1 - s2) + s2 * 1600 * (1 - s1), camY = FY * (1 - s2) + s2 * 540 * (1 - s1);
+        world.style.transform = `translate(${camX.toFixed(3)}px, ${camY.toFixed(3)}px) scale(${camS.toFixed(5)})`;
 
         /* ---------- button ↔ panel morph ---------- */
         let R, k;
@@ -384,12 +471,15 @@ GTR.scene({
           R = lerpRect(btnRect(B1), { x: P.x + o.x, y: P.y + o.y, w: P.w, h: P.h, r: P.r }, m);
           k = m;
         } else {
-          const m = p(t, 7.05, 7.75, 'expo.inOut');
+          // fold back into the button: a readable shrink (power3, not expo) that keeps the white
+          // panel + content until w < ~250, and rounds off early so it is a circle by w ≈ 140
+          const m = p(t, 7.05, 7.72, 'power3.inOut');
           const o0 = panOff(7.05);
           R = lerpRect({ x: P.x + o0.x, y: P.y + o0.y, w: P.w, h: P.h, r: P.r }, btnRect(BE), m);
+          R.r = lerp(P.r, Math.min(R.w, R.h) / 2, p(m, 0.45, 0.8, 'power1.inOut'));
           k = 1 - m;
           // landing settle
-          const sb = 0.07 * bump(t, 7.74, 0.24);
+          const sb = 0.07 * bump(t, 7.7, 0.24);
           if (sb > 0) R = { x: R.x - R.w * sb / 2, y: R.y - R.h * sb / 2, w: R.w * (1 + sb), h: R.h * (1 + sb), r: R.r * (1 + sb) };
         }
         morph.style.left = `${R.x}px`;
@@ -399,11 +489,11 @@ GTR.scene({
         morph.style.borderRadius = `${R.r}px`;
         morph.style.boxShadow = shadowFor(k);
         const cx = R.x + R.w / 2, cy = R.y + R.h / 2;
-        mGrad.style.opacity = t < 7 ? 1 - p(t, 0.3, 0.48, 'power1.inOut') : p(t, 7.2, 7.48, 'power1.inOut');
-        const iconA = t < 7 ? 1 - inv(t, 0.3, 0.4) : inv(t, 7.44, 7.66);
+        mGrad.style.opacity = t < 7 ? 1 - p(t, 0.3, 0.48, 'power1.inOut') : p(t, 7.42, 7.54, 'power1.inOut');
+        const iconA = t < 7 ? 1 - inv(t, 0.3, 0.4) : inv(t, 7.48, 7.64);
         vis(mIcon, iconA);
         mIcon.style.transform = `scale(${R.w / 90}) rotate(${noise(2.2, t * 0.8) * 10}deg)`;
-        const cA = t < 7 ? p(t, 0.36, 0.7, 'power2.out') : 1 - p(t, 7.1, 7.42, 'power2.in');
+        const cA = t < 7 ? p(t, 0.36, 0.7, 'power2.out') : 1 - p(t, 7.38, 7.49, 'power2.in');
         vis(content, cA);
         content.style.transform = `scale(${R.w / P.w}, ${R.h / P.h})`;
         const shp = p(t, 0.62, 1.25, 'power2.inOut');
@@ -418,11 +508,13 @@ GTR.scene({
         const gA = t < 7 ? 1 - p(t, 0.3, 0.6, 'power2.out') : p(t, 7.45, 7.95, 'power2.out');
         btnGlow.style.opacity = gA * (0.85 + 0.15 * Math.sin(t * 5));
         btnGlow.style.transform = `translate(${cx}px, ${cy}px) scale(${lerp(0.7, 1, R.w / 90)})`;
-        const pr1 = inv(t, 0.12, 0.6), pr2 = inv(t, 7.66, 7.96);
-        const pr = t < 4 ? pr1 : pr2;
-        const pc = t < 4 ? B1 : BE;
-        ringEl.style.transform = `translate(${pc.x}px, ${pc.y}px) scale(${lerp(0.9, 2.1, E('power2.out')(pr))})`;
-        ringEl.style.opacity = pr > 0 && pr < 1 ? (1 - pr) * (t < 4 ? 0.8 : 0.55) : 0;
+        // pulse ring rides the morph rect centre (it sits under the morph div, so the growing panel
+        // swallows it) and is gone by 0.36 — never left hanging after the button starts to morph
+        const intro = t < 4;
+        const pr = intro ? inv(t, 0.12, 0.5) : inv(t, 7.66, 7.96);
+        const ringA = intro ? 0.8 * (1 - inv(t, 0.26, 0.36)) : 0.55;
+        ringEl.style.transform = `translate(${cx}px, ${cy}px) scale(${lerp(0.9, 2.1, E('power2.out')(pr))})`;
+        ringEl.style.opacity = pr > 0 && pr < 1 ? (1 - pr) * ringA : 0;
 
         /* ---------- back glows ---------- */
         glowP.style.opacity = p(t, 0.4, 1.2, 'power2.out') * (1 - p(t, 7.0, 7.6, 'power2.in')) * (0.85 + 0.15 * Math.sin(t * 1.2));
@@ -478,14 +570,23 @@ GTR.scene({
         stCheck.style.opacity = done;
         status.style.gap = `${8 * done}px`;
 
-        const aA = pop(t, 2.0, 0.35, 'back.out(1.6)');
+        // bubble pops at 1.66 holding "typing" dots; the answer replaces them from 2.0 and the
+        // bubble widens with the typed text
+        const aA = pop(t, T_BUB, 0.35, 'back.out(1.6)');
         vis(ans, clamp(aA * 3));
+        const dotsA = 1 - inv(t, 1.98, 2.06);
+        vis(dotsBox, dotsA);
+        dots.forEach((d, i) => {
+          const ph = Math.max(0, Math.sin((t - T_BUB) * 2 * Math.PI * 2.4 - i * 0.9));
+          d.style.transform = `translateY(${-5 * ph}px)`;
+          d.style.opacity = 0.45 + 0.55 * ph;
+        });
         const n = typeN(t);
         for (let i = 0; i < NCH; i++) chars[i].style.visibility = i < n ? 'visible' : 'hidden';
         let hLines = 1;
         for (let kk = 1; kk < lineAt.length; kk++) hLines += p(t, lineAt[kk], lineAt[kk] + 0.1, 'power2.out');
         ans.style.height = `${ANS_PAD + 32 * hLines}px`;
-        ans.style.transform = `scale(${lerp(0.9, 1, aA)})`;
+        ans.style.transform = `scale(${lerp(0.9, 1, aA) * (1 + 0.025 * bump(t, 2.0, 0.22))})`;
         const cp = n < NCH ? cpos[n] : { x: cpos[NCH - 1].x + cpos[NCH - 1].w, y: cpos[NCH - 1].y };
         caret.style.transform = `translate(${cp.x + 1}px, ${cp.y + 4}px)`;
         caret.style.opacity = t >= 2.0 && t < 3.3 && (t < 3.0 || Math.floor(t * 4) % 2 === 0) ? 1 : 0;
@@ -523,8 +624,15 @@ GTR.scene({
           });
           b.hl.style.transform = `scaleX(${p(t, t0 + 0.02, t0 + 0.24, 'power3.out')})`;
           b.hl.style.opacity = t >= t0 ? 1 : 0;
+          // the bracket glows as its trace launches (links bracket → port → card without a line on the copy)
+          const gl = bump(t, T_LNK[i], 0.5);
+          b.hl.setAttribute('fill', `rgba(21,219,168,${(0.17 + 0.16 * gl).toFixed(3)})`);
+          b.grp.style.filter = gl > 0.01 ? `drop-shadow(0 0 ${(6 * gl).toFixed(2)}px rgba(21,219,168,${(0.85 * gl).toFixed(3)}))` : 'none';
         });
-        ans.style.width = `${ANS_W + extraW}px`;
+        ansW = Math.max(DOTS_W, prefR[n] + ANS_PX) + extraW;
+        ans.style.width = `${ansW}px`;
+        // brackets fade with the source column (7.0–7.3), before the panel folds
+        brSvg.style.opacity = 1 - p(t, 7.0, 7.3, 'power2.in');
         g2.clearRect(0, 0, 1920, 1080);
         const trA = 1 - p(t, 7.0, 7.3, 'power2.in');
         if (t >= T_VER[0] && trA > 0) {
@@ -533,11 +641,17 @@ GTR.scene({
           g2.lineJoin = 'round';
           BR.forEach((b, i) => {
             const t0 = T_VER[i];
-            if (t < t0 + 0.02) return;
+            if (t < t0) return;
+            const q0 = port(i, t);
+            // 1) bracket → port: brief 30%-alpha glint along the middle of the line (no solid trace on copy)
+            glint(brRight(i, t) + 4, q0.x, q0.y, inv(t, T_LNK[i], T_GO[i] + 0.02), trA);
+            // 2) port node on the bubble edge ignites
+            portNode(q0.x, q0.y, trA * clamp(inv(t, T_GO[i] - 0.05, T_GO[i]) * 1.5), inv(t, T_GO[i] - 0.02, T_GO[i] + 0.36));
+            if (t < T_GO[i]) return;
+            // 3) trace runs port → card
             const tr = tracePts(i, t);
-            const u = p(t, t0 + 0.02, ARR[i], 'power2.in');
+            const u = p(t, T_GO[i], ARR[i], 'power2.in');
             const headD = tr.len * u;
-            // glow pass + core pass
             g2.globalAlpha = trA;
             g2.strokeStyle = 'rgba(21,219,168,.35)';
             g2.lineWidth = 7;
@@ -549,7 +663,7 @@ GTR.scene({
               const q = at(tr, headD);
               dot(q[0], q[1], 5, 1 * trA);
             } else {
-              // steady data packets flowing bracket → card
+              // steady data packets flowing port → card
               for (let m = 0; m < 2; m++) {
                 const f = GTR.fract((t - ARR[i]) / 1.1 + m / 2 + i * 0.17);
                 const q = at(tr, tr.len * f);
@@ -558,9 +672,28 @@ GTR.scene({
               const q = at(tr, tr.len);
               dot(q[0], q[1], 4, trA * (0.6 + 0.4 * (1 - inv(t, ARR[i], ARR[i] + 0.4))));
             }
+            g2.globalAlpha = 1;
           });
           g2.restore();
         }
+
+        /* ---------- value packets (DOM pills riding the trace heads) ---------- */
+        PK.forEach((k2, i) => {
+          const t0 = T_GO[i], ar = ARR[i];
+          // on arrival the pill dives onto the card's value and dissolves into it (value flashes + stamp)
+          const dv = inv(t, ar, ar + 0.14);
+          if (t < t0 || dv >= 1 || trA <= 0) { k2.e.style.visibility = 'hidden'; return; }
+          const tr = tracePts(i, t);
+          const u = p(t, t0, ar, 'power2.in');
+          const q = at(tr, Math.max(tr.len * u, k2.w / 2 + 10));
+          const so2 = srcOff(t);
+          const dm = E('power2.out')(dv);
+          const x = lerp(q[0], k2.vx, dm), y = lerp(q[1], k2.vy + so2, dm);
+          const sc = lerp(0.55, 1, pop(t, t0, 0.16, 'back.out(2)')) * lerp(1, 0.6, dm);
+          k2.e.style.visibility = 'visible';
+          k2.e.style.opacity = clamp(inv(t, t0, t0 + 0.05)) * (1 - E('power1.out')(dv)) * trA;
+          k2.e.style.transform = `translate(${(x - k2.w / 2).toFixed(2)}px, ${(y - k2.hh / 2).toFixed(2)}px) scale(${sc.toFixed(4)})`;
+        });
 
         /* ---------- source column ---------- */
         const so = srcOff(t);
@@ -605,9 +738,13 @@ GTR.scene({
         badge.style.transform = `scale(${t < 5 ? 1.3 : lerp(1.3, 1, bP)})`;
         const bs = p(t, 5.1, 5.6, 'power2.inOut');
         badgeSheen.style.transform = `translateX(${lerp(-80, 360, bs)}px) skewX(-20deg)`;
-        const nb = bump(t, 5.4, 0.6);
+        // footer note: teal underline sweeps out from the centre at 5.4, text warms to teal and
+        // settles slightly tinted (constant weight → no layout jitter)
+        const nl = p(t, 5.4, 5.78, 'power3.out');
+        noteLine.style.transform = `scaleX(${nl.toFixed(4)})`;
+        noteLine.style.opacity = t < 5.4 ? 0 : lerp(1, 0.55, p(t, 5.9, 6.5, 'power2.inOut'));
+        const nb = p(t, 5.4, 5.6, 'power2.out') * lerp(1, 0.45, p(t, 5.9, 6.5, 'power2.inOut'));
         note.style.color = mix('737373', '0f8f6f', nb);
-        note.style.fontWeight = nb > 0.3 ? 600 : 400;
 
         /* ---------- cursor ---------- */
         const tgt = { x: P.x + o.x + C3.x + C3.w * 0.62, y: P.y + o.y + C3.y + C3.h * 0.55 };

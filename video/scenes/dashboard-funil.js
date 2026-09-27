@@ -10,12 +10,15 @@
 
    Camera shots (world transform-origin 960 540 after the crane, so
    screen = P + (w − F)·s, with F = world focus point, P = its screen position):
-     0.00–1.20  pivot crane about the Guto button (rx 32 → 0, ry −10 → 0, s .8 → 1)
-     1.20–2.50  slow push s 1 → 1.03
-     2.50–3.20  to the purple "Valor Total de Vendas" block, s 1.7
-     3.20–4.50  hold + push s 1.7 → 1.76 (headline in the dark band under the window)
-     4.50–5.00  45° up-right arc to the TV button (s dips mid-move), cursor clicks 5.00
-     5.00–6.00  geometric dolly into the TV button (s 1.35 → 24), black by 5.95
+     0.00–1.30  pivot crane about the Guto button (rx 30 → 0, ry −8 → 0, s .84 → 1)
+     1.30–2.50  slow push s 1 → 1.03
+     2.50–3.20  to the purple "Valor Total de Vendas" block, s 1.7 (band 2.60, headline reveal 2.70)
+     3.20–4.55  hold + push s 1.7 → 1.76; the dashboard drifts 12 px against the locked purple block
+                3.28 teal underline under "caixa" + glint across R$ 620.000,00 · 3.55 +18,2% pill
+     4.55–5.00  45° up-right whip to the TV button (s dips mid-move), headline gone by 4.70, click 5.00
+     5.00–5.86  dolly into the dark gap between the monitor icon and "TV": pill covers the frame
+                at 5.77 (teal rim flash as its edge leaves), glyphs leave to the sides by 5.83;
+                black overlay 5.80–5.95 only cleans up the already dark frame
    The tl only reveals the HUD headline; everything else is a pure function of
    `local` in update().
    ============================================================ */
@@ -64,6 +67,18 @@ GTR.scene({
     const T_CRANE = 1.3;
     const HY = 900;                                  // headline block centre (dark band under the window)
     const TV_P = [1250, 370];                        // TV button screen pos when the cursor clicks (thirds)
+    // dark gap between the monitor icon ink (x 33.8) and the "T" ink (x 41.8) inside the 80 px pill
+    // (measured in the browser: svg 17.5–34.5, span 41.5–62.5) → gap centre 37.8 = TVC.x − 2.2, half-width 4
+    const TVF = [TVC[0] - 2.2, TVC[1]];
+    const HOLD0 = 3.2, WHIP0 = 4.55, WHIP1 = 5.0;    // hero hold / 45° whip to the TV button (click at 5.00)
+    const DRIFT = [-12, 7];                          // hold parallax: the dashboard slides (screen px), purple stays locked
+    const driftAt = (t) => { const k = p(t, HOLD0, WHIP0, 'sine.in'); return [DRIFT[0] * k, DRIFT[1] * k]; };
+    /* dive into the TV pill: ln(s/1.35) = A·u² + B·u⁸ over 5.00–5.86
+       s 1.96 @5.5 · 9.3 @5.7 · 27 @5.76 (pill's straight edges leave) · 33 @5.77 (pill covers the frame)
+       · 74 @5.80 · 240 @5.83 (icon/"TV" glyphs leave to the sides) · 760 @5.86 */
+    const DIVE = { t0: WHIP1, t1: 5.86, A: 1.515, B: 4.82 };
+    const diveS = (t) => { const u = inv(t, DIVE.t0, DIVE.t1); return 1.35 * Math.exp(DIVE.A * u * u + DIVE.B * Math.pow(u, 8)); };
+    const S_END = diveS(DIVE.t1);
 
     /* ---------- camera (pure fn of t) ---------- */
     const camAt = (t) => {
@@ -74,17 +89,18 @@ GTR.scene({
       let F, P, s;
       if (t < 2.5) {
         F = [960, 540]; P = [960, 540]; s = 1 + 0.03 * p(t, T_CRANE, 2.5, 'sine.inOut');
-      } else if (t < 3.2) {
-        const k = p(t, 2.5, 3.2, 'power3.inOut');
+      } else if (t < HOLD0) {
+        const k = p(t, 2.5, HOLD0, 'power3.inOut');
         F = L2([960, 540], HERO.F, k); P = L2([960, 540], HERO.P, k); s = geo(1.03, HERO.s, k);
-      } else if (t < 4.5) {
-        F = HERO.F; P = HERO.P; s = lerp(HERO.s, HERO.s2, p(t, 3.2, 4.5, 'sine.inOut'));
-      } else if (t < 5.0) {
-        const k = p(t, 4.5, 5.0, 'power3.inOut');
-        F = L2(HERO.F, TVC, k); P = L2(HERO.P, TV_P, k); s = geo(HERO.s2, 1.35, k) * (1 - 0.2 * Math.sin(Math.PI * k));
+      } else if (t < WHIP0) {
+        const d = driftAt(t);
+        F = HERO.F; P = [HERO.P[0] + d[0], HERO.P[1] + d[1]]; s = lerp(HERO.s, HERO.s2, p(t, HOLD0, WHIP0, 'sine.inOut'));
+      } else if (t < WHIP1) {
+        const k = p(t, WHIP0, WHIP1, 'power3.inOut');
+        const d = driftAt(t);
+        F = L2(HERO.F, TVF, k); P = L2([HERO.P[0] + d[0], HERO.P[1] + d[1]], TV_P, k); s = geo(HERO.s2, 1.35, k) * (1 - 0.2 * Math.sin(Math.PI * k));
       } else {
-        const e = p(t, 5.0, 6.0, 'power2.in');
-        F = TVC; P = L2(TV_P, [960, 540], p(t, 5.0, 5.85, 'power2.inOut')); s = geo(1.35, 24, e);
+        F = TVF; P = L2(TV_P, [960, 540], p(t, WHIP1, 5.78, 'power2.inOut')); s = diveS(t);
       }
       return { pivot: false, rx: 0, ry: 0, s, x: P[0] - 960 - (F[0] - 960) * s, y: P[1] - 540 - (F[1] - 540) * s };
     };
@@ -177,7 +193,7 @@ GTR.scene({
       const bg = box(wrap, 0, 0, BLK_W, hh, { borderRadius: rad, background: d.grad, transformOrigin: '0% 50%', overflow: 'hidden' });
       const flash = box(bg, 0, 0, BLK_W, hh, { background: 'linear-gradient(90deg, rgba(255,255,255,.55), rgba(255,255,255,.08))', opacity: 0 });
       const txt = box(wrap, 0, 0, BLK_W, hh, { color: '#fff' });
-      let val, rightEl = null, foot = null, sheen = null, pill = null;
+      let val, rightEl = null, foot = null, sheen = null, pill = null, glint = null;
       if (!d.hero) {
         box(txt, 20, 15, 400, 18, { fontSize: '13px', fontWeight: 500, opacity: 0.9, whiteSpace: 'nowrap' }, d.label);
         val = box(txt, 20, 35, 400, 34, { fontSize: '27px', fontWeight: 700, letterSpacing: '-0.01em', fontVariantNumeric: 'tabular-nums', whiteSpace: 'nowrap' });
@@ -185,7 +201,13 @@ GTR.scene({
           d.right.map(([l, v]) => `<div><div style="font-size:11.5px;opacity:.85;white-space:nowrap">${l}</div><div style="font-size:16px;font-weight:600;margin-top:3px;white-space:nowrap">${v}</div></div>`).join(''));
       } else {
         box(txt, 0, 12, BLK_W, 18, { fontSize: '13px', fontWeight: 500, opacity: 0.92, textAlign: 'center' }, d.label);
-        val = box(txt, 0, 30, BLK_W, 38, { fontSize: '31px', fontWeight: 800, letterSpacing: '-0.015em', textAlign: 'center', fontVariantNumeric: 'tabular-nums', whiteSpace: 'nowrap', transformOrigin: '50% 55%' });
+        const VST = { fontSize: '31px', fontWeight: 800, letterSpacing: '-0.015em', textAlign: 'center', fontVariantNumeric: 'tabular-nums', whiteSpace: 'nowrap', transformOrigin: '50% 55%' };
+        val = box(txt, 0, 30, BLK_W, 38, VST);
+        // teal glint that sweeps across the hero value (text-clipped copy of the number), paired with the "caixa" underline
+        glint = box(txt, 0, 30, BLK_W, 38, Object.assign({}, VST, { color: 'transparent', backgroundRepeat: 'no-repeat', backgroundSize: '150px 100%',
+          backgroundImage: 'linear-gradient(100deg, rgba(120,255,214,0) 0%, rgba(214,255,243,1) 50%, rgba(120,255,214,0) 100%)',
+          webkitBackgroundClip: 'text', backgroundClip: 'text', filter: 'drop-shadow(0 0 9px rgba(21,219,168,.95))', opacity: 0 }));
+        glint.textContent = d.f(d.v);
         box(txt, 20, 75, BLK_W - 40, 1, { background: 'rgba(255,255,255,.28)' });
         foot = box(txt, 20, 82, BLK_W - 40, 20, { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', fontSize: '12.5px', whiteSpace: 'nowrap' },
           '<div><span style="opacity:.85">Vendas Novas: </span><b style="font-weight:700">R$ 486.000,00</b></div><div style="text-align:right"><span style="opacity:.85">Vendas Base: </span><b style="font-weight:700">R$ 134.000,00</b></div>');
@@ -195,7 +217,7 @@ GTR.scene({
           I('trending-up', { size: 15, sw: 2.4 }) + '<span>+18,2%</span>');
       }
       const at = 1.25 + i * 0.25;
-      return { d, wrap, bg, flash, txt, val, rightEl, foot, sheen, pill, at };
+      return { d, wrap, bg, flash, txt, val, rightEl, foot, sheen, pill, glint, at };
     });
     const pur = blocks[4];
     // hero veil + shockwaves (content coords; purple wrapper sits above the veil)
@@ -279,13 +301,26 @@ GTR.scene({
     const fabW = mkFab(content, FAB[0] - CO[0], FAB[1] - CO[1]);
     const fabRing = box(content, FAB[0] - CO[0] - 28, FAB[1] - CO[1] - 28, 56, 56, { borderRadius: '50%', border: `2.5px solid ${C.vibrant}`, zIndex: 4, opacity: 0, pointerEvents: 'none' });
 
+    // #121212 plate = the TV pill's interior. Once the glyphs have left (s ≥ 300) the frame is pure pill, and Chromium
+    // stops rasterising the world past s ≈ 700, so the plate takes over (same colour → invisible swap) and the world hides.
+    const pillFill = box(root, 0, 0, 1920, 1080, { background: '#121212', pointerEvents: 'none', visibility: 'hidden' });
+
     /* ================= HUD ================= */
     // bottom band scrim (headline sits on the dark stage under the window)
     const band = box(root, 0, 1080 - 420, 1920, 420, { background: 'linear-gradient(0deg, rgba(0,21,22,.92) 0%, rgba(0,21,22,.55) 45%, rgba(0,21,22,0) 100%)', pointerEvents: 'none', opacity: 0 });
     const hlWrap = box(root, 0, 0, 1920, 1080, { transformOrigin: `960px ${HY}px`, pointerEvents: 'none' });
     const hl = KIT.headline(hlWrap, 'Da mensagem ao *caixa*.', { x: 960, y: HY, size: 110, w: 1720, glow: true });
     hl.el.style.whiteSpace = 'nowrap';
-    KIT.revealWords(tl, hl.units, 2.8, { dur: 0.65, stagger: 0.06 });
+    KIT.revealWords(tl, hl.units, 2.7, { dur: 0.65, stagger: 0.06 });
+    // teal underline sweep under "caixa" (measured once: fonts are loaded before build)
+    const caixa = hl.units.find((u) => u.textContent.trim() === 'caixa');
+    const HL_TOP = HY - hl.el.offsetHeight / 2;
+    const UL = { x: 100 + caixa.offsetLeft + 4, w: caixa.offsetWidth - 8, y: HL_TOP + caixa.offsetTop + caixa.offsetHeight * 0.80 + 9 };
+    const ul = box(hlWrap, UL.x, UL.y, UL.w, 7, { borderRadius: '4px', background: 'linear-gradient(90deg, #0fb58b, #15dba8 70%, #b9ffe9)',
+      boxShadow: '0 0 18px rgba(21,219,168,.75), 0 0 42px rgba(21,219,168,.35)', transformOrigin: '0% 50%', transform: 'scaleX(0)' });
+    const ulHead = box(hlWrap, UL.x - 20, UL.y - 9, 40, 25, { borderRadius: '50%', pointerEvents: 'none',
+      background: 'radial-gradient(closest-side, rgba(235,255,249,.95), rgba(21,219,168,.55) 45%, rgba(21,219,168,0))', opacity: 0 });
+    const UL_T = 3.28;                               // "caixa" is ~92 % revealed here → underline + number glint land together
 
     // S9 hand-off button (HUD, frame-exact match) — swapped for the in-window one once the crane lands
     const fabGlow = GTR.glow(root, { x: FAB[0], y: FAB[1], r: 150, color: '21,219,168', a: 0.5 });
@@ -306,6 +341,12 @@ GTR.scene({
     const tunnel = box(root, 0, 0, 1920, 1080, { pointerEvents: 'none', opacity: 0 });
     const cursor = KIT.cursor(root);
     const { canvas: wc, ctx: w2 } = GTR.canvas(root);
+    // §1.9: keeps the fx disclaimer corner (x < 380, y > 1020) dark while the window slides under it (whip + dive)
+    // (ellipse 620×240 on the corner with a .9 plateau, so the caption itself sits on ≥ .85 dark, not just the corner)
+    const discScrim = box(root, -620, 840, 1240, 480, { background: 'radial-gradient(closest-side, rgba(0,21,22,.94) 0%, rgba(0,21,22,.9) 48%, rgba(0,21,22,.55) 72%, rgba(0,21,22,0) 100%)', pointerEvents: 'none', opacity: 0 });
+    // thin teal rim that flashes on the TV pill's edge as it leaves the frame (hands off to S11's white power-on line)
+    const rim = box(root, 0, 0, 10, 10, { boxSizing: 'border-box', border: '3px solid rgba(190,255,236,.95)', pointerEvents: 'none', opacity: 0,
+      boxShadow: '0 0 16px rgba(21,219,168,.9), 0 0 44px rgba(21,219,168,.55), inset 0 0 16px rgba(21,219,168,.7)' });
     const black = box(root, 0, 0, 1920, 1080, { background: '#000', pointerEvents: 'none', opacity: 0 });
 
     // radial warp streaks for the dive into the TV (pure fn of dive progress)
@@ -340,13 +381,13 @@ GTR.scene({
     [700, 880, 1040, 1240, 1480].forEach((f, i) => ctx.cue('blip', 1.25 + i * 0.25, { freq: f }));
     ctx.cue('whoosh', 2.5, { dur: 0.5, up: true });
     ctx.cue('impact', 3.0, { size: 0.6 });
-    ctx.cue('shimmer', 3.05, { db: -10 });
-    ctx.cue('swoosh', 4.5, { db: -6, pan: 0.3 });
+    ctx.cue('shimmer', UL_T, { db: -10 });
+    ctx.cue('swoosh', WHIP0, { db: -6, pan: 0.3 });
     ctx.cue('pop', 5.0);
     ctx.cue('whoosh', 5.2, { dur: 0.6, up: true });
 
-    // headline ride-out reference (world point under the headline at 4.5)
-    const C45 = camAt(4.5);
+    // headline ride-out reference (world point under the headline when the whip starts)
+    const C45 = camAt(WHIP0);
     const HQ = unproj([960, HY], C45);
 
     return {
@@ -363,9 +404,12 @@ GTR.scene({
           st(cam.world, 'transformOrigin', '960px 540px');
           cam.set({ x: c.x, y: c.y, s: c.s });
         }
+        const inPill = !c.pivot && t > WHIP1 && c.s >= 300;
+        st(pillFill, 'visibility', inPill ? 'visible' : 'hidden');
+        st(cam.view, 'visibility', inPill ? 'hidden' : 'visible');
         // motion blur during the 45° whip to the TV button
-        const wx = inv(t, 4.5, 5.0);
-        const whip = t > 4.5 && t < 5.0 ? (wx < 0.5 ? 4 * wx * wx : (2 - 2 * wx) * (2 - 2 * wx)) : 0; // |d power3.inOut| / max
+        const wx = inv(t, WHIP0, WHIP1);
+        const whip = t > WHIP0 && t < WHIP1 ? (wx < 0.5 ? 4 * wx * wx : (2 - 2 * wx) * (2 - 2 * wx)) : 0; // |d power3.inOut| / max
         st(app.el, 'filter', whip > 0.02 ? `blur(${(whip * 5).toFixed(2)}px)` : 'none');
 
         /* ---------- back layers ---------- */
@@ -386,6 +430,10 @@ GTR.scene({
           st(k.sub, 'transform', `translateX(${-8 * (1 - sa)}px)`);
         }
 
+        // hold parallax: the camera drifts, the lifted purple block counter-moves so it stays locked on screen
+        const dr = driftAt(t), dw = c.pivot ? 0 : (1 - p(t, WHIP0, WHIP0 + 0.25, 'power2.inOut')) / c.s;
+        const ox = -dr[0] * dw, oy = -dr[1] * dw;
+
         /* ---------- funnel cascade ---------- */
         skels.forEach((k, i) => {
           const at = blocks[i].at;
@@ -395,7 +443,7 @@ GTR.scene({
         for (const b of blocks) {
           const e = p(t, b.at, b.at + 0.55, 'expo.out');
           vis(b.wrap, p(t, b.at, b.at + 0.14, 'none'));
-          st(b.wrap, 'transform', `translateX(${-40 * (1 - e)}px)`);
+          st(b.wrap, 'transform', b === pur ? `translate(${(-40 * (1 - e) + ox).toFixed(2)}px, ${oy.toFixed(2)}px)` : `translateX(${-40 * (1 - e)}px)`);
           st(b.bg, 'transform', `scaleX(${lerp(0.6, 1, e)})`);
           st(b.flash, 'opacity', String(t < b.at ? 0 : 0.6 * (1 - p(t, b.at + 0.05, b.at + 0.45, 'power2.out'))));
           vis(b.txt, p(t, b.at + 0.08, b.at + 0.35, 'power2.out'));
@@ -406,25 +454,33 @@ GTR.scene({
         }
 
         /* ---------- hero: purple block ---------- */
-        const heroOn = p(t, 2.9, 3.15, 'power2.out') * (1 - p(t, 4.5, 4.85, 'power2.in'));
+        const heroOn = p(t, 2.9, 3.15, 'power2.out') * (1 - p(t, WHIP0, 4.85, 'power2.in'));
         const g = heroOn * (0.88 + 0.12 * Math.sin((t - 3) * 4.2));
         st(pur.wrap, 'boxShadow', heroOn > 0.002
           ? `0 0 0 ${(2.5 * g).toFixed(2)}px rgba(255,255,255,${(0.55 * g).toFixed(3)}), 0 22px 60px rgba(88,28,135,${(0.45 * g).toFixed(3)}), 0 0 ${(130 * g).toFixed(1)}px rgba(168,85,247,${(0.6 * g).toFixed(3)})`
           : 'none');
-        vis(veil, 0.62 * p(t, 2.8, 3.2, 'power2.inOut') * (1 - p(t, 4.45, 4.8, 'power2.in')));
+        vis(veil, 0.62 * p(t, 2.8, 3.2, 'power2.inOut') * (1 - p(t, 4.5, 4.8, 'power2.in')));
         const sh = p(t, 3.0, 3.55, 'power2.inOut');
         st(pur.sheen, 'transform', `translateX(${lerp(-300, BLK_W + 120, sh)}px) rotate(20deg)`);
         vis(pur.sheen, sh > 0 && sh < 1 ? 1 : 0);
-        st(pur.val, 'transform', `scale(${1 + 0.07 * bump(t, 2.97, 0.42)})`);
+        const vTr = `scale(${1 + 0.07 * bump(t, 2.97, 0.42)})`;
+        st(pur.val, 'transform', vTr);
+        // teal glint across "R$ 620.000,00", in sync with the "caixa" underline
+        const gk = p(t, UL_T, UL_T + 0.46, 'power2.inOut');
+        vis(pur.glint, gk > 0 && gk < 1 ? Math.min(1, Math.sin(Math.PI * gk) * 1.6) : 0);
+        if (gk > 0 && gk < 1) {
+          st(pur.glint, 'backgroundPosition', `${lerp(130, 440, gk).toFixed(1)}px 0px`);
+          st(pur.glint, 'transform', vTr);
+        }
         st(pur.val, 'textShadow', heroOn > 0.002 ? `0 0 ${(22 * g).toFixed(1)}px rgba(255,255,255,${(0.45 * g).toFixed(3)})` : 'none');
-        const pp = pop(t, 3.3, 0.45, 'back.out(2)');
-        vis(pur.pill, clamp(pp * 2) * (1 - p(t, 4.5, 4.8, 'power2.in')));
-        st(pur.pill, 'transform', `scale(${lerp(0.6, 1, pp)})`);
+        const pp = pop(t, 3.55, 0.45, 'back.out(2)');     // pops as the glint reaches it
+        vis(pur.pill, clamp(pp * 2) * (1 - p(t, WHIP0, 4.8, 'power2.in')));
+        st(pur.pill, 'transform', `translateY(${(t > 3.55 ? -Math.sin((t - 3.55) * 3.6) : 0).toFixed(3)}px) scale(${lerp(0.6, 1, pp)})`);
         shock.forEach((el, i) => {
           const q = inv(t, 3.0 + i * 0.1, 3.5 + i * 0.1);
           const e = GTR.E('expo.out')(q);
           vis(el, q > 0 && q < 1 ? Math.pow(1 - q, 1.6) * (i ? 0.55 : 1) : 0);
-          st(el, 'transform', `scale(${1 + e * (i ? 0.075 : 0.045)}, ${1 + e * (i ? 0.5 : 0.3)})`);
+          st(el, 'transform', `translate(${ox.toFixed(2)}px, ${oy.toFixed(2)}px) scale(${1 + e * (i ? 0.075 : 0.045)}, ${1 + e * (i ? 0.5 : 0.3)})`);
         });
 
         /* ---------- line chart + base bars ---------- */
@@ -466,7 +522,7 @@ GTR.scene({
         st(fabRing, 'transform', `scale(${lerp(1, 1.9, GTR.E('power2.out')(r2))})`);
 
         /* ---------- TV button: hover, tooltip, click ---------- */
-        const hov = p(t, 4.82, 4.95, 'power2.out');
+        const hov = p(t, 4.82, 4.95, 'power2.out') * (1 - p(t, 5.1, 5.5, 'power2.inOut')); // clean dark pill for the swallow
         st(tvBtn, 'boxShadow', `0 4px 12px rgba(0,0,0,.18), 0 0 0 ${(3 * hov).toFixed(2)}px rgba(21,219,168,${(0.45 * hov).toFixed(3)}), 0 0 ${(24 * hov).toFixed(1)}px rgba(21,219,168,${(0.5 * hov).toFixed(3)})`);
         st(tvBtn, 'transform', `scale(${1 - 0.08 * bump(t, 4.98, 0.22)})`);
         const tipIn = pop(t, 4.74, 0.3, 'back.out(1.8)') * (1 - p(t, 5.02, 5.14, 'power2.in'));
@@ -477,14 +533,14 @@ GTR.scene({
         st(tvRing, 'transform', `scale(${1 + 0.9 * GTR.E('power2.out')(rq)}, ${1 + 1.6 * GTR.E('power2.out')(rq)})`);
 
         /* ---------- cursor (HUD) ---------- */
-        if (t >= 4.4 && t < 5.4) {
+        if (t >= WHIP0 - 0.05 && t < 5.4) {
           const target = proj([TVC[0] + 8, TVC[1] + 6], c.pivot ? { s: 1, x: 0, y: 0 } : c);
-          const k = p(t, 4.5, 4.94, 'power2.inOut');
+          const k = p(t, WHIP0, 4.94, 'power2.inOut');
           const cx = lerp(1780, target[0], k) + Math.sin(Math.PI * k) * 50;
           const cy = lerp(700, target[1], k) + Math.sin(Math.PI * k) * 40;
           const press = t >= 4.98 ? inv(t, 4.98, 5.3) : 0;
           cursor.set(cx - 4, cy - 3, press);
-          const ca = p(t, 4.5, 4.62, 'none') * (1 - p(t, 5.12, 5.36, 'power2.in'));
+          const ca = p(t, WHIP0, WHIP0 + 0.12, 'none') * (1 - p(t, 5.12, 5.36, 'power2.in'));
           vis(cursor.el, ca);
         } else {
           vis(cursor.el, 0);
@@ -492,15 +548,22 @@ GTR.scene({
 
         /* ---------- headline (HUD, rides out with the camera) ---------- */
         let hx = 0, hy = 0, hs = 1;
-        if (t > 4.5 && !c.pivot) {
+        if (t > WHIP0 && !c.pivot) {
           const q = proj(HQ, c);
           hx = q[0] - 960; hy = q[1] - HY; hs = c.s / C45.s;
         }
         st(hlWrap, 'transform', `translate(${hx.toFixed(2)}px, ${hy.toFixed(2)}px) scale(${hs.toFixed(4)})`);
-        const hOut = 1 - p(t, 4.62, 4.88, 'power2.in');
+        // gone within the first 0.15 s of the whip, and blurred like the world it rides with
+        const hOut = 1 - p(t, WHIP0, WHIP0 + 0.15, 'power2.in');
         st(hlWrap, 'opacity', String(hOut));
-        st(hlWrap, 'display', t < 2.75 || t > 4.9 ? 'none' : 'block');
-        vis(band, p(t, 2.7, 3.3, 'power2.out') * (1 - p(t, 4.5, 4.9, 'power2.in')));
+        st(hlWrap, 'filter', whip > 0.02 ? `blur(${(whip * 5).toFixed(2)}px)` : 'none');
+        st(hlWrap, 'display', t < 2.65 || t > WHIP0 + 0.17 ? 'none' : 'block');
+        vis(band, p(t, 2.6, 3.2, 'power2.out') * (1 - p(t, WHIP0, 4.85, 'power2.in')));
+        // underline sweep under "caixa" + its hot head
+        const ulk = p(t, UL_T, UL_T + 0.34, 'power3.out');
+        st(ul, 'transform', `scaleX(${ulk.toFixed(4)})`);
+        vis(ulHead, ulk > 0 ? 1 - p(t, UL_T + 0.18, UL_T + 0.46, 'power2.out') : 0);
+        st(ulHead, 'transform', `translateX(${(UL.w * ulk).toFixed(1)}px)`);
 
         /* ---------- foreground bokeh ---------- */
         for (const b of BOKEH) {
@@ -509,17 +572,32 @@ GTR.scene({
           const sy = 540 + (b.y - 540) * cc.s * b.d + cc.y * b.d + noise(b.ph + 9, t * 0.3) * 24;
           const sc = Math.pow(cc.s, 0.6);
           st(b.el, 'transform', `translate(${(sx - b.x).toFixed(1)}px, ${(sy - b.y).toFixed(1)}px) scale(${sc.toFixed(3)})`);
-          st(b.el, 'opacity', String((0.55 + 0.45 * Math.sin(t * 1.3 + b.ph)) * (1 - p(t, 5.2, 5.6, 'power2.in'))));
+          // discs cut by the frame edge read as lens smudges → they dim to ≤ .3 of their level as they cross it
+          const rv = 0.7 * b.r * sc, edge = Math.min(sx, 1920 - sx, sy, 1080 - sy);
+          const inF = GTR.smooth(clamp((edge / rv - 0.35) / 0.65));
+          st(b.el, 'opacity', String(((0.5 + 0.35 * Math.sin(t * 1.3 + b.ph)) * lerp(0.3, 1, inF) * (1 - p(t, 5.2, 5.6, 'power2.in'))).toFixed(3)));
         }
 
         /* ---------- dive into the TV ---------- */
         const warpAmt = p(t, 5.15, 5.6, 'power2.in') * (1 - p(t, 5.85, 5.97, 'none'));
-        const tvs = proj(TVC, c.pivot ? { s: 1, x: 0, y: 0 } : c);
-        drawWarp(Math.log(c.s / 1.35) / Math.log(24 / 1.35) * 3.2, warpAmt, tvs[0], tvs[1]);
-        const tun = p(t, 5.05, 5.7, 'power2.in');
+        const tvs = proj(TVF, c.pivot ? { s: 1, x: 0, y: 0 } : c);
+        drawWarp(Math.log(c.s / 1.35) / Math.log(S_END / 1.35) * 3.2, warpAmt, tvs[0], tvs[1]);
+        // soft tunnel that hugs the growing pill (keeps the light top bar readable around it), gone once the pill fills the frame
+        const tun = 0.85 * p(t, 5.05, 5.6, 'power2.in') * (1 - p(Math.log(c.s), Math.log(12), Math.log(30), 'power1.inOut'));
         vis(tunnel, tun);
-        if (tun > 0.002) st(tunnel, 'background', `radial-gradient(${Math.round(lerp(1300, 700, tun))}px ${Math.round(lerp(900, 480, tun))}px at ${tvs[0].toFixed(1)}px ${tvs[1].toFixed(1)}px, rgba(0,0,0,0) 18%, rgba(0,8,9,.55) 55%, rgba(0,4,5,.92) 100%)`);
-        st(black, 'opacity', String(p(t, 5.55, 5.95, 'power1.in')));
+        if (tun > 0.002) st(tunnel, 'background', `radial-gradient(${Math.round(58 * c.s + 380)}px ${Math.round(29 * c.s + 300)}px at ${tvs[0].toFixed(1)}px ${tvs[1].toFixed(1)}px, rgba(0,0,0,0) 42%, rgba(0,8,9,.45) 72%, rgba(0,4,5,.82) 100%)`);
+        // teal rim flash as the pill's edge crosses the frame (half-height 20·s passes 540 px): ~2 frames
+        const rimK = t > WHIP1 ? inv(Math.log(20 * c.s), Math.log(370), Math.log(720)) : 0;
+        const rimA = rimK > 0 && rimK < 1 ? Math.sin(Math.PI * rimK) : 0;
+        vis(rim, rimA);
+        if (rimA > 0) {
+          const q = proj([CO[0] + TVB.x, CO[1] + TVB.y], c);
+          st(rim, 'left', `${q[0].toFixed(1)}px`); st(rim, 'top', `${q[1].toFixed(1)}px`);
+          st(rim, 'width', `${(TVB.w * c.s).toFixed(1)}px`); st(rim, 'height', `${(TVB.h * c.s).toFixed(1)}px`);
+          st(rim, 'borderRadius', `${(TVB.h / 2 * c.s).toFixed(1)}px`);
+        }
+        vis(discScrim, p(t, 4.5, 4.65, 'power2.out') * (1 - p(t, 5.7, 5.8, 'power2.in')));
+        st(black, 'opacity', String(p(t, 5.8, 5.95, 'sine.in')));
       },
     };
   },
