@@ -188,7 +188,7 @@ async function modeVideo(port) {
     segs[w] = seg;
     const ctx = await openPage(port, { quiet: true });
     const ff = spawn(FFMPEG, ['-y', '-loglevel', 'error', '-f', 'image2pipe', '-framerate', String(fps), '-c:v', 'mjpeg', '-i', '-',
-      '-vf', `scale=out_color_matrix=bt709:out_range=tv,format=yuv420p${arg('nograin') ? '' : ',vignette=angle=PI/7:mode=forward,noise=c0s=7:c0f=t'}`,
+      '-vf', `scale=out_color_matrix=bt709:out_range=tv,format=yuv420p${arg('nograin') ? '' : `,vignette=angle=PI/7:mode=forward${+arg('grain', 3) > 0 ? `,noise=c0s=${+arg('grain', 3)}:c0f=t` : ''}`}`,
       '-c:v', 'libx264', '-preset', preset, '-crf', crf, '-tune', 'animation', '-aq-mode', '3',
       '-g', String(fps * 2), '-colorspace', 'bt709', '-color_primaries', 'bt709', '-color_trc', 'bt709', '-color_range', 'tv',
       '-threads', '2', seg], { stdio: ['pipe', 'inherit', 'inherit'] });
