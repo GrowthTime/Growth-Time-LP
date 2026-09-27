@@ -352,6 +352,7 @@ GTR.scene({
         const scanY = t < 2.5 ? 0 : lerp(0, SCR_H + 6, sp);
         scan.style.display = t >= 2.5 && t <= 2.96 ? 'block' : 'none';
         scan.style.transform = `translateY(${scanY - 150}px)`;
+        scan.style.opacity = 1 - p(t, 2.84, 2.96, 'power1.in');
         // gray copy revealed above the scan line (clip in phone-local px: screen top = 14)
         PG.phone.el.style.display = t >= 2.5 ? 'block' : 'none';
         PG.phone.el.style.clipPath = t >= 2.92 ? 'none' : `inset(0 0 ${(900 - (14 + clamp(scanY, 0, SCR_H))).toFixed(1)}px 0)`;
