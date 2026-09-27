@@ -47,9 +47,16 @@ GTR.scene({
     const EYES = [[350, '01 · CLIQUE', 0.9], [960, '02 · CONVERSA', 1.5], [1640, '03 · VENDA', 2.0]];
     // push-in (3.5–4.1): world point F lands on screen point S at scale s
     const PUSH = { s: 1.26, F: [549, 435], S: [940, 436] };
-    // pull-back (5.5–6.2): the pipeline becomes a strip at y ≈ 130–360
-    const PULL = { s: 0.55, x: -16, y: -250 };
+    // pull-back (5.15–6.05, power2.inOut, log-scale zoom about a fixed screen point):
+    // the pipeline becomes a strip at y ≈ 110–360. ≤ 0.03 scale change per frame @60fps.
+    const PULL = { s: 0.55, x: -16, y: -250, t0: 5.15, t1: 6.05 };
     const TOP3 = { x: 510, y: 405, w: 900, h: 320 };
+    // the Top 3 card only pops once the world is within ~3% of its final framing
+    // (ad card bottom ≤ y 370), then its rows cascade.
+    const T3_IN = 5.95;
+    const ROW_AT = [6.05, 6.25, 6.45];
+    const PULSE = { t0: 6.08, t1: 6.4 };                 // ad "5,6x" → row #1 "5,6x"
+    const SWEEP = { t0: 3.5, t1: 3.8 };                  // chip flip: teal sweep ad → sale
 
     /* ================= BACK LAYERS ================= */
     // parallax dot plane (moves at 45% of the camera)
@@ -104,6 +111,7 @@ GTR.scene({
       d.textContent = ch;
       return d;
     });
+    const TAG_ROOM = 9;                                  // px opened between '1' and ']' when the box lands
     h('span', {}, lTxt).textContent = '] Coleção Verão · Carrossel';
 
     /* ---------- ad card (flips to its ROAS back face) ---------- */
@@ -148,14 +156,14 @@ GTR.scene({
     h('div', { style: { display: 'inline-flex', alignItems: 'center', gap: '8px', fontSize: '15px', fontWeight: 800, letterSpacing: '0.24em', color: C.tealDark } }, bBody,
       I('trending-up', { size: 18, sw: 2.6 }) + '<span>ROAS</span>');
     const bigBox = h('div', { style: { position: 'relative', height: '118px', width: '100%', marginTop: '4px' } }, bBody);
-    const bigSkel = h('div', { style: { position: 'absolute', left: '50%', top: '26px', width: '190px', height: '70px', marginLeft: '-95px', borderRadius: '14px', background: 'linear-gradient(90deg,#eef2f1 0%,#f7faf9 50%,#eef2f1 100%)', backgroundSize: '200% 100%' } }, bigBox);
     const big = h('div', { class: 'display', style: {
       position: 'absolute', left: '0', right: '0', top: '0', textAlign: 'center', fontSize: '110px', lineHeight: '118px', letterSpacing: '-0.01em',
       background: 'linear-gradient(90deg,#27ae8f,#15dba8)', WebkitBackgroundClip: 'text', backgroundClip: 'text', color: 'transparent', WebkitTextFillColor: 'transparent',
       transformOrigin: '50% 55%', opacity: 0,
     } }, bigBox, '5,6x');
-    const invest = h('div', { style: { marginTop: '10px', fontSize: '16px', fontWeight: 600, color: '#525252', whiteSpace: 'nowrap', opacity: 0 } }, bBody, 'Invest. R$ 8.200 · Leads 720');
-    const capi = h('div', { style: { marginTop: '26px', opacity: 0 } }, bBody);
+    // the back face lands composed (header, ROAS eyebrow, invest line, CAPI pill); only "5,6x" stamps in
+    h('div', { style: { marginTop: '10px', fontSize: '16px', fontWeight: 600, color: '#525252', whiteSpace: 'nowrap' } }, bBody, 'Invest. R$ 8.200 · Leads 720');
+    const capi = h('div', { style: { marginTop: '26px' } }, bBody);
     const capiIn = h('div', { style: { display: 'inline-flex', alignItems: 'center', gap: '9px', padding: '9px 16px 9px 13px', borderRadius: '999px', whiteSpace: 'nowrap',
       background: '#ecfdf5', border: '1px solid rgba(21,219,168,.5)', color: '#0f766e', fontSize: '15px', fontWeight: 700, transformOrigin: '50% 50%' } }, capi);
     const capiIc = h('span', { style: { display: 'inline-grid', placeItems: 'center' } }, capiIn, I('send', { size: 17, sw: 2.3 }));
@@ -175,7 +183,8 @@ GTR.scene({
     const instChip = h('span', { style: { position: 'relative', alignSelf: 'flex-start', display: 'inline-flex', alignItems: 'center', gap: '5px', height: '22px', padding: '0 8px',
       borderRadius: '6px', background: C.bgAlt, border: `1px solid ${C.border}`, color: '#404040', fontSize: '13px', fontWeight: 600, whiteSpace: 'nowrap' } }, cCol);
     instChip.innerHTML = I('smartphone', { size: 12, color: C.tealDark, sw: 2.2 }) + '<span>Vendas 1 · </span>';
-    const cDigWrap = h('span', { style: { position: 'relative', display: 'inline-block', fontVariantNumeric: 'tabular-nums' } }, instChip);
+    const cDigWrap = h('span', { style: { position: 'relative', display: 'inline-block', fontVariantNumeric: 'tabular-nums', fontWeight: 700 } }, instChip);
+    const CHIP_ROOM = 3;                                 // px opened after the '·' when the box lands
     const cDigits = [...'4321'].map((ch) => {
       const d = h('span', { style: { display: 'inline-block', transformOrigin: '50% 60%' } }, cDigWrap);
       d.textContent = ch;
@@ -225,30 +234,36 @@ GTR.scene({
       return { el: e.el, at };
     });
 
-    /* ---------- measure the two "4321" strings (layout offsets, fonts are loaded) ---------- */
-    const offIn = (el) => {
-      let x = 0, y = 0, e = el;
-      while (e && e !== world) { x += e.offsetLeft; y += e.offsetTop; e = e.offsetParent; }
-      return { x, y, w: el.offsetWidth, h: el.offsetHeight };
+    /* ---------- measure the two "4321" glyph runs (once, in build: fonts are loaded and
+       nothing is transformed yet, so client rects are exact sub-pixel layout positions) ---------- */
+    const WR = world.getBoundingClientRect();
+    const WK = WR.width / 1920 || 1;
+    const rectIn = (el) => {
+      const r = el.getBoundingClientRect();
+      return { x: (r.left - WR.left) / WK, y: (r.top - WR.top) / WK, w: r.width / WK, h: r.height / WK };
     };
+    cDigWrap.style.marginLeft = px(CHIP_ROOM);            // measure the chip in its final (boxed) layout
     const boxOf = (els) => {
-      const r = els.map(offIn);
+      const r = els.map(rectIn);
       const x0 = Math.min(...r.map((q) => q.x)), x1 = Math.max(...r.map((q) => q.x + q.w));
       const y0 = Math.min(...r.map((q) => q.y)), y1 = Math.max(...r.map((q) => q.y + q.h));
       return { x: x0, y: y0, w: x1 - x0, h: y1 - y0, cx: (x0 + x1) / 2, cy: (y0 + y1) / 2, pts: r.map((q) => [q.x + q.w / 2, q.y + q.h / 2]) };
     };
     const LB = boxOf(lDigits), CB = boxOf(cDigits);
+    const BIG = rectIn(big);                              // "5,6x" line box (full card width, text centred)
+    cDigWrap.style.marginLeft = '0px';
 
-    // outline boxes
-    const mkBox = (b, padX, padY) => h('div', { style: {
-      position: 'absolute', left: px(b.x - padX), top: px(b.y - padY), width: px(b.w + 2 * padX), height: px(b.h + 2 * padY), borderRadius: '6px',
+    // outline boxes, derived from the glyph runs: tag = '4' − 5 … '1' + 5 (the '1' → ']' gap is
+    // opened by TAG_ROOM as the box lands); chip = '4' − 3.5 … '1' + 3.5 (clear of the '·').
+    const mkBox = (b, l, r, pv, rad) => h('div', { style: {
+      position: 'absolute', left: px(b.x - l), top: px(b.y - pv), width: px(b.w + l + r), height: px(b.h + 2 * pv), borderRadius: px(rad),
       border: `2px solid ${C.vibrant}`, boxShadow: '0 0 12px rgba(21,219,168,.75), inset 0 0 8px rgba(21,219,168,.3)', opacity: 0, transformOrigin: '50% 50%',
     } }, world);
-    const boxL = mkBox(LB, 6, 3), boxC = mkBox(CB, 5, 3);
+    const boxL = mkBox(LB, 5, 5, 3, 6), boxC = mkBox(CB, 3.5, 3.5, 2, 5);
 
     // laser arc: leaves the chip box on its right (clear of the contact name), arcs over
     // the pipeline and drops onto the label box from above. Cubic P0 → P1 → P2 → P3.
-    const LP0 = [CB.x + CB.w + 7, CB.cy], LP1 = [CB.x + CB.w + 167, CB.cy - 40];
+    const LP0 = [CB.x + CB.w + 5, CB.cy], LP1 = [CB.x + CB.w + 165, CB.cy - 40];
     const LP2 = [LB.cx + 70, LB.y - 170], LP3 = [LB.cx, LB.y - 4];
     const cub = (a, b, c, d, u) => { const v = 1 - u; return v * v * v * a + 3 * v * v * u * b + 3 * v * u * u * c + u * u * u * d; };
     const svgUp = s('svg', { width: 1920, height: 1080, viewBox: '0 0 1920 1080', style: { position: 'absolute', left: '0', top: '0', overflow: 'visible', pointerEvents: 'none' } }, world);
@@ -319,9 +334,10 @@ GTR.scene({
     const tRows = h('div', { style: { marginTop: '14px', display: 'flex', flexDirection: 'column', gap: '8px' } }, top3);
     const BAR_W = 250;
     const CREAT = [
-      { name: 'Coleção Verão · Carrossel', sub: 'Invest. R$ 8.200 · Leads 720', v: 5.6, grad: 'linear-gradient(135deg,#fb7185,#c2410c)', icon: 'play', at: 5.75 },
-      { name: 'Grade Atacado · Vídeo 15s', v: 5.1, grad: 'linear-gradient(135deg,#38bdf8,#1d4ed8)', icon: 'play', at: 6.0 },
-      { name: 'Depoimento Lojista · Reels', v: 3.7, grad: 'linear-gradient(135deg,#a78bfa,#6d28d9)', icon: 'play', at: 6.25 },
+      // row #1 IS the traced creative: same pink-orange art and shirt as the ad card
+      { name: 'Coleção Verão · Carrossel', sub: 'Invest. R$ 8.200 · Leads 720', v: 5.6, grad: 'linear-gradient(135deg,#fb7185,#c2410c)', icon: 'shirt', at: ROW_AT[0] },
+      { name: 'Grade Atacado · Vídeo 15s', v: 5.1, grad: 'linear-gradient(135deg,#38bdf8,#1d4ed8)', icon: 'play', at: ROW_AT[1] },
+      { name: 'Depoimento Lojista · Reels', v: 3.7, grad: 'linear-gradient(135deg,#a78bfa,#6d28d9)', icon: 'play', at: ROW_AT[2] },
     ];
     const rows = CREAT.map((c, i) => {
       const gold = i === 0;
@@ -331,17 +347,35 @@ GTR.scene({
       if (gold) rank.innerHTML = '<span class="emoji" style="font-size:28px;line-height:1">🥇</span>';
       else rank.innerHTML = `<span style="width:28px;height:28px;border-radius:50%;background:#eef2f1;color:#525252;font-size:14px;font-weight:800;display:grid;place-items:center">${i + 1}</span>`;
       const th = h('div', { style: { position: 'relative', width: '60px', height: '60px', borderRadius: '11px', background: c.grad, display: 'grid', placeItems: 'center', color: '#fff', flex: 'none', overflow: 'hidden' } }, row);
-      h('div', { style: { position: 'absolute', right: '-20px', top: '-24px', width: '70px', height: '70px', borderRadius: '50%', background: 'radial-gradient(circle, rgba(255,255,255,.45), rgba(255,255,255,0) 65%)' } }, th);
-      h('div', { style: { position: 'relative', width: '30px', height: '30px', borderRadius: '50%', background: 'rgba(0,0,0,.28)', display: 'grid', placeItems: 'center' } }, th, I(c.icon, { size: 16, sw: 2.4 }));
+      h('div', { style: { position: 'absolute', right: '-20px', top: '-24px', width: '70px', height: '70px', borderRadius: '50%', background: 'radial-gradient(circle, rgba(255,237,213,.6), rgba(255,237,213,0) 65%)' } }, th);
+      if (c.icon === 'shirt') {
+        // mini version of the ad art: shirt + carousel dots
+        h('div', { style: { position: 'relative', marginTop: '-6px', color: 'rgba(255,255,255,.96)', display: 'grid', placeItems: 'center', filter: 'drop-shadow(0 4px 8px rgba(124,45,18,.35))' } }, th, I('shirt', { size: 32, sw: 1.6 }));
+        const md = h('div', { style: { position: 'absolute', left: '0', right: '0', bottom: '6px', display: 'flex', justifyContent: 'center', gap: '3px' } }, th);
+        [1, 0, 0].forEach((on) => h('span', { style: { width: '4px', height: '4px', borderRadius: '50%', background: on ? '#fff' : 'rgba(255,255,255,.5)' } }, md));
+      } else {
+        h('div', { style: { position: 'relative', width: '30px', height: '30px', borderRadius: '50%', background: 'rgba(0,0,0,.28)', display: 'grid', placeItems: 'center' } }, th, I(c.icon, { size: 16, sw: 2.4 }));
+      }
       const nm = h('div', { style: { flex: '1', minWidth: '0', lineHeight: 1.25, whiteSpace: 'nowrap' } }, row);
       h('div', { style: { fontSize: '18px', fontWeight: 700, color: C.fg } }, nm, c.name);
       if (c.sub) h('div', { style: { fontSize: '13.5px', fontWeight: 500, color: '#737373' } }, nm, c.sub);
       const track = h('div', { style: { position: 'relative', width: px(BAR_W), height: '10px', borderRadius: '999px', background: '#eef2f1', flex: 'none', overflow: 'hidden' } }, row);
       const fill = h('div', { style: { position: 'absolute', left: '0', top: '0', bottom: '0', width: '0px', borderRadius: '999px',
         background: gold ? `linear-gradient(90deg, ${C.tealDark}, ${C.vibrant})` : 'linear-gradient(90deg, #7fcfb8, #38cc9c)' } }, track);
-      const val = h('div', { style: { width: '76px', textAlign: 'right', fontSize: '24px', fontWeight: 800, letterSpacing: '-0.02em', fontVariantNumeric: 'tabular-nums', color: gold ? '#0f766e' : C.fg, flex: 'none' } }, row, '0,0x');
-      return { row, fill, val, c, gold };
+      // the true §1.8 value is printed from the row's first frame; only the bar animates
+      const val = h('div', { style: { width: '76px', textAlign: 'right', fontSize: '24px', fontWeight: 800, letterSpacing: '-0.02em', fontVariantNumeric: 'tabular-nums', color: gold ? '#0f766e' : C.fg, flex: 'none', transformOrigin: '100% 55%' } }, row, GTR.fmt.x(c.v, 1));
+      // light sheen that runs across row #1 when the pulse arrives
+      const sheen = gold ? h('div', { style: { position: 'absolute', inset: '0', borderRadius: '12px', pointerEvents: 'none', opacity: 0,
+        background: 'linear-gradient(100deg, rgba(21,219,168,0) 30%, rgba(21,219,168,.22) 46%, rgba(255,255,255,.55) 50%, rgba(21,219,168,.22) 54%, rgba(21,219,168,0) 70%)', backgroundSize: '300% 100%' } }, row) : null;
+      return { row, fill, val, c, gold, sheen };
     });
+
+    // pulse: the traced ad's "5,6x" (world, pulled back) → row #1's "5,6x" (HUD). Canvas above the card.
+    const PK = GTR.canvas(hud, { z: 3 });
+    PK.canvas.style.pointerEvents = 'none';
+    const pg = PK.ctx;
+    const R1V = rectIn(rows[0].val);                       // measured before any transform is applied
+    const R1_END = [R1V.x + R1V.w - 26, R1V.y + R1V.h / 2];
 
     // top-right status pill
     const pillWrap = h('div', { style: { position: 'absolute', right: '120px', top: '100px', height: '40px', opacity: 0, transformOrigin: '100% 50%' } }, hud);
@@ -382,9 +416,9 @@ GTR.scene({
     [4.125, 4.25, 4.375, 4.5].forEach((tt) => ctx.cue('tick', tt));
     ctx.cue('ping', 4.5, { freq: 1760 });
     ctx.cue('pop', 4.62, { db: -10 });
-    ctx.cue('blip', 5.75, { freq: 900 });
-    ctx.cue('blip', 6.0, { freq: 1100 });
-    ctx.cue('blip', 6.25, { freq: 1300 });
+    // Top 3 rows (shifted from 5.75/6.0/6.25 to follow the slower pull-back)
+    ROW_AT.forEach((tt, i) => ctx.cue('blip', tt, { freq: [900, 1100, 1300][i] }));
+    ctx.cue('shimmer', PULSE.t0, { db: -12 });
     ctx.cue('whoosh', 7.5, { dur: 0.5, up: true });
 
     /* ================= computed motion ================= */
@@ -392,21 +426,42 @@ GTR.scene({
     const camAt = (t) => {
       const amp = p(t, 0.3, 1.6, 'sine.inOut');
       const k1 = p(t, 3.5, 4.1, 'power3.inOut');
-      const k2 = p(t, 5.4, 6.1, 'power3.inOut');
+      const k2 = p(t, PULL.t0, PULL.t1, 'power2.inOut');
       const drift = amp * (1 - 0.6 * k1 * (1 - k2));
       const nx = noise(t * 0.27, 3.1) * 12 * drift, ny = noise(t * 0.27, 7.7) * 7 * drift;
       const b = { x: 0, y: 0, s: 1 + 0.03 * p(t, 0.3, 3.5, 'sine.inOut') };
-      const sP = PUSH.s + 0.035 * p(t, 4.1, 5.5, 'sine.inOut');
+      const sP = PUSH.s + 0.035 * p(t, 4.1, PULL.t0, 'sine.inOut');
       const P = pushXY(sP);
-      const sQ = PULL.s + 0.02 * p(t, 6.2, 8.0, 'sine.inOut');
+      const sQ = PULL.s + 0.02 * p(t, 5.6, 8.0, 'sine.inOut');
       const rwPan = Math.sin(Math.PI * p(t, 2.45, 3.55, 'sine.inOut'));   // 0 → 1 → 0 over the rewind
       b.x += 34 * rwPan;
-      const x = lerp(lerp(b.x, P.x, k1), PULL.x, k2) + nx;
-      const y = lerp(lerp(b.y, P.y, k1), PULL.y, k2) + ny;
-      const sc = lerp(lerp(b.s, sP, k1), sQ, k2);
+      // A = the (drifting) push-in framing, B = the pulled-back framing
+      const A = { x: lerp(b.x, P.x, k1), y: lerp(b.y, P.y, k1), s: lerp(b.s, sP, k1) };
+      let x = A.x, y = A.y, sc = A.s;
+      if (k2 > 0) {
+        // log-scale zoom (constant perceived speed) about the fixed point of A→B:
+        // every world point travels on a straight line toward it, no swimming.
+        sc = Math.exp(lerp(Math.log(A.s), Math.log(sQ), k2));
+        const w = (A.s - sc) / (A.s - sQ);
+        x = lerp(A.x, PULL.x, w);
+        y = lerp(A.y, PULL.y, w);
+      }
+      x += nx;
+      y += ny;
       const ry = amp * (lerp(2.4, -2.4, p(t, 0.3, 3.5, 'sine.inOut')) * (1 - k1) + lerp(-1.6, 1.4, p(t, 3.5, 8, 'sine.inOut')) * k1) + noise(t * 0.2, 11) * 0.6 * amp;
       const rx = amp * (1.6 * (1 - k1) + 0.8 * k1 * (1 - k2) + 3 * k2) + noise(t * 0.2, 13) * 0.4 * amp;
       return { x, y, s: sc, rx, ry };
+    };
+    // world point → screen point, same maths as KIT.camera's CSS transform (origin 960,540;
+    // translate · rotateX · rotateY · scale) under the view's 1500 px perspective.
+    const PERSP = 1500;
+    const camProj = (cm, wx, wy) => {
+      const ax = (wx - 960) * cm.s, ay = (wy - 540) * cm.s;
+      const ry = cm.ry * Math.PI / 180, rx = cm.rx * Math.PI / 180;
+      const x1 = ax * Math.cos(ry), z1 = -ax * Math.sin(ry);
+      const y2 = ay * Math.cos(rx) - z1 * Math.sin(rx), z2 = ay * Math.sin(rx) + z1 * Math.cos(rx);
+      const k = PERSP / (PERSP - z2);
+      return [960 + (x1 + cm.x) * k, 540 + (y2 + cm.y) * k];
     };
     const flowPhase = (t) => (t <= 2.5 ? 80 * t : t <= 3.4 ? 200 - 720 * (t - 2.5) : 200 - 648 + 80 * (t - 3.4));
 

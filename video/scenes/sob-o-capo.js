@@ -34,7 +34,8 @@ GTR.scene({
     const ROLL0 = 2.04, ROLL_END = 2.52;                          // "124" roll-call ↔ last odometer digit lands
     const CAPTION = 2.20, CHIP1 = 2.50, CHIP2 = 4.00;
     const RECAP = 6.40, FADE = 7.40;
-    const BLOOM = [6.48, 6.54, 6.60];                             // recap cells 1–3 unfold from the progress segments
+    // recap cells 1–3 unfold from their progress segments; bottom-up order so no cell ever flies through another
+    const BLOOM = [6.58, 6.53, 6.48];
     const COLL0 = 7.40, TRAVEL = [7.60, 7.95];
     const HOLD = [7.60, 7.85];                                    // collapsed point throbs while charging
 
@@ -125,7 +126,7 @@ GTR.scene({
     const sr = rng('sob-o-capo:sparks');
     const sparks = Array.from({ length: 11 }, (_, i) => ({
       a: ((i + sr() * 0.7) / 11) * Math.PI * 2, rf: 0.8 + sr() * 0.4,
-      t0: HOLD[0] - 0.04 + (i / 10) * 0.16 + sr() * 0.05, dur: 0.16 + sr() * 0.1, w: 1.2 + sr() * 1.2,
+      t0: HOLD[0] - 0.03 + (i / 10) * 0.12 + sr() * 0.03, dur: 0.12 + sr() * 0.06, w: 1.2 + sr() * 1.2,   // all absorbed by ≈7.90
     }));
 
     /* ---------- projection ---------- */
@@ -578,7 +579,7 @@ GTR.scene({
           const ca2 = Math.cos(sp.a), sa2 = Math.sin(sp.a) * 0.92;
           const r1 = RS * c.z * sp.rf * (1 - q), r2 = RS * c.z * sp.rf * (1 - q2);
           const hx2 = px + ca2 * r1, hy2 = py + sa2 * r1, tx2 = px + ca2 * r2, ty2 = py + sa2 * r2;
-          const a = 0.55 * inv(t, sp.t0, sp.t0 + 0.05) * (1 - inv(q, 0.82, 1));
+          const a = 0.55 * inv(t, sp.t0, sp.t0 + 0.05) * (1 - inv(q, 0.82, 1)) * (1 - inv(t, HOLD[1], HOLD[1] + 0.05));
           if (a <= 0.003) continue;
           const gr = g.createLinearGradient(tx2, ty2, hx2, hy2);
           gr.addColorStop(0, 'rgba(21,219,168,0)');
