@@ -364,11 +364,19 @@ GTR.scene({
         const dxP = -1050 * split, dxC = 1150 * split;
         const mb = p(t, 5.3, 5.8, 'power2.in');
         fblur.setAttribute('stdDeviation', `${(44 * mb).toFixed(2)} 0`);
+        // dark glass (card + strip) brightens into a glow; the white phone must NOT (it clipped to a white slab),
+        // so it gets the blur darkened a touch and is faded out before the blur gets wide
         const exitFilter = mb > 0.001 ? `url(#fo-mblur) brightness(${(1 + 0.8 * mb).toFixed(3)})` : 'none';
+        const phoneFilter = mb > 0.001 ? `url(#fo-mblur) brightness(${(1 - 0.15 * mb).toFixed(3)})` : 'none';
 
-        /* ---- plate morph: full frame → phone screen (0–0.6) ---- */
+        /* ---- phone float (shared with the plate so its edges land exactly on the screen) ---- */
+        const fy = noise(t * 0.35, 1.7) * 7 * calm, frx = noise(t * 0.3, 8.1) * 1.2 * calm;
+        const bz = p(t, 0.25, 0.45, 'power2.out');
+
+        /* ---- plate morph: full frame → phone screen (rect done by 0.42), framed by the bezel ~0.35–0.48,
+                then it dissolves into the chat 0.48–0.6 ---- */
         if (t < 0.6) {
-          const m = p(t, 0, 0.6, 'power3.inOut');
+          const m = p(t, 0, 0.42, 'expo.inOut');
           const L = lerp(PLATE0.x, SCR.x, m), T = lerp(PLATE0.y, SCR.y, m);
           plate.style.display = 'block';
           plate.style.left = px(L);
@@ -376,22 +384,47 @@ GTR.scene({
           plate.style.width = px(lerp(PLATE0.w, SCR.w, m));
           plate.style.height = px(lerp(PLATE0.h, SCR.h, m));
           plate.style.borderRadius = px(lerp(0, SCR.r, m));
-          plate.style.backgroundPosition = `${mod(-L, 22)}px ${mod(-T, 22)}px`;
-          plate.style.boxShadow = `0 ${40 * m}px ${120 * m}px rgba(0,0,0,${0.5 * m})`;
-          plate.style.opacity = 1 - p(t, 0.45, 0.6, 'power1.inOut');
+          // same perspective/rotateX/float as phone.el, about the phone's centre
+          plate.style.transformOrigin = `${PH.x - L}px ${PH.y - T}px`;
+          plate.style.transform = `perspective(1500px) translate3d(0, ${fy * m}px, 0) rotateX(${frx * m}deg)`;
+          // dots: world-anchored 22 px at frame 0 → exactly the chat wallpaper's grid (22·K) when seated
+          const tile = lerp(22, 22 * K, m), ox = lerp(0, LIST.x, m), oy = lerp(0, LIST.y, m);
+          plate.style.backgroundSize = `${tile}px ${tile}px`;
+          plate.style.backgroundPosition = `${mod(ox - L, tile)}px ${mod(oy - T, tile)}px`;
+          plate.style.boxShadow = `0 ${40 * m}px ${120 * m}px rgba(0,0,0,${0.5 * m * (1 - bz)})`;
+          plate.style.opacity = 1 - p(t, 0.48, 0.6, 'power1.inOut');
         } else plate.style.display = 'none';
 
         /* ---- phone ---- */
-        bezel.style.opacity = p(t, 0.3, 0.6, 'power2.out');
+        bezel.style.opacity = bz;
         const pry = 14 * p(t, 0.6, 1.2, 'power3.out');
-        const fy = noise(t * 0.35, 1.7) * 7 * calm, frx = noise(t * 0.3, 8.1) * 1.2 * calm;
         phone.el.style.transform = `perspective(1500px) translate3d(${dxP}px, ${fy + dyP}px, 0) rotateY(${pry}deg) rotateX(${frx}deg) scale(${K})`;
-        phone.el.style.filter = exitFilter;
+        phone.el.style.filter = phoneFilter;
+        phone.el.style.opacity = 1 - p(t, 5.4, 5.6, 'power1.inOut');
         gPhone.style.opacity = (0.35 + 0.65 * p(t, 0.4, 1.2) + 0.35 * Math.exp(-Math.max(0, t - 1.5) * 3) * (t >= 1.5)) * (1 - p(t, 5.1, 5.7));
         gPhone.style.transform = `translate(${lerp(14, -14, orb)}px, 0) scale(${1 + 0.06 * noise(t * 0.4, 4)})`;
-        const bump = t >= 1.5 && t < 1.85 ? Math.sin(Math.PI * (t - 1.5) / 0.35) : 0;
-        conn.style.transform = `scale(${1 + 0.16 * bump})`;
-        conn.style.boxShadow = `0 0 ${16 * bump}px rgba(37,211,102,${0.8 * bump})`;
+        // status pill: grey "Conectando…" (spinning) → green "Conectado" popping 0.6 → 1 on the proof frame
+        const live = t >= 1.5;
+        const cTxt = live ? 'Conectado' : 'Conectando…';
+        if (connTxt.textContent !== cTxt) connTxt.textContent = cTxt;
+        conn.style.background = live ? C.wa : '#e5e7eb';
+        conn.style.color = live ? '#fff' : '#6b7280';
+        connSpin.style.display = live ? 'none' : 'grid';
+        connSpin.style.transform = `rotate(${t * 420}deg)`;
+        connDot.style.display = live ? 'block' : 'none';
+        const cp = GTR.E('back.out(2)')(GTR.inv(t, 1.5, 1.9));
+        conn.style.transform = `scale(${live ? lerp(0.6, 1, cp) : 1})`;
+        const cg = live ? Math.exp(-(t - 1.5) * 3.2) : 0;
+        conn.style.boxShadow = cg > 0.004 ? `0 0 0 ${(2 + 7 * (1 - cg)).toFixed(2)}px rgba(37,211,102,${(0.35 * cg).toFixed(3)}), 0 0 ${18 * cg}px rgba(37,211,102,${0.85 * cg})` : 'none';
+        // Meta system notice pops right after the connection (1.6), with a short teal highlight
+        const np = GTR.E('back.out(1.7)')(GTR.inv(t, 1.6, 2.05));
+        notice.style.opacity = clamp(GTR.inv(t, 1.6, 1.75));
+        notice.style.transform = `translateY(${(1 - np) * 10}px) scale(${lerp(0.82, 1, np)})`;
+        const ng = t >= 1.6 ? Math.exp(-(t - 1.6) * 2.6) : 0;
+        notice.style.boxShadow = `0 1px 1.5px rgba(0,0,0,0.1), 0 0 0 ${(2.5 * ng).toFixed(2)}px rgba(21,219,168,${(0.9 * ng).toFixed(3)}), 0 0 ${22 * ng}px rgba(21,219,168,${(0.45 * ng).toFixed(3)})`;
+        // IA bubble answers each inbound "message" packet with a 0.18 s teal outline
+        const ag = aiGlow(t);
+        aiB.style.boxShadow = ag > 0.004 ? `${AIB_SHADOW}, 0 0 0 ${(2.5 * ag).toFixed(2)}px rgba(21,219,168,${(0.95 * ag).toFixed(3)}), 0 0 ${20 * ag}px rgba(21,219,168,${(0.6 * ag).toFixed(3)})` : AIB_SHADOW;
 
         /* ---- cloud card ---- */
         const ce = p(t, 0.6, 1.2, 'power3.out');
@@ -419,9 +452,20 @@ GTR.scene({
         if (t > 2.8) drawECG(t);
         else { eg.setTransform(1, 0, 0, 1, 0, 0); eg.clearRect(0, 0, ecgCv.width, ecgCv.height); }
         const bk = t >= 3.0 ? Math.exp(-fract(t * 2) * 7) : 0.5;
-        okDot.style.opacity = 0.35 + 0.65 * bk;
-        okDot.style.transform = `scale(${1 + 0.4 * bk})`;
+        // 30-min check events (3.5 / 4.5): scan sweep over the strip, dot → tick in the ok pill, ring pulse
+        let ce2 = -1;
+        for (const c of CHECKS) if (t >= c && t < c + 0.9) ce2 = t - c;
+        const tk = ce2 < 0 ? 0 : (ce2 < 0.6 ? GTR.E('back.out(2.6)')(GTR.inv(ce2, 0, 0.26)) : 1 - p(ce2, 0.6, 0.78, 'power2.in'));
+        okChk.style.opacity = clamp(tk * 2);
+        okChk.style.transform = `scale(${tk}) rotate(${(1 - clamp(tk)) * -40}deg)`;
+        okDot.style.opacity = (0.35 + 0.65 * bk) * (1 - clamp(tk));
+        okDot.style.transform = `scale(${(1 + 0.4 * bk) * (1 - clamp(tk))})`;
         okDot.style.boxShadow = `0 0 ${4 + 12 * bk}px rgba(37,211,102,${0.4 + 0.6 * bk})`;
+        const rg = ce2 >= 0 && ce2 < 0.55 ? GTR.inv(ce2, 0, 0.55) : 1;
+        ok.style.boxShadow = rg < 1 ? `0 0 0 ${(1 + 9 * GTR.E('power2.out')(rg)).toFixed(2)}px rgba(37,211,102,${(0.45 * (1 - rg)).toFixed(3)}), 0 0 ${16 * (1 - rg)}px rgba(37,211,102,${(0.5 * (1 - rg)).toFixed(3)})` : 'none';
+        const sw = ce2 >= 0 && ce2 < 0.55 ? p(ce2, 0, 0.55, 'power2.inOut') : -1;
+        scan.style.opacity = sw < 0 ? 0 : Math.min(1, 1.8 * Math.sin(Math.PI * clamp(sw)));
+        scan.style.transform = `translateX(${lerp(-220, STRIP.w, clamp(sw))}px)`;
 
         /* ---- bridge (its ends ride the phone and the card; flattens to y 460 on exit) ---- */
         const P0 = [A[0] + dxP, A[1] + dyP], P3 = [B[0] + dxC, B[1] + dyC];
@@ -430,7 +474,7 @@ GTR.scene({
         bridge.path.setAttribute('d', dNow);
         tube.setAttribute('d', dNow);
         track.style.opacity = p(t, 0.9, 1.2, 'power2.out') * (1 - p(t, 1.2, 1.5));
-        const bd = p(t, 1.2, 1.5, 'power2.inOut');
+        const bd = p(t, BIG_T0, BIG_T1, 'power2.in');   // accelerates into port B: lands (and hits) at 1.5
         bridge.set(bd);
         const drawn = bd >= 1;
         bridge.path.style.strokeDasharray = drawn ? 'none' : `${bridge.len}`;
@@ -444,6 +488,28 @@ GTR.scene({
         pulseA.set(GTR.inv(t, 1.2, 1.7));
         pulseB.set(p(t, 1.5, 2.2, 'power2.out'));
         drawPackets(t, drawn ? bridge.path.getTotalLength() : bridge.len);
+        // proof packet: rides the draw head 1.2–1.5, then bursts on port B
+        if (t >= BIG_T0 && t < BIG_T1 + 0.4) {
+          const fly = t < BIG_T1;
+          const at = (tt) => bridge.path.getPointAtLength(bridge.len * p(tt, BIG_T0, BIG_T1, 'power2.in'));
+          const hp = fly ? at(t) : { x: P3[0], y: P3[1] };
+          const fin = clamp(GTR.inv(t, BIG_T0, BIG_T0 + 0.06));
+          const e = fly ? 0 : t - BIG_T1;
+          bigCore.setAttribute('cx', hp.x); bigCore.setAttribute('cy', hp.y);
+          bigHalo.setAttribute('cx', hp.x); bigHalo.setAttribute('cy', hp.y);
+          bigCore.setAttribute('r', fly ? 8 : 8 * (1 - clamp(e / 0.14)));
+          bigCore.setAttribute('opacity', fly ? fin : 1 - clamp(e / 0.14));
+          bigHalo.setAttribute('r', fly ? 26 : 26 + 58 * GTR.E('power2.out')(clamp(e / 0.4)));
+          bigHalo.setAttribute('opacity', fly ? fin : 1 - GTR.E('power1.in')(clamp(e / 0.4)));
+          bigTrail.forEach((c, i) => {
+            const tp = at(Math.min(t, BIG_T1) - 0.018 * (i + 1));
+            c.setAttribute('cx', tp.x); c.setAttribute('cy', tp.y);
+            c.setAttribute('opacity', fly ? fin * [0.55, 0.32, 0.18][i] * clamp(GTR.inv(t, BIG_T0 + 0.02 * (i + 1), BIG_T0 + 0.02 * (i + 1) + 0.04)) : 0);
+          });
+        } else {
+          bigCore.setAttribute('opacity', 0); bigHalo.setAttribute('opacity', 0);
+          bigTrail.forEach((c) => c.setAttribute('opacity', 0));
+        }
 
         /* ---- HUD ---- */
         const hx = lerp(8, -8, orb), hy = noise(t * 0.25, 30) * 4;

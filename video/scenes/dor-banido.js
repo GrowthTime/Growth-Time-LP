@@ -2,11 +2,13 @@
    S2 · dor-banido — ERRO 02 · NÚMERO BANIDO          [4–8 global]
    Match cut from S1: the same phone {x:620,y:580,w:420}, rotateY 16°,
    perspective 1400, the same list, swarm and hero bubble — now under a ban
-   modal. The tear settles (0–0.25), the dead swarm drops out of frame, the
-   chat rows die bottom-up, "O WhatsApp bloqueia." / "Sem aviso." / "Sem
-   motivo.", a red lock slams onto the ban icon while a red scan drains the
-   screen to gray, chip 02 stamps into the log, and the world whips out to
-   the left (−900, blur 24) over streaks.
+   modal. The tear settles (0–0.25) on the world AND on S1's carried headline,
+   the dead swarm + that headline drop out of frame, the chat rows die bottom-up
+   (red flush, badge pops, slide + collapse), "O WhatsApp bloqueia." / "Sem aviso."
+   / "Sem motivo.", a red lock slams onto the ban icon while a red scan drains the
+   screen (and the rim light) to gray, chip 02 stamps into the log, and the world
+   whips out to the left (−900; horizontal-led blur converging to 24 × 24) over
+   streaks with hot heads.
    Structure (back → front):
      tearWrap › whipWrap › camera view › world (flat, 2D camera)
          rim glow · ghostsBack · persp(1400) › rig(rotateY 16°) › phone + overlay · ghostsFront
@@ -182,9 +184,9 @@ GTR.scene({
        (left third + lower right, clear of the chips and of the disclaimer band x < 380, y > 1020) ---- */
     const DEBRIS = [
       // text, time, screen x, y, z, rot, alpha
-      ['Alguém aí?', '19:03', 250, 640, -760, -6, 0.42],
-      ['Oi??', '18:47', 345, 872, -430, 5, 0.34],
-      ['Tem no preto?', '21:40', 1590, 905, -860, -4, 0.5],
+      ['Alguém aí?', '19:03', 250, 640, -540, -6, 0.42],
+      ['Oi??', '18:47', 345, 872, -320, 5, 0.34],
+      ['Tem no preto?', '21:40', 1590, 905, -620, -4, 0.5],
     ].map(([text, time, sx, sy, z, rot, alpha], i) => {
       const wrap = h('div', { style: { position: 'absolute', left: '0', top: '0', width: 'max-content', transformOrigin: '50% 50%', display: 'none' } }, ghostsBack);
       const el = KIT.bubble(wrap, { side: 'in', text, time, size: 20, maxW: 'none' });
@@ -434,7 +436,7 @@ GTR.scene({
         }
         {
           const tau = t - HERO.t0;
-          const a = 1 - p(tau, 0.06, 0.5, 'power1.in');
+          const a = 1 - p(tau, 0.06, 0.37, 'power1.in');                 // gone before it reaches the disclaimer band
           heroWrap.style.display = a > 0.002 ? 'block' : 'none';
           if (a > 0.002) {
             const z = HERO_Z + 18 * (g - 3.35);
